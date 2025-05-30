@@ -1,0 +1,10 @@
+*.vs
+*.bak
+*.lnk
+
+[Bb]uild
+_[Bb]uild
+[Ee]xternals/_vcpkg
+_[Nn]inja
+
+[Dd]eploy/_bin
