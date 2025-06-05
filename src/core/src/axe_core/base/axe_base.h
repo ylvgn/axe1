@@ -1,51 +1,24 @@
+
 #pragma once
 
+#include "../detect_platform/axe_detect_platform.h"
 #include "axe_core-config.h"
 
-#ifndef _CRT_SECURE_NO_WARNINGS
-	#define _CRT_SECURE_NO_WARNINGS 1 // Enable getenv
+//---- compiler
+#if AXE_COMPILER_VC
+	#include "AXE_COMPILER_VC.h"
+#elif AXE_COMPILER_GCC
+	#include "AXE_COMPILER_GCC.h"
 #endif
-
-#include "../detect_platform/axe_detect_platform.h"
 
 //---- os
 #if AXE_OS_WINDOWS
-	#define NOMINMAX 1
-	#include <WinSock2.h> // WinSock2.h must include before windows.h to avoid winsock1 define
-	#include <ws2tcpip.h> // struct sockaddr_in6
-	#pragma comment(lib, "Ws2_32.lib")
-	#include <Windows.h>
-	#include <intsafe.h>
-	#include <xmmintrin.h>
-
-	#ifndef AXE_TRY_USE_OPENGL
-		#error
-	#elif AXE_TRY_USE_OPENGL
-		#define GLEW_STATIC 1
-		// include glew before gl.h
-		#include <axe_core/glew/glew.h>
-		#include <axe_core/glew/wglew.h>
-
-		#include <GL/gl.h>
-		#include <GL/glu.h>
-
-		#if AXE_COMPILER_VC
-			#pragma comment(lib, "Opengl32.lib") // gl.h
-			#pragma comment(lib, "GLu32.lib")	 // glu.h
-		#endif
-		// Note: glaux has been deprecated for a long time
-		// #include <Gl/glaux.h>
-		// #pragma comment(lib, "GLaux.lib")
-	#endif
-
-#else
-	#include <sys/types.h>
-	#include <sys/socket.h>
-	#include <netdb.h>
-	#include <netinet/in.h> // struct sockaddr_in
+	#include "AXE_OS_WINDOWS.h"
+#elif AXE_OS_UNIX
+	#include "AXE_OS_UNIX.h"
 #endif
 
-//---- cpp
+//---- c++ headers
 #include <cassert>
 #include <exception>
 #include <iostream>
@@ -55,6 +28,10 @@
 #include <functional>
 
 //---- externals
+#include <nlohmann/json.hpp>
+
+#include <fmt/format.h>
+
 #include <EASTL/vector.h>
 #include <EASTL/fixed_vector.h>
 #include <EASTL/list.h>
@@ -74,8 +51,6 @@
 #include <EASTL/shared_ptr.h>
 #include <EASTL/weak_ptr.h>
 
-#include <nlohmann/json.hpp>
-
 //----
 #include "axe_macro.h"
 
@@ -87,49 +62,91 @@ using Json = nlohmann::json;
 	// It is expected that the application define the following
 	// versions of operator new for the application. Either that or the
 	// user needs to override the implementation of the allocator class.
-inline void* operator new[](size_t size, const char* pName, int flags, unsigned debugFlags, const char* file, int line) { return malloc(size); }
-inline void* operator new[](size_t size, size_t alignment, size_t alignmentOffset, const char* pName, int flags, unsigned debugFlags, const char* file, int line) {
-#if AXE_OS_WINDOWS
-	return _aligned_malloc(size, alignment);
-#else
-	return std::aligned_alloc(alignment, size);
-#endif
+inline void* operator new[] ( size_t		size
+							, const char*	pName
+							, int			flags
+							, unsigned		debugFlags
+							, const char*	file
+							, int			line)
+{
+	return malloc(size);
 }
-#endif
+
+inline void* operator new[] ( size_t		size
+							, size_t		alignment
+							, size_t		alignmentOffset
+							, const char*	pName
+							, int			flags
+							, unsigned		debugFlags
+							, const char*	file
+							, int			line)
+{
+	#if AXE_OS_WINDOWS
+	return _aligned_malloc(size, alignment);
+	#else
+	return std::aligned_alloc(alignment, size);
+	#endif
+}
+#endif // !EASTL_DLL
 
 //==== EASTL ====
 
+
+//---- basic types
 namespace axe {
 
-template<class T> inline constexpr typename std::underlying_type<T>::type  enumInt(T  value) { return static_cast<typename std::underlying_type<T>::type>(value); }
-template<class T> inline constexpr typename std::underlying_type<T>::type& enumIntRef(T& value) { return *reinterpret_cast<typename std::underlying_type<T>::type*>(&value); }
-template<class T> inline constexpr typename std::underlying_type<T>::type const& enumIntRef(const T& value) { return *reinterpret_cast<const typename std::underlying_type<T>::type*>(&value); }
+class NonCopyable {
+public:
+	NonCopyable() = default;
+private:
+	NonCopyable		(const NonCopyable&) = delete;
+	void operator=	(const NonCopyable&) = delete;
+};
 
-template<class T> inline bool constexpr enumHas(const T& a, const T& b) { return static_cast<T>(enumInt(a) & enumInt(b)) != static_cast<T>(0); }
+using u8		 = uint8_t;
+using u16		 = uint16_t;
+using u32		 = uint32_t;
+using u64		 = uint64_t;
+using u128		 = uint128_t;
+
+using i8		 = int8_t;
+using i16		 = int16_t;
+using i32		 = int32_t;
+using i64		 = int64_t;
+using i128		 = int128_t;
+
+//using f16		 = half;
+using	f32		 = float;
+using	f64		 = double;
+using	f128	 = long double;
+
+using StrLiteral = const char*;
+
+using Char8		 = char; // char8_t: require c++20
+using Char16	 = char16_t;
+using Char32	 = char32_t;
+using CharW		 = wchar_t;
+using CharU		 = Char32; // unicode code point
+
+} // namespace axe
+
+#include "TypeTraits.h"
+
+//---- utils
+namespace axe {
+
+template<class T> AXE_INLINE constexpr typename std::underlying_type<T>::type  enumInt(T  value) { return static_cast<typename std::underlying_type<T>::type>(value); }
+template<class T> AXE_INLINE constexpr typename std::underlying_type<T>::type& enumIntRef(T& value) { return *reinterpret_cast<typename std::underlying_type<T>::type*>(&value); }
+template<class T> AXE_INLINE constexpr typename std::underlying_type<T>::type const& enumIntRef(const T& value) { return *reinterpret_cast<const typename std::underlying_type<T>::type*>(&value); }
+
+template<class T> AXE_INLINE bool constexpr enumHas(const T& a, const T& b) { return static_cast<T>(enumInt(a) & enumInt(b)) != static_cast<T>(0); }
 
 template<class T> AXE_INLINE T* constCast(const T* v) { return const_cast<T*>(v); }
 template<class T> AXE_INLINE T& constCast(const T& v) { return const_cast<T&>(v); }
 
 template<class T> AXE_INLINE void swap(T& a, T& b) { T tmp = AXE_MOVE(a); a = AXE_MOVE(b); b = AXE_MOVE(tmp); }
 
-using u8   = uint8_t;
-using u16  = uint16_t;
-using u32  = uint32_t;
-using u64  = uint64_t;
-using u128 = uint128_t;
-
-using i8   = int8_t;
-using i16  = int16_t;
-using i32  = int32_t;
-using i64  = int64_t;
-using i128 = int128_t;
-
-//using f16 = half;
-using f32	= float;
-using f64	= double;
-using f128	= long double;
-
-using StrLiteral = const char*;
+template<class T> inline void axe_delete(T* p) noexcept { delete p; }
 
 template< class Obj, class Member > constexpr
 intptr_t memberOffset(Member Obj::*ptrToMember) {
@@ -145,8 +162,13 @@ size_t charStrlen(const T* sz) {
 	return static_cast<size_t>(p - sz);
 }
 
+} // namespace axe
+
+//---- container
+namespace axe {
+
 template<class T> using UPtr = eastl::unique_ptr<T>;
-template <class T, class... Args> inline UPtr<T> UPtr_make(Args&&... args) {
+template <class T, class... Args> AXE_INLINE UPtr<T> UPtr_make(Args&&... args) {
 	return eastl::make_unique<T>(AXE_FORWARD(args)...);
 }
 
@@ -178,7 +200,7 @@ public:
 	using Base::end;
 
 	Vector() = default;
-	Vector(std::initializer_list<T> list) : Base(list) {}
+	Vector(std::initializer_list<T> list) noexcept : Base(list) {}
 
 	void appendRange(const Span<const T>& rhs) { Base::insert(end(), rhs.begin(), rhs.end()); }
 
@@ -294,12 +316,12 @@ private:
 	}
 };
 
-using StrViewA  = StrViewT<char>;
-using StrViewW  = StrViewT<wchar_t>;
+using StrViewA  = StrViewT<Char8>;
+using StrViewW  = StrViewT<CharW>;
 
-using StrView8  = StrViewT<char>; // char8_t: require c++20
-using StrView16 = StrViewT<char16_t>;
-using StrView32 = StrViewT<char32_t>;
+using StrView8  = StrViewT<Char8>;
+using StrView16 = StrViewT<Char16>;
+using StrView32 = StrViewT<Char32>;
 
 template<class T, size_t N, bool bEnableOverflow = true>
 struct StringT_Base {
@@ -371,12 +393,12 @@ public:
 	void resizeToLocalBufSize() { Base::resize(N); }
 };
 
-template<size_t N, bool bEnableOverflow = true> using StringA_ = StringT<char,    N, bEnableOverflow>;
-template<size_t N, bool bEnableOverflow = true> using StringW_ = StringT<wchar_t, N, bEnableOverflow>;
+template<size_t N, bool bEnableOverflow = true> using StringA_ = StringT<Char8, N, bEnableOverflow>;
+template<size_t N, bool bEnableOverflow = true> using StringW_ = StringT<CharW, N, bEnableOverflow>;
 
-template<size_t N, bool bEnableOverflow = true> using String8_  = StringT<char,		N, bEnableOverflow>; // char8_t: require c++20
-template<size_t N, bool bEnableOverflow = true> using String16_ = StringT<char16_t, N, bEnableOverflow>;
-template<size_t N, bool bEnableOverflow = true> using String32_ = StringT<char32_t, N, bEnableOverflow>;
+template<size_t N, bool bEnableOverflow = true> using String8_  = StringT<Char8,  N, bEnableOverflow>;
+template<size_t N, bool bEnableOverflow = true> using String16_ = StringT<Char16, N, bEnableOverflow>;
+template<size_t N, bool bEnableOverflow = true> using String32_ = StringT<Char32, N, bEnableOverflow>;
 
 using TempStringA = StringA_<220>;
 using TempStringW = StringW_<220>;
@@ -437,62 +459,67 @@ template<size_t N> using String_ = StringA_<N>;
 using TempString = TempStringA;
 
 template<size_t N> struct CharBySize;
-template<> struct CharBySize<1> { using Type = char; }; // char8_t: require c++20
-template<> struct CharBySize<2> { using Type = char16_t; };
-template<> struct CharBySize<4> { using Type = char32_t; };
+template<> struct CharBySize<1> { using Type = Char8; };
+template<> struct CharBySize<2> { using Type = Char16; };
+template<> struct CharBySize<4> { using Type = Char32; };
 
-struct WCharUtil {
-	using Char = typename CharBySize<sizeof(wchar_t)>::Type;
-	Char    toChar (wchar_t c) { return static_cast<Char>(c); }
-	wchar_t toWChar(Char    c) { return static_cast<wchar_t>(c); }
+class WCharUtil {
+	WCharUtil() = delete;
+public:
+	using Char = typename CharBySize<sizeof(CharW)>::Type;
+	Char  toChar(CharW c) { return static_cast<Char>(c); }
+	CharW toWChar(Char c) { return static_cast<CharW>(c); }
 };
 
-inline StrView   StrView_c_str(const char*		s)	{ return s ? StrView  (s, strlen(s))	 : StrView (); } // char8_t: require c++20
-inline StrView16 StrView_c_str(const char16_t*	s)	{ return s ? StrView16(s, charStrlen(s)) : StrView16(); }
-inline StrView32 StrView_c_str(const char32_t*	s)	{ return s ? StrView32(s, charStrlen(s)) : StrView32(); }
-inline StrViewW  StrView_c_str(const wchar_t*	s)	{ return s ? StrViewW (s, wcslen(s))	 : StrViewW(); }
+inline StrView8  StrView_c_str(const Char8  * s) { return s ? StrView8 (s, strlen(s))	  : StrView8 (); }
+inline StrView16 StrView_c_str(const Char16 * s) { return s ? StrView16(s, charStrlen(s)) : StrView16(); }
+inline StrView32 StrView_c_str(const Char32 * s) { return s ? StrView32(s, charStrlen(s)) : StrView32(); }
+inline StrViewW  StrView_c_str(const CharW  * s) { return s ? StrViewW (s, wcslen(s))	  : StrViewW (); }
 
-//! Source Location
+} // namespace axe
+
+#include "../string/Fmt.h"
+
+namespace axe {
+
 class SrcLoc {
 public:
-	AXE_INLINE SrcLoc(const char* file_, int line_, const char* func_) noexcept
+	AXE_INLINE SrcLoc(const char* func_ = "" , const char* file_ = "", int line_ = 0) noexcept
 		: file(file_)
 		, func(func_)
 		, line(line_)
 	{}
 
+	void onFormat(fmt::format_context& ctx) const {
+		fmt::format_to(ctx.out(),
+			"func: {}\nfile: {}, line: {}",
+			StrView_c_str(func),
+			StrView_c_str(file),
+			line
+		);
+	}
+
 	const char* file = "";
 	const char* func = "";
-	int line = 0;
-};
+	int			line = 0;
+}; // SrcLoc
+AXE_FORMATTER(SrcLoc)
 
 } // namespace axe
 
-#include "TypeTraits.h"
+AXE_INLINE
+std::ostream& operator<<(std::ostream& s, const axe::SrcLoc& loc)
+{
+	s << "func: " << loc.func << '\n'
+	  << " file : " << loc.file
+	  << " line : " << loc.line;
+	return s;
+}
 
+#include "Error.h"
+
+//---- others
 namespace axe {
-
-class NonCopyable {
-public:
-	NonCopyable() = default;
-private:
-	NonCopyable		(const NonCopyable&) = delete;
-	void operator=	(const NonCopyable&) = delete;
-};
-
-class WeakRefBlock : public NonCopyable {
-public:
-	void* _obj = nullptr;
-	std::atomic_int	_weakCount = 0;
-};
-
-class RefCountBase : public NonCopyable {
-public:
-	WeakRefBlock*	_weakRefBlock = nullptr;
-	std::atomic_int	_refCount = 0;
-};
-
-template<class T> inline void axe_delete(T* p) noexcept { delete p; }
 
 template<class T>
 class ScopedValue : public NonCopyable {
@@ -525,30 +552,29 @@ public:
 private:
 	T* _p = nullptr;
 	T _oldValue;
-};
+}; // ScopedValue
 
 template<class T> AXE_NODISCARD inline ScopedValue<T> ScopedValue_make(T& p)					{ return ScopedValue<T>(p); }
 template<class T> AXE_NODISCARD inline ScopedValue<T> ScopedValue_make(T& p, const T& newValue) { return ScopedValue<T>(p, newValue); }
 
-
 template<class First, class Second>
-struct Pair {
+class Pair {
 	Pair() = delete;
-
-	constexpr Pair(const First& first_, const Second& second_) noexcept : first(first_), second(second_) {}
-	constexpr Pair(First&& first_, Second&& second_)		   noexcept : first(AXE_MOVE(first_)), second(AXE_MOVE(second_)) {}
+public:
+	constexpr Pair(const First& first_, const Second& second_) noexcept
+		: first(first_), second(second_) {}
+	constexpr Pair(First&& first_, Second&& second_) noexcept
+		: first(AXE_MOVE(first_)), second(AXE_MOVE(second_)) {}
 
 	First	first;
 	Second	second;
-};
+}; // Pair
 
-template<class First, class Second> inline
-Pair<First, Second> Pair_make(const First& first, const Second& second) {
+template<class First, class Second> AXE_NODISCARD inline Pair<First, Second> Pair_make(const First& first, const Second& second) {
 	return Pair<First, Second>(first, second);
 }
 
-template<class First, class Second = typename First> inline
-Pair<First, Second> Pair_make() {
+template<class First, class Second = typename First> AXE_NODISCARD inline Pair<First, Second> Pair_make() {
 	return Pair<First, Second>(First(), Second());
 }
 

@@ -6,9 +6,9 @@
 
 namespace axe {
 
-struct StringUtil {
+class StringUtil {
 	StringUtil() = delete;
-
+public:
 	static void binToHex(String& out, Span<u8> data);
 
 	static void appendBinToHex(String& out, ByteSpan data);
@@ -101,7 +101,7 @@ const char* StringUtil::extractFromPrefix(const char* src, const char* prefix) {
 } // namespace axe
 
 
-inline
+AXE_INLINE
 std::ostream& operator<<(std::ostream& s, const axe::StrView& v) {
 	s.write(v.data(), v.size());
 	return s;

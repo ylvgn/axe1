@@ -1,7 +1,6 @@
 #pragma once
 
 #include <axe_core/base/axe_base.h>
-#include <axe_core/base/axe_macro.h>
 #include <axe_core/base/BitUtil.h>
 
 #include <axe_core/base/Object.h>
@@ -49,4 +48,3 @@
 #include <axe_core/cmd/CommandLine.h>
 
 #include <axe_core/native_ui/NativeUI.h>
-

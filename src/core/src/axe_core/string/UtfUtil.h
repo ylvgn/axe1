@@ -4,9 +4,9 @@
 
 namespace axe {
 
-struct UtfUtil {
+class UtfUtil {
 	UtfUtil() = delete;
-
+public:
 	template<class DST, class SRC> static void convert(DST& dst, const SRC& src);
 
 	template<class SRC>	static String  toString	(SRC& src) { String  o; convert(o, src); return o; }
@@ -35,16 +35,16 @@ private:
 	template<size_t N>	static void _append(StringW_<N> & dst, StrView32 view) { _append_impl(dst, view); }
 	template<size_t N>	static void _append(StringW_<N> & dst, StrViewW  view) { _append_impl(dst, view); }
 
-	static uint32_t _decodeUtf(const char*&     src, const char*     end); // char8_t: require c++20
-	static uint32_t _decodeUtf(const char16_t*& src, const char16_t* end);
-	static uint32_t _decodeUtf(const char32_t*& src, const char32_t* end);
-	static uint32_t _decodeUtf(const wchar_t*&  src, const wchar_t*  end);
+	static uint32_t _decodeUtf(const Char8  *& src, const Char8  * end);
+	static uint32_t _decodeUtf(const Char16 *& src, const Char16 * end);
+	static uint32_t _decodeUtf(const Char32 *& src, const Char32 * end);
+	static uint32_t _decodeUtf(const CharW  *& src, const CharW  * end);
 
-	template<size_t N>	static void _encodeUtf(String8_<N> & dst, uint32_t v);
-	template<size_t N>	static void _encodeUtf(String16_<N>& dst, uint32_t v);
-	template<size_t N>	static void _encodeUtf(String32_<N>& dst, uint32_t v);
-	template<size_t N>	static void _encodeUtf(StringW_<N> & dst, uint32_t v) {
-		using C   = typename TypeTraits::typeBySize<sizeof(wchar_t)>::Char;
+	template<size_t N>	static void _encodeUtf(String8_ <N> & dst, uint32_t v);
+	template<size_t N>	static void _encodeUtf(String16_<N> & dst, uint32_t v);
+	template<size_t N>	static void _encodeUtf(String32_<N> & dst, uint32_t v);
+	template<size_t N>	static void _encodeUtf(StringW_ <N> & dst, uint32_t v) {
+		using C   = typename TypeTraits::typeBySize<sizeof(CharW)>::Char;
 		using STR = typename StringT<C, N, true>;
 		_encodeUtf(reinterpret_cast<STR&>(dst), v);
 	}
@@ -176,7 +176,7 @@ void UtfUtil::_append_impl(DST& dst, SRC src) {
 }
 
 AXE_INLINE
-uint32_t UtfUtil::_decodeUtf(const char* & src, const char* end) {
+uint32_t UtfUtil::_decodeUtf(const Char8* & src, const Char8* end) {
 	auto v = static_cast<uint8_t>(*src);
 	uint32_t o = 0;
 
@@ -237,7 +237,7 @@ uint32_t UtfUtil::_decodeUtf(const char* & src, const char* end) {
 }
 
 AXE_INLINE
-uint32_t UtfUtil::_decodeUtf(const char16_t*& src, const char16_t* end) {
+uint32_t UtfUtil::_decodeUtf(const Char16*& src, const Char16* end) {
 	auto v = static_cast<uint16_t>(*src);
 
 	if (v >= 0xD800U && v < 0xDBFFU) {
@@ -252,12 +252,12 @@ uint32_t UtfUtil::_decodeUtf(const char16_t*& src, const char16_t* end) {
 }
 
 AXE_INLINE
-uint32_t UtfUtil::_decodeUtf(const char32_t*& src, const char32_t* end) {
+uint32_t UtfUtil::_decodeUtf(const Char32*& src, const Char32* end) {
 	return *src++;
 }
 
 AXE_INLINE
-uint32_t UtfUtil::_decodeUtf(const wchar_t*& src, const wchar_t* end) {
+uint32_t UtfUtil::_decodeUtf(const CharW*& src, const CharW* end) {
 	using C = WCharUtil::Char;
 	const auto* & s = reinterpret_cast<const C* &>(src);
 	const auto*   e = reinterpret_cast<const C*  >(end);

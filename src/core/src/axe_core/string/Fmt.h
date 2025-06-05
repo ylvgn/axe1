@@ -2,16 +2,6 @@
 
 #include "../base/axe_base.h"
 
-#include <fmt/format.h>
-
-#if AXE_COMPILER_VC
-	#if _DEBUG
-		#pragma comment(lib, "fmtd.lib")
-	#else
-		#pragma comment(lib, "fmt.lib")
-	#endif
-#endif
-
 #define AXE_FORMATTER_T(TEMPLATE_ARGS, CLASS) \
 	} /* namespace axe */ \
 	template<TEMPLATE_ARGS> \

@@ -150,19 +150,24 @@
 
 #elif __ANDROID__
 	#define AXE_OS_ANDROID	1
+	#define AXE_OS_UNIX	   1
 
 #elif __linux
 	#define AXE_OS_LINUX        1
+	#define AXE_OS_UNIX	 1
 
 #elif __FreeBSD__
 	#define AXE_OS_FREEBSD		1
+	#define AXE_OS_UNIX			1
 
 #elif __APPLE__ && __MACH__
 	#include <TargetConditionals.h>
 	#if (TARGET_OF_IPHONE_SIMULATOR) || (TARGET_OS_IPHONE) || (TARGET_IPHONE)
 		#define AXE_OS_IOS		1
+		#define AXE_OS_UNIX		1
 	#else
 		#define AXE_OS_MACOSX	1
+		#define AXE_OS_UNIX		1
 	#endif
 
 #elif __sun

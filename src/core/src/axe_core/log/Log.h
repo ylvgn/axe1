@@ -8,6 +8,8 @@
 #define AXE_LOG_WARN(...)  do{ axe::g_log.write(axe::Log::Level::Warning, __VA_ARGS__); } while(false)
 #define AXE_LOG_ERROR(...) do{ axe::g_log.write(axe::Log::Level::Error,   __VA_ARGS__); } while(false)
 
+#define AXE_LOG_WARN_ONCE(...) do{ AXE_RUN_ONCE( AXE_LOG_WARN(__VA_ARGS__) ); } while(false)
+
 namespace axe {
 
 #define Log_Level_ENUM_LIST(E) \
@@ -17,6 +19,7 @@ namespace axe {
 	E(Error,)	\
 //----
 AXE_ENUM_CLASS(Log_Level, u8)
+// AXE_ENUM_STR(Log_Level)
 
 class Log : public NonCopyable {
 public:
@@ -33,7 +36,5 @@ public:
 };
 
 extern Log g_log;
-
-//AXE_ENUM_STR(Log::Level)
 
 } //namespace axe

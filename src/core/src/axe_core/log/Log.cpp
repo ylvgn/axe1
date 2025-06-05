@@ -1,5 +1,4 @@
 #include <axe_core/log/Log.h>
-#include <iostream>
 
 namespace axe {
 
@@ -9,4 +8,4 @@ void Log::onWrite(Level lv, StrView str) {
 	std::cout << str << "\n";
 }
 
-} // namespace
+} // namespace axe

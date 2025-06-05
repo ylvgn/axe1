@@ -43,7 +43,7 @@ struct typeBySize<1> {
 
 template<>
 struct typeBySize<2> {
-	using Int = i16;
+	using Int  = i16;
 	using UInt = u16;
 	using Char = char16_t;
 };

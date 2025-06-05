@@ -10,11 +10,11 @@ public:
 	bool hidden = false;
 };
 
-struct Directory {
-	using Entry			= DirectoryEntry;
-	using FilterFunc	= AXE_FUNC<bool(Entry& entry)>;
-
+class Directory {
 	Directory() = delete;
+public:
+	using Entry		 = DirectoryEntry;
+	using FilterFunc = AXE_FUNC<bool(Entry& entry)>;
 
 	static void		setCurrent(StrView dir);
 	static void		currentTo(String& out);
@@ -33,5 +33,7 @@ private:
 	static void		_remove(StrView dir);
 	static void		_appendGetFileSystemEntries(Vector<Entry>& result, StrView path, bool subDir, FilterFunc filter);
 }; // Directory
+
+AXE_STATIC_ASSERT_NO_MEMBER_CLASS(Directory);
 
 } // namespace axe

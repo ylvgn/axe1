@@ -2,7 +2,7 @@
 
 namespace axe {
 
-struct BitUtil {
+class BitUtil {
 	BitUtil() = delete;
 public:
 	template<class T>	constexpr	static bool	hasAny	(T  value, T bits)			{ return (value & bits) != T(0); }
@@ -15,7 +15,7 @@ public:
 	template<class T>	constexpr	static int	count0	(T  value) { return count1(~value); }
 	template<class T>	constexpr	static int	highest	(T  value);
 	template<class T>	constexpr	static int	lowest	(T  value);
-};
+}; // BitUtil
 
 template<class T> constexpr
 int BitUtil::highest(T value) {
@@ -55,4 +55,4 @@ int BitUtil::count1(T value) {
 	return result;
 }
 
-}
+} // namespace axe

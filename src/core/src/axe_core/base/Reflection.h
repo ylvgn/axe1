@@ -1,4 +1,5 @@
 #pragma once
+
 #include "axe_base.h"
 #include <axe_core/log/Log.h>
 
@@ -31,7 +32,7 @@ public: \
 		TI_Base() : TypeInfoInit<T, BASE>(#T, nullptr) {} \
 	}; \
 private: \
-//-----
+//----
 
 #define AXE_OBJECT_TYPE(T, BASE) \
 	AXE_ABSTRACT_OBJECT_TYPE_BASE(T, BASE) \
@@ -40,7 +41,7 @@ private: \
 		TI_Base() : TypeInfoInit<T, BASE>(#T, &TypeCreator<T>) {} \
 	}; \
 private: \
-//-----
+//----
 
 
 namespace axe {
@@ -66,8 +67,7 @@ public:
 		, offset(memberOffset(ptr_))
 		, getter(reinterpret_cast<Getter>(getter_))
 		, setter(reinterpret_cast<Setter>(setter_))
-	{
-	}
+	{}
 
 		  void* getValuePtr(      void* obj) const { return reinterpret_cast<      u8*>(obj) + offset; }
 	const void* getValuePtr(const void* obj) const { return reinterpret_cast<const u8*>(obj) + offset; }
@@ -191,23 +191,23 @@ DST* axe_cast(Object* obj) {
 	} \
 //----
 
-AXE_TYPEOF_SIMPLE(float)
-AXE_TYPEOF_SIMPLE(double)
-AXE_TYPEOF_SIMPLE(long double)
+AXE_TYPEOF_SIMPLE(f32)
+AXE_TYPEOF_SIMPLE(f64)
+AXE_TYPEOF_SIMPLE(f128)
 
-AXE_TYPEOF_SIMPLE(int8_t)
-AXE_TYPEOF_SIMPLE(int16_t)
-AXE_TYPEOF_SIMPLE(int32_t)
-AXE_TYPEOF_SIMPLE(int64_t)
+AXE_TYPEOF_SIMPLE(i8 )
+AXE_TYPEOF_SIMPLE(i16)
+AXE_TYPEOF_SIMPLE(i32)
+AXE_TYPEOF_SIMPLE(i64)
 
-AXE_TYPEOF_SIMPLE(uint8_t)
-AXE_TYPEOF_SIMPLE(uint16_t)
-AXE_TYPEOF_SIMPLE(uint32_t)
-AXE_TYPEOF_SIMPLE(uint64_t)
+AXE_TYPEOF_SIMPLE(u8)
+AXE_TYPEOF_SIMPLE(u16)
+AXE_TYPEOF_SIMPLE(u32)
+AXE_TYPEOF_SIMPLE(u64)
 
-AXE_TYPEOF_SIMPLE(char) // char8_t: require c++20
-AXE_TYPEOF_SIMPLE(char16_t)
-AXE_TYPEOF_SIMPLE(char32_t)
-AXE_TYPEOF_SIMPLE(wchar_t)
+AXE_TYPEOF_SIMPLE(Char8)
+AXE_TYPEOF_SIMPLE(Char16)
+AXE_TYPEOF_SIMPLE(Char32)
+AXE_TYPEOF_SIMPLE(CharW)
 
 } // namespace axe

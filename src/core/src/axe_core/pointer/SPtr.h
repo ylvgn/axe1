@@ -2,6 +2,20 @@
 
 namespace axe {
 
+class WeakRefBlock : public NonCopyable {
+public:
+	void* _obj = nullptr;
+	std::atomic_int	_weakCount = 0;
+}; // WeakRefBlock
+
+
+class RefCountBase : public NonCopyable {
+public:
+	WeakRefBlock*	_weakRefBlock = nullptr;
+	std::atomic_int	_refCount = 0;
+}; // RefCountBase
+
+
 template<class T>
 class SPtr : public NonCopyable {
 public:
@@ -71,12 +85,12 @@ template<class T> AXE_INLINE bool operator==(const std::nullptr_t&, const SPtr<T
 template<class T> AXE_INLINE bool operator!=(const SPtr<T>& l, const std::nullptr_t&)	noexcept { return l.ptr() != nullptr; }
 template<class T> AXE_INLINE bool operator!=(const std::nullptr_t&, const SPtr<T>& r)	noexcept { return r.ptr() != nullptr; }
 
-template <class T> AXE_INLINE
+template <class T> AXE_NODISCARD AXE_INLINE
 SPtr<T> SPtr_make(T* p) {
 	return SPtr<T>::s_make(p);
 }
 
-template <class T, class... ARGS> AXE_INLINE
+template <class T, class... ARGS> AXE_NODISCARD AXE_INLINE
 SPtr<T> SPtr_make(ARGS&&... args) {
 	return SPtr<T>::s_make(new T(AXE_FORWARD(args)...));
 }

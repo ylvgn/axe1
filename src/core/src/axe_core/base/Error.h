@@ -12,14 +12,22 @@ public:
 };
 
 class Error : public IError {
+	Error() = delete;
 public:
-//	Error() = default;
 	Error(const SrcLoc& loc, StrView msg);
 
-private:
-	SrcLoc _loc;
-	TempString _msg;
-};
+	void onFormat(fmt::format_context& ctx) const;
 
+private:
+	SrcLoc		_loc;
+	TempString	_msg;
+};
+AXE_FORMATTER(Error)
+
+class Error_Undefined : public Error {
+	using Base = Error;
+public:
+	explicit Error_Undefined(const SrcLoc& loc, StrView msg = StrView()) : Error(loc, msg) {}
+};
 
 } // namespace axe

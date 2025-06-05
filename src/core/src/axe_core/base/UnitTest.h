@@ -22,4 +22,4 @@ class UnitTestBase : public NonCopyable {
 public:
 };
 
-}
+} // namespace axe
