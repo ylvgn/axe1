@@ -20,9 +20,9 @@
 	#include <GL/gl.h>
 	#include <GL/glu.h>
 
-	// Note: glaux has been deprecated for a long time
-	// #include <Gl/glaux.h>
-	// #pragma comment(lib, "GLaux.lib")
+// Note: glaux has been deprecated for a long time
+//	#include <Gl/glaux.h>
+//	#pragma comment(lib, "GLaux.lib")
 #endif // AXE_TRY_USE_OPENGL
 
 #endif // AXE_OS_WINDOWS

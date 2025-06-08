@@ -1,9 +1,16 @@
 #include "LinearAllocator.h"
 #include "../math/Math.h"
 
-namespace axe {
+namespace axe
+{
 
-void* LinearAllocator::allocate(size_t reqSize, size_t align) {
+LinearAllocator::LinearAllocator()
+	: Base("LinearAllocator")
+{
+}
+
+void* LinearAllocator::allocate(size_t reqSize, size_t align)
+{
 	if (_chunks.size()) {
 		auto& t = _chunks.back();
 		auto* p = t->allocate(reqSize, align);
@@ -12,7 +19,7 @@ void* LinearAllocator::allocate(size_t reqSize, size_t align) {
 
 	auto chunkSize = reqSize > _chunkSize ? reqSize : _chunkSize;
 
-	auto newChunk = UPtr_make<Chunk>(chunkSize);
+	auto newChunk = UPtr_make<Chunk>(this, chunkSize);
 	_chunks.emplace_back(eastl::move(newChunk));
 
 	auto* p = _chunks.back()->allocate(reqSize, align);
@@ -23,8 +30,10 @@ void LinearAllocator::clear() {
 	_chunks.clear();
 }
 
-LinearAllocator::Chunk::Chunk(size_t n) {
-	_buffer.resize(n);
+LinearAllocator::Chunk::Chunk(Allocator* allocator, size_t numBytes)
+	: Base(allocator)
+{
+	_buffer.resize(numBytes);
 }
 
 void* LinearAllocator::Chunk::allocate(size_t reqSize, size_t align) {
@@ -43,4 +52,4 @@ void LinearAllocator::Chunk::clear() {
 	_used = 0;
 }
 
-}
+} // namespace axe

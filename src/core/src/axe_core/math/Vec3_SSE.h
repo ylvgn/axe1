@@ -5,7 +5,7 @@
 namespace axe {
 
 template<class T, class M>
-struct Vec3_SSE_Data {
+struct alignas(alignof(M)) Vec3_SSE_Data {
 	axeTuple_InterfaceFunctions_Impl(Vec3_SSE_Data, T, 3)
 	using RegisterType	= M;
 
@@ -15,10 +15,8 @@ struct Vec3_SSE_Data {
 		M _m;
 	};
 
-	AXE_INLINE explicit constexpr Vec3_SSE_Data(T x_, T y_, T z_) : x(x_), y(y_), z(z_) {
-		AXE_STATIC_ASSERT(sizeof(Vec3_SSE_Data) == sizeof(T) * 4);
-	}
-	AXE_INLINE constexpr Vec3_SSE_Data(const Tuple3<T>& v) : x(x_), y(y_), z(z_) {}
+	AXE_INLINE explicit constexpr Vec3_SSE_Data(T x_, T y_, T z_) : x(x_), y(y_), z(z_) {}
+	AXE_INLINE			constexpr Vec3_SSE_Data(const Tuple3<T>& v) : x(x_), y(y_), z(z_) {}
 
 	AXE_INLINE void set(T x_, T y_, T z_)		{ x = x_; y = y_; z = z_; }
 	AXE_INLINE void set(const Tuple3<T>& v)		{ set(v.x, v.y, v.z); }
@@ -64,4 +62,4 @@ template<> AXE_INLINE Vec3d_SSE Vec3d_SSE::operator - (const Vec3& r) const { re
 template<> AXE_INLINE Vec3d_SSE Vec3d_SSE::operator * (const Vec3& r) const { return Vec3_SSE_make(_mm256_mul_pd(_m, r._m)); }
 template<> AXE_INLINE Vec3d_SSE Vec3d_SSE::operator / (const Vec3& r) const { return Vec3_SSE_make(_mm256_div_pd(_m, r._m)); }
 
-}
+} // namespace axe

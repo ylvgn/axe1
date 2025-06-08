@@ -31,7 +31,7 @@ private: \
 	AXE_INLINE static constexpr bool s_inBound		(int i)		{ return i >= 0 && i < kElementCount; } \
 	AXE_INLINE static constexpr void s_checkBound	(int i)		{ if (!s_inBound(i)) throw std::out_of_range(__FILE__); } \
 public: \
-//-----
+//----
 
 namespace axe {
 
@@ -64,4 +64,4 @@ using Tuple2i = Tuple2<i32>;
 
 AXE_FORMATTER_T(class T, Tuple2<T>)
 
-}
+} // namespace axe

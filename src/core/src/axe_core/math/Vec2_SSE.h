@@ -5,7 +5,7 @@
 namespace axe {
 
 template<class T, class M>
-struct Vec2_SSE_Data {
+struct alignas(alignof(M)) Vec2_SSE_Data {
 	axeTuple_InterfaceFunctions_Impl(Vec2_SSE_Data, T, 2)
 	using RegisterType = M;
 
@@ -15,10 +15,8 @@ struct Vec2_SSE_Data {
 		M _m;
 	};
 
-	AXE_INLINE explicit constexpr Vec2_SSE_Data(T x_, T y_) : x(x_), y(y_) {
-		AXE_STATIC_ASSERT(sizeof(Vec2_SSE_Data) == sizeof(T) * 2);
-	}
-	AXE_INLINE constexpr Vec2_SSE_Data(const Tuple2<T>& v) : x(x_), y(y_) {}
+	AXE_INLINE explicit constexpr Vec2_SSE_Data(T x_, T y_) : x(x_), y(y_) {}
+	AXE_INLINE			constexpr Vec2_SSE_Data(const Tuple2<T>& v) : x(x_), y(y_) {}
 
 	AXE_INLINE void set(const Tuple2<T>& v)		  { set(v.x, v.y);  }
 	AXE_INLINE void set(T x_, T y_)				  { x = x_; y = y_; }

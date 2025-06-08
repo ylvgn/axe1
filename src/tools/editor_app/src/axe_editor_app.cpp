@@ -20,6 +20,12 @@ public:
 	virtual void onCreate(CreateDesc& desc) override {
 		setCurDirRelativeToExecutable("/../../../Test101");
 
+		AXE_ZoneScopedN("Foo Memory leak");
+
+		int* a = new int[8];
+		a[0]   = 100;
+//		delete[] a;
+
 		{ // create window
 			TempString title = "AXE Editor";
 

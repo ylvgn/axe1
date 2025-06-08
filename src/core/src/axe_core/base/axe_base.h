@@ -5,18 +5,10 @@
 #include "axe_core-config.h"
 
 //---- compiler
-#if AXE_COMPILER_VC
-	#include "AXE_COMPILER_VC.h"
-#elif AXE_COMPILER_GCC
-	#include "AXE_COMPILER_GCC.h"
-#endif
+#include "AXE_COMPILER.h"
 
 //---- os
-#if AXE_OS_WINDOWS
-	#include "AXE_OS_WINDOWS.h"
-#elif AXE_OS_UNIX
-	#include "AXE_OS_UNIX.h"
-#endif
+#include "AXE_OS.h"
 
 //---- c++ headers
 #include <cassert>
@@ -51,46 +43,15 @@
 #include <EASTL/shared_ptr.h>
 #include <EASTL/weak_ptr.h>
 
+#if TRACY_ENABLE
+	#include <tracy/Tracy.hpp>
+	#include <tracy/TracyC.h>
+#endif
+
 //----
 #include "axe_macro.h"
 
 using Json = nlohmann::json;
-
-//==== EASTL ====
-
-#if !EASTL_DLL // If building a regular library and not building EASTL as a DLL...
-	// It is expected that the application define the following
-	// versions of operator new for the application. Either that or the
-	// user needs to override the implementation of the allocator class.
-inline void* operator new[] ( size_t		size
-							, const char*	pName
-							, int			flags
-							, unsigned		debugFlags
-							, const char*	file
-							, int			line)
-{
-	return malloc(size);
-}
-
-inline void* operator new[] ( size_t		size
-							, size_t		alignment
-							, size_t		alignmentOffset
-							, const char*	pName
-							, int			flags
-							, unsigned		debugFlags
-							, const char*	file
-							, int			line)
-{
-	#if AXE_OS_WINDOWS
-	return _aligned_malloc(size, alignment);
-	#else
-	return std::aligned_alloc(alignment, size);
-	#endif
-}
-#endif // !EASTL_DLL
-
-//==== EASTL ====
-
 
 //---- basic types
 namespace axe {
@@ -146,7 +107,8 @@ template<class T> AXE_INLINE T& constCast(const T& v) { return const_cast<T&>(v)
 
 template<class T> AXE_INLINE void swap(T& a, T& b) { T tmp = AXE_MOVE(a); a = AXE_MOVE(b); b = AXE_MOVE(tmp); }
 
-template<class T> inline void axe_delete(T* p) noexcept { delete p; }
+template<class T> AXE_INLINE void axe_delete(T* p)			 noexcept { delete p; }
+template<class T> AXE_INLINE void axe_delete_set_null(T* &p) noexcept { axe_delete<T>(p); p = nullptr; }
 
 template< class Obj, class Member > constexpr
 intptr_t memberOffset(Member Obj::*ptrToMember) {
@@ -165,6 +127,8 @@ size_t charStrlen(const T* sz) {
 } // namespace axe
 
 //---- container
+#include "../allocator/Allocator.h"
+
 namespace axe {
 
 template<class T> using UPtr = eastl::unique_ptr<T>;
@@ -275,13 +239,13 @@ class StrViewT : public StrViewT_Base<T> { // immutable string view
 	using Base::mnCount;
 	using Base::mpBegin;
 public:
-						EA_CONSTEXPR StrViewT() = default;
-						EA_CONSTEXPR StrViewT(const StrViewT& other)				EA_NOEXCEPT : Base(other) {}
-						EA_CONSTEXPR StrViewT(const T* s)							EA_NOEXCEPT : Base(s) {}
-						EA_CONSTEXPR explicit StrViewT(const T* s, size_type count)	EA_NOEXCEPT : Base(s, count) {}
-						EA_CONSTEXPR explicit StrViewT(T& ch)						EA_NOEXCEPT : Base(&ch, 1) {}
-						EA_CONSTEXPR StrViewT(const Base& s)						EA_NOEXCEPT : Base(s.data(), s.size()) {}
-	template<size_t N>	EA_CONSTEXPR StrViewT(const StringT<T, N>& s)				EA_NOEXCEPT : Base(s.data(), s.size()) {}
+						constexpr StrViewT() = default;
+						constexpr StrViewT(const StrViewT& other)					noexcept : Base(other) {}
+						constexpr StrViewT(const T* s)								noexcept : Base(s) {}
+						constexpr explicit StrViewT(const T* s, size_type count)	noexcept : Base(s, count) {}
+						constexpr explicit StrViewT(T& ch)							noexcept : Base(&ch, 1) {}
+						constexpr StrViewT(const Base& s)							noexcept : Base(s.data(), s.size()) {}
+	template<size_t N>	constexpr StrViewT(const StringT<T, N>& s)					noexcept : Base(s.data(), s.size()) {}
 
 	explicit operator bool() const { return !empty(); }
 

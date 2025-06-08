@@ -19,7 +19,6 @@ namespace axe {
 	E(Error,)	\
 //----
 AXE_ENUM_CLASS(Log_Level, u8)
-// AXE_ENUM_STR(Log_Level)
 
 class Log : public NonCopyable {
 public:
