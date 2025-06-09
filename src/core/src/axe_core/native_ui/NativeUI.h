@@ -1,5 +1,7 @@
 #pragma once
 
+#include "NativeUI_Common.h"
+
 #if AXE_OS_WINDOWS
 
 #include "Win32/NativeUIApp_Win32.h"
@@ -34,7 +36,7 @@ private:
 } // namespace axe
 
 
-//------
+//----
 template<class T, class ENABLE = void>
 struct axeMain {
 	axeMain() = delete;
@@ -57,7 +59,6 @@ struct axeMain<T, std::enable_if_t< axe::TypeTraits::isBaseOf<axe::NativeUIApp, 
 	}
 };
 
-#if AXE_OS_WINDOWS
 #define AXE_MAIN(T) \
 	int main(int argc, const char* argv[]) { \
 		try { \
@@ -70,13 +71,4 @@ struct axeMain<T, std::enable_if_t< axe::TypeTraits::isBaseOf<axe::NativeUIApp, 
 			throw; \
 		} \
 	} \
-	//------
-#else
-	#define AXE_MAIN(T) \
-		int main(int argc, const char* argv[]) { \
-			T app; \
-			app.setCommandArguments(argc, argv); \
-			return axeMain<T>::run(app); \
-		} \
-	//------
-#endif // AXE_OS_WINDOWS
+//----

@@ -7,14 +7,14 @@
 #endif
 //----
 
-// Example usage:
+// usage:
 //     AXE_DISABLE_VC_WARNING(4127 3244)
 //     <code>
 //     AXE_RESTORE_VC_WARNING()
 //
 #if AXE_COMPILER_VC
 	#define AXE_DISABLE_VC_WARNING(X)  \
-		__pragma(warning(push))       \
+		__pragma(warning(push))        \
 		__pragma(warning(disable:X))
 #else
 	#define AXE_DISABLE_VC_WARNING()

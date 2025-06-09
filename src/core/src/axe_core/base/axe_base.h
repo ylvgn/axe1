@@ -55,13 +55,16 @@ using Json = nlohmann::json;
 
 //---- basic types
 namespace axe {
+class StaticClass {
+	StaticClass() = delete;
+};
+AXE_STATIC_ASSERT_NO_MEMBER_CLASS(StaticClass);
 
 class NonCopyable {
-public:
-	NonCopyable() = default;
-private:
 	NonCopyable		(const NonCopyable&) = delete;
 	void operator=	(const NonCopyable&) = delete;
+public:
+	NonCopyable() = default;
 };
 
 using u8		 = uint8_t;
@@ -288,12 +291,14 @@ using StrView16 = StrViewT<Char16>;
 using StrView32 = StrViewT<Char32>;
 
 template<class T, size_t N, bool bEnableOverflow = true>
-struct StringT_Base {
+class StringT_Base {
+public:
 	using Type = typename eastl::fixed_string<T, N, bEnableOverflow>;
 };
 
 template<class T>
-struct StringT_Base<T, 0, true> {
+class StringT_Base<T, 0, true> {
+public:
 	using Type = typename eastl::basic_string<T>;
 };
 
@@ -455,12 +460,7 @@ public:
 	{}
 
 	void onFormat(fmt::format_context& ctx) const {
-		fmt::format_to(ctx.out(),
-			"func: {}\nfile: {}, line: {}",
-			StrView_c_str(func),
-			StrView_c_str(file),
-			line
-		);
+		fmt::format_to(ctx.out(), "Source: {}:{} - {}", StrView_c_str(file), line, StrView_c_str(func));
 	}
 
 	const char* file = "";
@@ -474,9 +474,7 @@ AXE_FORMATTER(SrcLoc)
 AXE_INLINE
 std::ostream& operator<<(std::ostream& s, const axe::SrcLoc& loc)
 {
-	s << "func: " << loc.func << '\n'
-	  << " file : " << loc.file
-	  << " line : " << loc.line;
+	s << " Source: " << loc.file << ":" << loc.line << " - " << loc.func;
 	return s;
 }
 
@@ -518,8 +516,31 @@ private:
 	T _oldValue;
 }; // ScopedValue
 
-template<class T> AXE_NODISCARD inline ScopedValue<T> ScopedValue_make(T& p)					{ return ScopedValue<T>(p); }
-template<class T> AXE_NODISCARD inline ScopedValue<T> ScopedValue_make(T& p, const T& newValue) { return ScopedValue<T>(p, newValue); }
+template<class T> AXE_NODISCARD AXE_INLINE auto ScopedValue_make(T& p)					{ return ScopedValue<T>(p); }
+template<class T> AXE_NODISCARD AXE_INLINE auto ScopedValue_make(T& p, const T& newValue) { return ScopedValue<T>(p, newValue); }
+
+template<class START_FUNC, class END_FUNC>
+class ScopedAction : public NonCopyable {
+public:
+	using StartFuncType = typename ::std::decay<START_FUNC>::type;
+	using EndFuncType	= typename ::std::decay<END_FUNC>::type;
+
+	ScopedAction(START_FUNC&& st, END_FUNC&& ed)
+		: _ed(AXE_FORWARD(ed))
+	{
+		st();
+	}
+	~ScopedAction()
+	{
+		_ed();
+	}
+private:
+	EndFuncType	_ed;
+}; // ScopedAction
+
+template <class START_FUNC, class END_FUNC> AXE_NODISCARD AXE_INLINE auto ScopedAction_make(START_FUNC&& st, END_FUNC&& ed) {
+	return ScopedAction(AXE_FORWARD(st), AXE_FORWARD(ed));
+}
 
 template<class First, class Second>
 class Pair {

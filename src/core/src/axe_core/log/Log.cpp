@@ -8,4 +8,8 @@ void Log::onWrite(Level lv, StrView str) {
 	std::cout << str << "\n";
 }
 
+void Log::flush() {
+	std::flush(std::wcout);
+}
+
 } // namespace axe

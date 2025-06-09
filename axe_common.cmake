@@ -160,6 +160,7 @@ function(axe_set_target_warning_level target_name)
 		target_compile_options(${target_name} PRIVATE /wd4201) #warning C4201: nonstandard extension used: nameless struct/union
 		target_compile_options(${target_name} PRIVATE /wd4127) #warning C4127: conditional expression is constant
 		target_compile_options(${target_name} PRIVATE /wd4275) #warning C4275: non dll-interface class 'std::runtime_error' used as base for dll-interface class 'fmt::v10::format_error'
+		target_compile_options(${target_name} PRIVATE /wd5072) #warning C5072: Address Sanitizer(ASAN) enabled without debug information emission.
 	else()
 	  	target_compile_options(${target_name} PRIVATE -Wall -Wextra -Wpedantic -Werror)
 	endif()

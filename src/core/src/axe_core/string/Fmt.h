@@ -13,7 +13,7 @@
 		} \
 	}; \
 	namespace axe { \
-//------
+//----
 
 #define AXE_FORMATTER(CLASS) AXE_FORMATTER_T(AXE_EMPTY, CLASS)
 
@@ -27,7 +27,7 @@
 		} \
 	}; \
 	namespace axe { \
-//-----
+//----
 
 template<class T>
 struct fmt::formatter<T, typename std::enable_if_t<std::is_enum_v<T>, char> > {
@@ -42,6 +42,7 @@ namespace axe {
 
 template<class STR, class... ARGS> inline
 void FmtTo(STR& outStr, ARGS&&... args) {
+	AXE_STATIC_ASSERT(sizeof...(args) > 0);
 	fmt::format_to(std::back_inserter(outStr), AXE_FORWARD(args)...);
 }
 

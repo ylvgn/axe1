@@ -127,7 +127,7 @@ public:
 	};
 };
 
-} // namespace 
+} // namespace axe
 
 
 void test_BinSerializer() {

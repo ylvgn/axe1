@@ -1,12 +1,13 @@
-#include "Win32Util.h"
+#if AXE_OS_WINDOWS
 
+#include "NativeUI_Win32_Common.h"
 #include <axe_core/input/UIEvent.h>
 
 namespace axe {
 
 void Win32Util::errorTo(String& out, ::DWORD in_errorcode /*= ::WSAGetLastError()*/) {
-	// retrieving-error-messages: https://docs.microsoft.com/en-us/windows/win32/seccrypto/retrieving-error-messages
-	// system error code lookup: https://learn.microsoft.com/en-us/windows/win32/debug/system-error-codes
+// retrieving-error-messages: https://docs.microsoft.com/en-us/windows/win32/seccrypto/retrieving-error-messages
+// system error code lookup: https://learn.microsoft.com/en-us/windows/win32/debug/system-error-codes
 	out.clear();
 
 	TempStringW tmp;
@@ -19,36 +20,79 @@ void Win32Util::errorTo(String& out, ::DWORD in_errorcode /*= ::WSAGetLastError(
 								   static_cast<::DWORD>(tmp.size()),
 								   NULL);
 
-#if 0 // TODO maybe no need ???
-	if (0 == dwChars)
-	{
-		// The error code did not exist in the system errors.
-		// Try Ntdsbmsg.dll for the error code.
-
-		::HINSTANCE hInst = ::LoadLibrary(L"Ntdsbmsg.dll");
-		if (NULL == hInst)
-		{
-			AXE_LOG("[Warning] cannot load Ntdsbmsg.dll\n");
-			out = Fmt("[{}]", in_errorcode);
-			return;
-		}
-
-		tmp.clear();
-		tmp.resizeToLocalBufSize();
-		dwChars = ::FormatMessage(FORMAT_MESSAGE_FROM_HMODULE |
-								  FORMAT_MESSAGE_IGNORE_INSERTS,
-								  hInst,
-								  in_errorcode,
-								  0,
-								  tmp.data(),
-								  static_cast<::DWORD>(tmp.size()),
-								  NULL);
-
-		::FreeLibrary(hInst);
-	}
-#endif
-
 	out = dwChars ? UtfUtil::toString(tmp) : Fmt("[{}]", in_errorcode);
+}
+
+void Win32Util::convert(Rect2f& o, const ::RECT& i)
+{
+	o.x = static_cast<float>(i.left);
+	o.y = static_cast<float>(i.top);
+	o.w = static_cast<float>(i.right - i.left);
+	o.h = static_cast<float>(i.bottom - i.top);
+}
+
+void Win32Util::convert(Rect2i& o, const ::RECT& i)
+{
+	o.x = i.left;
+	o.y = i.top;
+	o.w = i.right - i.left;
+	o.h = i.bottom - i.top;
+}
+
+void Win32Util::convert(Vec2f& o, const ::POINT& i)
+{
+	o.x = static_cast<float>(i.x);
+	o.y = static_cast<float>(i.y);
+}
+
+void Win32Util::convert(Vec2i& o, const ::POINT& i)
+{
+	o.x = i.x;
+	o.y = i.y;
+}
+
+void Win32Util::convert(Vec2f& o, const ::SIZE& i)
+{
+	o.x = static_cast<float>(i.cx);
+	o.y = static_cast<float>(i.cy);
+}
+
+void Win32Util::convert(Vec2i& o, const ::SIZE& i)
+{
+	o.x = static_cast<int>(i.cx);
+	o.y = static_cast<int>(i.cy);
+}
+
+void Win32Util::convert(::RECT& o, const Rect2f& i)
+{
+	o.left	 = static_cast<LONG>(i.x);
+	o.top	 = static_cast<LONG>(i.y);
+	o.right	 = static_cast<LONG>(i.xMax());
+	o.bottom = static_cast<LONG>(i.yMax());
+}
+
+void Win32Util::convert(::POINT& o, const Vec2f& i)
+{
+	o.x = static_cast<LONG>(i.x);
+	o.y = static_cast<LONG>(i.y);
+}
+
+void Win32Util::convert(::POINT& o, const Vec2i& i)
+{
+	o.x = static_cast<LONG>(i.x);
+	o.y = static_cast<LONG>(i.y);
+}
+
+void Win32Util::convert(::SIZE& o, const Vec2f& i)
+{
+	o.cx = static_cast<LONG>(i.x);
+	o.cy = static_cast<LONG>(i.y);
+}
+
+inline void Win32Util::convert(::SIZE& o, const Vec2i& i)
+{
+	o.cx = static_cast<LONG>(i.x);
+	o.cy = static_cast<LONG>(i.y);
 }
 
 int Win32Util::toVKKey(const KeyCode& i) {
@@ -165,4 +209,29 @@ int Win32Util::toVKKey(const KeyCode& i) {
 	return 0;
 }
 
-} // namespace
+Win32_ErrorCodeString::Win32_ErrorCodeString(::DWORD errorCode) {
+// retrieving-error-messages: https://docs.microsoft.com/en-us/windows/win32/seccrypto/retrieving-error-messages
+// system error code lookup: https://learn.microsoft.com/en-us/windows/win32/debug/system-error-codes
+
+	TempStringW tmp;
+	tmp.resizeToLocalBufSize();
+	auto dwChars = ::FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS
+								 , NULL
+								 , errorCode
+								 , MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT)
+								 , tmp.data()
+								 , static_cast<::DWORD>(tmp.size())
+								 , NULL);
+
+	if (dwChars) {
+		UtfUtil::convert(_str, tmp);
+	}
+}
+
+void Win32_ErrorCodeString::onFormat(fmt::format_context& ctx) const {
+	fmt::format_to(ctx.out(), "{}", _str);
+}
+
+} // namespace axe
+
+#endif // AXE_OS_WINDOWS

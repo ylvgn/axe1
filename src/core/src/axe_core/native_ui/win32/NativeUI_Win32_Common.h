@@ -1,17 +1,14 @@
 #pragma once
 
+#if AXE_OS_WINDOWS
+
+#include "../NativeUI_Common.h"
 #include <axe_core/string/StringUtil.h>
 #include <axe_core/math/Rect2.h>
 
-#if AXE_OS_WINDOWS
-
 namespace axe {
 
-enum class UIKeyboardEventKeyCode : u32;
-
-class Win32Util {
-	Win32Util() = delete;
-	using KeyCode = UIKeyboardEventKeyCode;
+class Win32Util : public NativeUICommonBase {
 public:
 	static void errorTo(String& out, ::DWORD in_errorcode = ::WSAGetLastError());
 	static void errorTo(String& out, ::HRESULT hr) { errorTo(out, static_cast<::DWORD>(hr)); }
@@ -19,66 +16,17 @@ public:
 	static String error(::DWORD in_errorcode = ::WSAGetLastError()) { String o; errorTo(o, in_errorcode); return o; }
 	static String error(::HRESULT hr) { return error(static_cast<::DWORD>(hr)); }
 
-	static void convert(Rect2f& o, const ::RECT& i) {
-		o.x = static_cast<float>(i.left);
-		o.y = static_cast<float>(i.top);
-		o.w = static_cast<float>(i.right - i.left);
-		o.h = static_cast<float>(i.bottom - i.top);
-	}
-
-	static void convert(Rect2i& o, const ::RECT& i) {
-		o.x = i.left;
-		o.y = i.top;
-		o.w = i.right - i.left;
-		o.h = i.bottom - i.top;
-	}
-
-	static void convert(Vec2f& o, const ::POINT& i) {
-		o.x = static_cast<float>(i.x);
-		o.y = static_cast<float>(i.y);
-	}
-
-	static void convert(Vec2i& o, const ::POINT& i) {
-		o.x = i.x;
-		o.y = i.y;
-	}
-
-	static void convert(Vec2f& o, const ::SIZE& i) {
-		o.x = static_cast<float>(i.cx);
-		o.y = static_cast<float>(i.cy);
-	}
-
-	static void convert(Vec2i& o, const ::SIZE& i) {
-		o.x = static_cast<int>(i.cx);
-		o.y = static_cast<int>(i.cy);
-	}
-
-	static void convert(::RECT& o, const Rect2f& i) {
-		o.left   = static_cast<LONG>(i.x);
-		o.top    = static_cast<LONG>(i.y);
-		o.right  = static_cast<LONG>(i.xMax());
-		o.bottom = static_cast<LONG>(i.yMax());
-	}
-
-	static void convert(::POINT& o, const Vec2f& i) {
-		o.x = static_cast<LONG>(i.x);
-		o.y = static_cast<LONG>(i.y);
-	}
-
-	static void convert(::POINT& o, const Vec2i& i) {
-		o.x = static_cast<LONG>(i.x);
-		o.y = static_cast<LONG>(i.y);
-	}
-
-	static void convert(::SIZE& o, const Vec2f& i) {
-		o.cx = static_cast<LONG>(i.x);
-		o.cy = static_cast<LONG>(i.y);
-	}
-
-	static void convert(::SIZE& o, const Vec2i& i) {
-		o.cx = static_cast<LONG>(i.x);
-		o.cy = static_cast<LONG>(i.y);
-	}
+	static void convert(Rect2f&  o, const ::RECT&  i);
+	static void convert(Rect2i&  o, const ::RECT&  i);
+	static void convert(Vec2f&   o, const ::POINT& i);
+	static void convert(Vec2i&   o, const ::POINT& i);
+	static void convert(Vec2f&   o, const ::SIZE&  i);
+	static void convert(Vec2i&   o, const ::SIZE&  i);
+	static void convert(::RECT&  o, const Rect2f&  i);
+	static void convert(::POINT& o, const Vec2f&   i);
+	static void convert(::POINT& o, const Vec2i&   i);
+	static void convert(::SIZE&  o, const Vec2f&   i);
+	static void convert(::SIZE&  o, const Vec2i&   i);
 
 	static Rect2f toRect2f(const ::RECT& i)		{ Rect2f o; convert(o, i); return o; }
 	static Rect2i toRect2i(const ::RECT& i)		{ Rect2i o; convert(o, i); return o; }
@@ -93,6 +41,21 @@ public:
 	static int		toVKKey(const KeyCode& i);
 }; // Win32Util
 AXE_STATIC_ASSERT_NO_MEMBER_CLASS(Win32Util);
+
+
+class Win32_ErrorCodeString {
+public:
+	Win32_ErrorCodeString(::DWORD errorCode);
+
+	StrView		strView() const { return _str.view(); }
+	operator	StrView() const	{ return strView(); }
+
+	void onFormat(fmt::format_context& ctx) const;
+
+private:
+	String_<1024> _str;
+}; // Win32_ErrorCodeString
+
 
 } // namespace axe
 

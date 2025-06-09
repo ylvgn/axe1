@@ -28,14 +28,14 @@
 
 #if AXE_COMPILER_CLANG
 	#define AXE_TYPE_HAS_SIZE_T		0  //linux 
-	#define AXE_TYPE_HAS_SSIZE_T		0  //linux 
+	#define AXE_TYPE_HAS_SSIZE_T	0  //linux 
 
 	#define AXE_OPTIMIZE_OFF			_Pragma("clang optimize off")
 #else
 	#define AXE_TYPE_HAS_SIZE_T		0  //linux 
-	#define AXE_TYPE_HAS_SSIZE_T		0  //linux 
+	#define AXE_TYPE_HAS_SSIZE_T	0  //linux 
 
-	#define AXE_OPTIMIZE_OFF			_Pragma("GCC optimize(\"O0\")")
+	#define AXE_OPTIMIZE_OFF		_Pragma("GCC optimize(\"O0\")")
 #endif
 
 #if __GNUC__ >= 4
@@ -114,16 +114,16 @@
 #endif
 
 #if __SSE__
-	#define AXE_CPU_FEATURE_SSE1			1
+	#define AXE_CPU_FEATURE_SSE1		1
 #endif
 
 #if __SSE2__
-	#define AXE_CPU_FEATURE_SSE2			1
+	#define AXE_CPU_FEATURE_SSE2		1
 	#include <xmmintrin.h>
 #endif
 
 #if __SSE3__
-	#define AXE_CPU_FEATURE_SSE3			1
+	#define AXE_CPU_FEATURE_SSE3		1
 #endif
 
 #if __SSSE3__
@@ -141,24 +141,24 @@
 //os
 
 #if _WIN64
-	#define AXE_OS_WIN64     1
+	#define AXE_OS_WIN64    1
 	#define AXE_OS_WINDOWS	1
 
 #elif _WIN32
-	#define AXE_OS_WIN32     1
+	#define AXE_OS_WIN32    1
 	#define AXE_OS_WINDOWS	1
 
 #elif __ANDROID__
 	#define AXE_OS_ANDROID	1
-	#define AXE_OS_UNIX	   1
+	#define AXE_OS_UNIX	    1
 
 #elif __linux
-	#define AXE_OS_LINUX        1
-	#define AXE_OS_UNIX	 1
+	#define AXE_OS_LINUX    1
+	#define AXE_OS_UNIX		1
 
 #elif __FreeBSD__
-	#define AXE_OS_FREEBSD		1
-	#define AXE_OS_UNIX			1
+	#define AXE_OS_FREEBSD	1
+	#define AXE_OS_UNIX		1
 
 #elif __APPLE__ && __MACH__
 	#include <TargetConditionals.h>
@@ -174,9 +174,16 @@
 	#define AXE_OS_SOLARIS		1
 
 #elif __CYGWIN__
-    #define AXE_OS_CYGWIN        1
+    #define AXE_OS_CYGWIN       1
 
 #elif __MINGW32__
-	#define AXE_OS_MINGW			1
+	#define AXE_OS_MINGW		1
 #endif
 
+// function
+#if defined(__GNUC__) || defined(__clang__)
+	#define AXE_DEBUG_BREAK()	__builtin_trap()
+#else
+	#include <signal.h>
+	#define AXE_DEBUG_BREAK()	raise(SIGTRAP)
+#endif

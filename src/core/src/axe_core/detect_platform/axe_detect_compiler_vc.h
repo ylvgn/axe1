@@ -68,7 +68,7 @@
 
 //cpu
 #if _M_X64
-	#define AXE_CPU_X86_64	1
+	#define AXE_CPU_X86_64				1
 	#define AXE_CPU_FEATURE_SSE1		1
 	#define AXE_CPU_FEATURE_SSE2		1
 	#define AXE_CPU_FEATURE_SSE3		1
@@ -82,12 +82,15 @@
 //os
 
 #if _WIN64
-	#define AXE_OS_WIN64     1
+	#define AXE_OS_WIN64    1
 	#define AXE_OS_WINDOWS	1
 #elif _WIN32
-	#define AXE_OS_WIN32     1
+	#define AXE_OS_WIN32    1
 	#define AXE_OS_WINDOWS	1
 #elif _WINCE
-	#define AXE_OS_WinCE     1
+	#define AXE_OS_WinCE    1
 	#define AXE_OS_WINDOWS	1
 #endif
+
+//function
+#define AXE_DEBUG_BREAK() __debugbreak()

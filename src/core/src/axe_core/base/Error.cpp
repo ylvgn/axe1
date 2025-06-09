@@ -3,25 +3,25 @@
 
 namespace axe {
 
-bool Error::s_enableAssertion = true;
+bool Error::_s_enableAssertion = true;
 
 Error::Error(const SrcLoc& loc, StrView msg)
 	: _loc(loc)
 	, _msg(msg)
 {
 	AXE_LOG("{}", *this);
-
-	if (s_enableAssertion) {
-		AXE_ASSERT(false);
-	}
+	AXE_ASSERT(false);
 }
 
 void Error::onFormat(fmt::format_context& ctx) const {
-	fmt::format_to(ctx.out(), "Error: {}\n{}", _loc, _msg);
+	if (!_msg)
+		fmt::format_to(ctx.out(), "[Error] {}", _loc);
+	else
+		fmt::format_to(ctx.out(), "[Error] {}\n  - {}", _msg, _loc);
 }
 
 void Error::s_setEnableAssertion(bool b) {
-	s_enableAssertion = b;
+	_s_enableAssertion = b;
 }
 
 } // namespace axe

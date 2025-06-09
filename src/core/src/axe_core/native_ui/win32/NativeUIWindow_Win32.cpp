@@ -1,5 +1,5 @@
 #include "NativeUIWindow_Win32.h"
-#include "Win32Util.h"
+#include "NativeUI_Win32_Common.h"
 #include <axe_core/string/UtfUtil.h>
 
 #if AXE_OS_WINDOWS
@@ -36,8 +36,8 @@ void NativeUIWindow_Win32::onCreate(CreateDesc& desc) {
 	}
 #endif
 
-	DWORD dwStyle = 0;
-	DWORD dwExStyle = WS_EX_ACCEPTFILES;
+	::DWORD dwStyle = 0;
+	::DWORD dwExStyle = WS_EX_ACCEPTFILES;
 
 	if (desc.alwaysOnTop) {
 		dwExStyle |= WS_EX_TOPMOST;

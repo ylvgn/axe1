@@ -13,12 +13,14 @@
 namespace axe {
 
 void run_temp_test() {
-	RUN_TEST(test_Math);
+	RUN_TEST(test_axe_macro);
 }
 
 void run_all_test() {
 // base
+	RUN_TEST(test_axe_macro);
 	RUN_TEST(test_BinSerializer);
+	RUN_TEST(test_Error);
 
 // file
 	RUN_TEST(test_MemMapFile);
@@ -42,10 +44,13 @@ void run_all_test() {
 
 // pointer
 	RUN_TEST(test_WPtr);
+
+// log
+	RUN_TEST(test_Log);
 }
 
 int test_main() {
-#if 0
+#if 1
 	run_temp_test();
 #else
 	run_all_test();
