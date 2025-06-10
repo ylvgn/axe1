@@ -26,3 +26,17 @@
 	#define AXE_RESTORE_VC_WARNING()
 #endif
 //----
+
+
+#if defined(AXE_COMPILER_VC)
+	#if defined(AXE_EXPORTS)
+		#define AXE_API __declspec(dllexport)
+	#elif defined(AXE_IMPORTS)
+		#define AXE_API __declspec(dllimport)
+	#else
+		#define AXE_API
+	#endif
+#else
+	#define AXE_API __attribute__((visibility("default")))
+#endif
+//----

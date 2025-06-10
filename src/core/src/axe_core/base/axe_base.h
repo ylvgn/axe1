@@ -53,8 +53,8 @@
 
 using Json = nlohmann::json;
 
-//---- basic types
 namespace axe {
+
 class StaticClass {
 	StaticClass() = delete;
 };
@@ -67,6 +67,10 @@ public:
 	NonCopyable() = default;
 };
 
+} // namespace axe
+
+//---- basic types
+namespace axe {
 using u8		 = uint8_t;
 using u16		 = uint16_t;
 using u32		 = uint32_t;
@@ -91,12 +95,55 @@ using Char16	 = char16_t;
 using Char32	 = char32_t;
 using CharW		 = wchar_t;
 using CharU		 = Char32; // unicode code point
-
 } // namespace axe
+#if AXE_COMPILER_VC
+	#define AXE_SZ_8_JOIN(A,B)	(""     A ## B)
+	#define AXE_SZ_16_JOIN(A,B)	(u"" u##A ## u##B)
+	#define AXE_SZ_32_JOIN(A,B)	(U"" U##A ## u##B)
+	#define AXE_SZ_W_JOIN(A,B)	(L"" L##A ## L##B)
+
+	#define AXE_SZ_8( sz)		(""   ##sz)
+	#define AXE_SZ_16(sz)		(u"" u##sz)
+	#define AXE_SZ_32(sz)		(U"" U##sz)
+    #define AXE_SZ_W( sz)		(L"" L##sz)
+
+	#define AXE_CH_8( c)		axe::Char8(    c)
+    #define AXE_CH_16(c)		axe::Char16(u##c)
+    #define AXE_CH_32(c)		axe::Char32(U##c)
+    #define AXE_CH_W( c)		axe::CharW( L##c)
+
+#else
+	#define AXE_SZ_8_JOIN(A,B)	(""  A ## B)
+	#define AXE_SZ_16_JOIN(A,B)	(u"" A ## B)
+	#define AXE_SZ_32_JOIN(A,B)	(U"" A ## B)
+	#define AXE_SZ_W_JOIN(A,B)	(L"" A ## B)
+
+	#define AXE_SZ_8( sz)		(""  sz)
+	#define AXE_SZ_16(sz)		(u"" sz)
+    #define AXE_SZ_32(sz)		(U"" sz)
+    #define AXE_SZ_W( sz)		(L"" sz)
+
+    #define AXE_CH_8( c)		axe::Char8(    c)
+    #define AXE_CH_16(c)		axe::Char16(u##c)
+    #define AXE_CH_32(c)		axe::Char32(U##c)
+    #define AXE_CH_W( c)		axe::CharW (L##c)
+#endif
+
+#define AXE_SZ_U AXE_SZ_32
+#define AXE_CH_U AXE_CH_32
 
 #include "TypeTraits.h"
 
 //---- utils
+
+AXE_INLINE void axe_force_crash() {
+	std::cout << "!!! axe_force_crash !!!\n";
+	*reinterpret_cast<int*>(1) = 0;
+}
+
+template<class T> AXE_INLINE void axe_delete(T* p)			 noexcept { delete p; }
+template<class T> AXE_INLINE void axe_delete_set_null(T* &p) noexcept { axe_delete<T>(p); p = nullptr; }
+
 namespace axe {
 
 template<class T> AXE_INLINE constexpr typename std::underlying_type<T>::type  enumInt(T  value) { return static_cast<typename std::underlying_type<T>::type>(value); }
@@ -109,9 +156,6 @@ template<class T> AXE_INLINE T* constCast(const T* v) { return const_cast<T*>(v)
 template<class T> AXE_INLINE T& constCast(const T& v) { return const_cast<T&>(v); }
 
 template<class T> AXE_INLINE void swap(T& a, T& b) { T tmp = AXE_MOVE(a); a = AXE_MOVE(b); b = AXE_MOVE(tmp); }
-
-template<class T> AXE_INLINE void axe_delete(T* p)			 noexcept { delete p; }
-template<class T> AXE_INLINE void axe_delete_set_null(T* &p) noexcept { axe_delete<T>(p); p = nullptr; }
 
 template< class Obj, class Member > constexpr
 intptr_t memberOffset(Member Obj::*ptrToMember) {
@@ -472,8 +516,7 @@ AXE_FORMATTER(SrcLoc)
 } // namespace axe
 
 AXE_INLINE
-std::ostream& operator<<(std::ostream& s, const axe::SrcLoc& loc)
-{
+std::ostream& operator<<(std::ostream& s, const axe::SrcLoc& loc) {
 	s << " Source: " << loc.file << ":" << loc.line << " - " << loc.func;
 	return s;
 }

@@ -13,7 +13,7 @@
 namespace axe {
 
 void run_temp_test() {
-	RUN_TEST(test_axe_macro);
+	RUN_TEST(test_Error);
 }
 
 void run_all_test() {
@@ -61,7 +61,7 @@ int test_main() {
 	return 0;
 }
 
-} // namespace
+} // namespace axe
 
 int main() {
 	return axe::test_main();

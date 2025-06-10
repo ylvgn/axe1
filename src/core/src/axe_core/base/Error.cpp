@@ -24,4 +24,25 @@ void Error::s_setEnableAssertion(bool b) {
 	_s_enableAssertion = b;
 }
 
+void Error::s_assert(const SrcLoc& srcLoc, StrView expr, StrView msg, StrView title) {
+	Error::s_assert(srcLoc.func, srcLoc.file, srcLoc.line, expr, msg, title);
+}
+
+void Error::s_assert(StrView funcName
+				   , StrView filename
+				   , int lineNumber
+				   , StrView expr
+				   , StrView msg
+				   , StrView title)
+{
+	::std::cout << "\n[" << title << "]\n"
+				<< "  EXPR: " << expr << "\n"
+				<< "  Source: " << filename << ":" << lineNumber << " - " << funcName << "\n"
+				<< msg << "\n";
+	AXE_DEBUG_BREAK();
+	if (_s_enableAssertion) {
+		assert(false);
+	}
+}
+
 } // namespace axe

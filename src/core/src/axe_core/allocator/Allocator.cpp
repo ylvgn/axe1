@@ -2,7 +2,6 @@
 #include <axe_core/base/axe_base.h>
 
 #if TRACY_ENABLE
-	//#include <tracy/TracyClient.cpp>
 	#include <common/TracySystem.hpp>
 #endif
 

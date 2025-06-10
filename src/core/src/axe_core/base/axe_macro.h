@@ -117,34 +117,6 @@
 #define	AXE_MOVE		::std::move
 #define AXE_FORWARD(a)	::std::forward< decltype(a) >(a)
 
-#define AXE_ASSERT_IMPL(szTITLE, szEXPR, szMSG)                                                       \
-	do                                                                                                \
-	{                                                                                                 \
-		::std::cout << "\n"                                                                           \
-					<< szTITLE << "\n"                                                                \
-					<< "EXPR: " << szEXPR << "\n"                                                     \
-					<< "Source: " << __FILE__ << ":" << __LINE__ << " - " << AXE_FUNC_NAME_SZ << "\n" \
-					<< szMSG << "\n";                                                                 \
-		AXE_DEBUG_BREAK();                                                                            \
-		if (::axe::Error::s_getEnableAssertion())                                                     \
-		{                                                                                             \
-			assert(false);                                                                            \
-		}                                                                                             \
-	} while (false) \
-//----
-
-#define AXE_ASSERT_ONCE(szTITLE, EXPR, szMSG)                                   \
-	do                                                                          \
-	{                                                                           \
-		if (!(EXPR))                                                            \
-		{                                                                       \
-			AXE_RUN_ONCE(AXE_ASSERT_IMPL(szTITLE, AXE_STRINGIFY(EXPR), szMSG)); \
-		}                                                                       \
-	} while (false) \
-//----
-
-#define AXE_ASSERT(EXPR) AXE_ASSERT_ONCE("---- ASSERTION -------", EXPR, "")
-
 #define AXE_FUNC ::std::function
 
 #define AXE_STATIC_ASSERT_MSG	static_assert
