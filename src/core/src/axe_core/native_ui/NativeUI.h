@@ -3,18 +3,15 @@
 #include "NativeUI_Common.h"
 
 #if AXE_OS_WINDOWS
+	#include "Win32/NativeUIApp_Win32.h"
+	#include "Win32/NativeUIWindow_Win32.h"
 
-#include "Win32/NativeUIApp_Win32.h"
-#include "Win32/NativeUIWindow_Win32.h"
-
-namespace axe {
-	using NativeUIWindow_Impl	= NativeUIWindow_Win32;
-	using NativeUIApp_Impl		= NativeUIApp_Win32;
-}
-
+	namespace axe {
+		using NativeUIWindow_Impl	= NativeUIWindow_Win32;
+		using NativeUIApp_Impl		= NativeUIApp_Win32;
+	}
 #else
 	#error "unsupported platform"
-
 #endif
 
 
@@ -42,14 +39,14 @@ struct axeMain {
 	axeMain() = delete;
 
 	static int run(T& app) {
-		AXE_STATIC_ASSERT(axe::TypeTraits::isBaseOf<axe::ConsoleApp, T>::value);
+		AXE_STATIC_ASSERT( ::axe::is_base_of_v< ::axe::ConsoleApp, T> );
 		app.onRun();
 		return app.exitCode();
 	}
 };
 
 template<class T>
-struct axeMain<T, std::enable_if_t< axe::TypeTraits::isBaseOf<axe::NativeUIApp, T>::value> > {
+struct axeMain<T, ::axe::enable_if_t< ::axe::is_base_of_v< ::axe::NativeUIApp, T>> > {
 	axeMain() = delete;
 
 	static int run(T& app) {

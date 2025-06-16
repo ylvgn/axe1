@@ -104,31 +104,29 @@ const char* StringUtil::findCharFromEnd(StrView view, StrView charList, bool ign
 	return nullptr;
 }
 
-struct StringUtil_ParseHelper {
-	StringUtil_ParseHelper() = delete;
-
+struct StringUtil_ParseHelper : public StaticClass {
 	template<class T> AXE_INLINE
 	static bool tryParseInt(StrView view, T& outValue) {
-		AXE_STATIC_ASSERT(TypeTraits::isSigned<T>::value);
+		AXE_STATIC_ASSERT(is_signed_v<T>);
 		String_<256> tmp = view;
 		i64 v;
 		auto ret = ::sscanf(tmp.c_str(), "%lld", &v);
 		if (ret != 1) return false;
-		if (v < std::numeric_limits<T>::min()) return false;
-		if (v > std::numeric_limits<T>::max()) return false;
+		if (v < ::std::numeric_limits<T>::min()) return false;
+		if (v > ::std::numeric_limits<T>::max()) return false;
 		outValue = static_cast<T>(v);
 		return true;
 	}
 
 	template<class T> AXE_INLINE
 	static bool tryParseUInt(StrView view, T& outValue) {
-		AXE_STATIC_ASSERT(std::is_unsigned<T>::value);
+		AXE_STATIC_ASSERT(is_unsigned_v<T>);
 		String_<256> tmp = view;
 		u64 v;
 		auto ret = ::sscanf(tmp.c_str(), "%llu", &v);
 		if (ret != 1) return false;
-		if (v < std::numeric_limits<T>::min()) return false;
-		if (v > std::numeric_limits<T>::max()) return false;
+		if (v < ::std::numeric_limits<T>::min()) return false;
+		if (v > ::std::numeric_limits<T>::max()) return false;
 		outValue = static_cast<T>(v);
 		return true;
 	}
@@ -146,7 +144,8 @@ struct StringUtil_ParseHelper {
 		if (ret != 1) return false;
 		return true;
 	}
-};
+}; // StringUtil_ParseHelper
+AXE_STATIC_ASSERT_NO_MEMBER_CLASS(StringUtil_ParseHelper);
 
 int StringUtil::ignoreCaseCompare(StrView a, StrView b) {
 	size_t n = Math::min(a.size(), b.size());

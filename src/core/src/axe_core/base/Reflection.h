@@ -165,7 +165,7 @@ template<class T, class BASE>
 class TypeInfoInit : public TypeInfoInitNoBase<T> {
 public:
 	TypeInfoInit(const char* name_, Creator creator_) : TypeInfoInitNoBase<T>(name_) {
-		AXE_STATIC_ASSERT(TypeTraits::isBaseOf<BASE, T>::value);
+		AXE_STATIC_ASSERT(is_base_of_v<BASE, T>);
 		base = TypeOf<BASE>();
 		this->creator = creator_;
 	}

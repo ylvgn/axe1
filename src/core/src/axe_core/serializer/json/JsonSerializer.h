@@ -13,10 +13,10 @@ struct JsonIO {
 
 // enum class
 template<class SE, class T>
-struct JsonIO <SE, T, std::enable_if_t<std::is_enum_v<T>> > {
+struct JsonIO <SE, T, enable_if_t< is_enum_v<T> > > {
 	static void io(SE& se, T& data) {
 		se.toEnum(data);
-	}	
+	}
 };
 
 struct JsonSerializer : public NonCopyable {

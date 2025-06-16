@@ -44,7 +44,7 @@ private:
 	template<size_t N>	static void _encodeUtf(String16_<N> & dst, uint32_t v);
 	template<size_t N>	static void _encodeUtf(String32_<N> & dst, uint32_t v);
 	template<size_t N>	static void _encodeUtf(StringW_ <N> & dst, uint32_t v) {
-		using C   = typename TypeTraits::typeBySize<sizeof(CharW)>::Char;
+		using C   = typename typeBySize<sizeof(CharW)>::Char;
 		using STR = typename StringT<C, N, true>;
 		_encodeUtf(reinterpret_cast<STR&>(dst), v);
 	}

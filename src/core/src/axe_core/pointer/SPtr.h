@@ -20,6 +20,7 @@ template<class T>
 class SPtr : public NonCopyable {
 public:
 	SPtr() = default;
+	SPtr(Null)			noexcept {}
 	SPtr(T* p)			noexcept { reset(p); }
 	SPtr(SPtr&& r)		noexcept { _p = r.detach(); }
 	SPtr(const SPtr& r)	noexcept { reset(r._p); }
@@ -28,6 +29,7 @@ public:
 
 	static SPtr<T> s_make(T* p) noexcept { return SPtr(p); }
 
+	void operator=(Null)			noexcept { reset(nullptr); }
 	void operator=(T* p)			noexcept { reset(p); }
 	void operator=(SPtr&& r)		noexcept { reset(nullptr); _p = r.detach(); }
 	void operator=(const SPtr& r)	noexcept { reset(r._p); }
@@ -42,11 +44,11 @@ public:
 
 	explicit operator bool() const { return _p != nullptr; }
 
-			T* ptr()		noexcept { return _p; }
-	const	T* ptr() const	noexcept { return _p; }
+	AXE_NODISCARD 		T* ptr()		noexcept { return _p; }
+	AXE_NODISCARD const	T* ptr() const	noexcept { return _p; }
 
 	void reset(T* p) noexcept {
-		AXE_STATIC_ASSERT(TypeTraits::isBaseOf<RefCountBase, T>::value);
+		AXE_STATIC_ASSERT(is_base_of_v<RefCountBase, T>);
 
 		if (p == _p) return;
 		if (_p) {
@@ -72,18 +74,18 @@ private:
 }; // SPtr
 
 
-template<class T> AXE_INLINE bool operator==(const SPtr<T>& l, const SPtr<T>& r)		noexcept { return l.ptr() == r.ptr(); }
-template<class T> AXE_INLINE bool operator!=(const SPtr<T>& l, const SPtr<T>& r)		noexcept { return l.ptr() != r.ptr(); }
+template<class T> AXE_INLINE bool operator== (const SPtr<T>& l, const SPtr<T>& r)	noexcept { return l.ptr() == r.ptr(); }
+template<class T> AXE_INLINE bool operator!= (const SPtr<T>& l, const SPtr<T>& r)	noexcept { return l.ptr() != r.ptr(); }
 
-template<class T> AXE_INLINE bool operator==(const SPtr<T>& l, const T*& r)				noexcept { return l.ptr() == r; }
-template<class T> AXE_INLINE bool operator!=(const SPtr<T>& l, const T*& r)				noexcept { return l.ptr() != r; }
-template<class T> AXE_INLINE bool operator==(const T*& l, const SPtr<T>& r)				noexcept { return l == r.ptr(); }
-template<class T> AXE_INLINE bool operator!=(const T*& l, const SPtr<T>& r)				noexcept { return l != r.ptr(); }
+template<class T> AXE_INLINE bool operator== (const SPtr<T>& l, const T*& r)		noexcept { return l.ptr() == r; }
+template<class T> AXE_INLINE bool operator!= (const SPtr<T>& l, const T*& r)		noexcept { return l.ptr() != r; }
+template<class T> AXE_INLINE bool operator== (const T*& l, const SPtr<T>& r)		noexcept { return l == r.ptr(); }
+template<class T> AXE_INLINE bool operator!= (const T*& l, const SPtr<T>& r)		noexcept { return l != r.ptr(); }
 
-template<class T> AXE_INLINE bool operator==(const SPtr<T>& l, const std::nullptr_t&)	noexcept { return l.ptr() == nullptr; }
-template<class T> AXE_INLINE bool operator==(const std::nullptr_t&, const SPtr<T>& r)	noexcept { return r.ptr() == nullptr; }
-template<class T> AXE_INLINE bool operator!=(const SPtr<T>& l, const std::nullptr_t&)	noexcept { return l.ptr() != nullptr; }
-template<class T> AXE_INLINE bool operator!=(const std::nullptr_t&, const SPtr<T>& r)	noexcept { return r.ptr() != nullptr; }
+template<class T> AXE_INLINE bool operator== (const SPtr<T>& l,	const Null&)		noexcept { return l.ptr() == nullptr; }
+template<class T> AXE_INLINE bool operator== (const Null&,		const SPtr<T>& r)	noexcept { return r.ptr() == nullptr; }
+template<class T> AXE_INLINE bool operator!= (const SPtr<T>& l,	const Null&)		noexcept { return l.ptr() != nullptr; }
+template<class T> AXE_INLINE bool operator!= (const Null&,		const SPtr<T>& r)	noexcept { return r.ptr() != nullptr; }
 
 template <class T> AXE_NODISCARD AXE_INLINE
 SPtr<T> SPtr_make(T* p) {

@@ -2,7 +2,7 @@
 
 #pragma warning(disable: 4668) // 'symbol' is not defined as a preprocessor macro, replacing with '0' for 'directives'
 
-#if !AXE_COMPILER_VC	
+#if !AXE_COMPILER_VC
 	#error
 #endif
 
@@ -39,6 +39,12 @@
 #define AXE_DEPRECATED			__declspec(deprecated)
 
 #define AXE_COMPILER_VER _MSVC_LANG
+
+#if AXE_CPLUSPLUS_14
+	#define AXE_DEPRECATED [[deprecated]]
+#else
+	#define AXE_DEPRECATED
+#endif
 
 #if AXE_CPLUSPLUS_17
 	#define AXE_FALLTHROUGH	//	[[fallthrough]]
@@ -80,7 +86,6 @@
 #endif
 
 //os
-
 #if _WIN64
 	#define AXE_OS_WIN64    1
 	#define AXE_OS_WINDOWS	1

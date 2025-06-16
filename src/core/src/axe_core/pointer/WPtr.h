@@ -8,22 +8,24 @@ template<class T>
 class WPtr : public NonCopyable {
 public:
 	WPtr() = default;
+	WPtr(Null)			noexcept {}
 	WPtr(T* p)			noexcept { reset(p);}
 	WPtr(WPtr && r)		noexcept { _p = r._detach(); _block = AXE_MOVE(r._block); }
 	WPtr(const WPtr& r)	noexcept { reset(r._p); }
 
 	~WPtr()				noexcept { reset(nullptr); }
 
+	void operator=(Null)				noexcept { reset(nullptr); }
 	void operator=(T* p)				noexcept { reset(p); }
 	void operator=(WPtr && r)			noexcept { _p = r._detach(); _block = AXE_MOVE(r._block); }
 	void operator=(const WPtr& r)		noexcept { reset(r._p); }
 	void operator=(const SPtr<T>& r)	noexcept { reset(constCast(r.ptr())); }
 
-			SPtr<T> toSPtr()			noexcept { return _block ? SPtr<T>(static_cast<T*>(_block->_obj)) : nullptr; }
-	const	SPtr<T> toSPtr()	const	noexcept { return _block ? SPtr<T>(static_cast<T*>(_block->_obj)) : nullptr; }
+	AXE_NODISCARD 		SPtr<T> toSPtr()			noexcept { return _block ? SPtr<T>(static_cast<T*>(_block->_obj)) : nullptr; }
+	AXE_NODISCARD const	SPtr<T> toSPtr()	const	noexcept { return _block ? SPtr<T>(static_cast<T*>(_block->_obj)) : nullptr; }
 
 	void reset(T* p) noexcept {
-		AXE_STATIC_ASSERT(TypeTraits::isBaseOf<RefCountBase, T>::value);
+		AXE_STATIC_ASSERT(is_base_of_v<RefCountBase, T>);
 
 		if (p == _p) return;
 		if (_p) {

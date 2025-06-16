@@ -6,8 +6,7 @@
 
 namespace axe {
 
-class StringUtil {
-	StringUtil() = delete;
+class StringUtil : public StaticClass {
 public:
 	static void binToHex(String& out, Span<u8> data);
 

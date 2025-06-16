@@ -18,6 +18,7 @@
 #include <cstdint>
 #include <atomic>
 #include <functional>
+//#include <stdfloat> require c++23
 
 //---- externals
 #include <nlohmann/json.hpp>
@@ -60,6 +61,10 @@ class StaticClass {
 };
 AXE_STATIC_ASSERT_NO_MEMBER_CLASS(StaticClass);
 
+class StaticAbstructClass abstract : StaticClass {
+	virtual void _cannotCreateInstance_() = 0;
+};
+
 class NonCopyable {
 	NonCopyable		(const NonCopyable&) = delete;
 	void operator=	(const NonCopyable&) = delete;
@@ -71,6 +76,9 @@ public:
 
 //---- basic types
 namespace axe {
+
+using Null       = ::std::nullptr_t;
+
 using u8		 = uint8_t;
 using u16		 = uint16_t;
 using u32		 = uint32_t;
@@ -83,10 +91,10 @@ using i32		 = int32_t;
 using i64		 = int64_t;
 using i128		 = int128_t;
 
-//using f16		 = half;
-using	f32		 = float;
-using	f64		 = double;
-using	f128	 = long double;
+//using f16		 = half; // float16_t: require c++23
+using f32		 = float;
+using f64		 = double;
+using f128		 = long double;
 
 using StrLiteral = const char*;
 
@@ -96,6 +104,7 @@ using Char32	 = char32_t;
 using CharW		 = wchar_t;
 using CharU		 = Char32; // unicode code point
 } // namespace axe
+
 #if AXE_COMPILER_VC
 	#define AXE_SZ_8_JOIN(A,B)	(""     A ## B)
 	#define AXE_SZ_16_JOIN(A,B)	(u"" u##A ## u##B)
@@ -132,12 +141,67 @@ using CharU		 = Char32; // unicode code point
 #define AXE_SZ_U AXE_SZ_32
 #define AXE_CH_U AXE_CH_32
 
+#define	AXE_TYPE_LIST_BOOL(op) \
+	op( bool ) \
+//------
+
+#define	AXE_TYPE_LIST_CHAR_OTHER_THAN_CHAR8(op) \
+	op( ::axe::CharW  ) \
+	op( ::axe::Char16 ) \
+	op( ::axe::Char32 ) \
+//----
+
+#define	AXE_TYPE_LIST_CHAR(op) \
+	op( ::axe::Char8  ) \
+	AXE_TYPE_LIST_CHAR_OTHER_THAN_CHAR8(op) \
+//----
+
+#define	AXE_TYPE_LIST_SINT(op) \
+	op( ::axe::i8   ) \
+	op( ::axe::i16  ) \
+	op( ::axe::i32  ) \
+	op( ::axe::i64  ) \
+	op( ::axe::i128 ) \
+//----
+
+#define	AXE_TYPE_LIST_UINT(op) \
+	op( ::axe::u8   ) \
+	op( ::axe::u16  ) \
+	op( ::axe::u32  ) \
+	op( ::axe::u64  ) \
+	op( ::axe::u128 ) \
+//----
+
+#define	AXE_TYPE_LIST_FLOAT(op) \
+/*  op(::axe::f16) */ \
+	op( ::axe::f32  ) \
+	op( ::axe::f64  ) \
+	op( ::axe::f128 ) \
+//----
+
+#define AX_TYPE_LIST_ALL_PRIMITIVES(op) \
+	AXE_TYPE_LIST_BOOL(op)  \
+	AXE_TYPE_LIST_SINT(op)  \
+	AXE_TYPE_LIST_UINT(op)  \
+	AXE_TYPE_LIST_FLOAT(op) \
+	AXE_TYPE_LIST_CHAR(op)  \
+//----
+
 #include "TypeTraits.h"
 
 //---- utils
+template<class T, class... Args > AXE_INLINE
+void axe_call_constructor(T* pDst, Args&&... args) noexcept {
+	::new (pDst) T(AXE_FORWARD(args)...);
+}
+
+template<class T> AXE_INLINE
+void axe_call_destructor(T* p) noexcept {
+	p->~T();
+}
 
 AXE_INLINE void axe_force_crash() {
-	std::cout << "!!! axe_force_crash !!!\n";
+	::std::cout << "!!! axe_force_crash !!!\n";
 	*reinterpret_cast<int*>(1) = 0;
 }
 
@@ -146,16 +210,17 @@ template<class T> AXE_INLINE void axe_delete_set_null(T* &p) noexcept { axe_dele
 
 namespace axe {
 
-template<class T> AXE_INLINE constexpr typename std::underlying_type<T>::type  enumInt(T  value) { return static_cast<typename std::underlying_type<T>::type>(value); }
-template<class T> AXE_INLINE constexpr typename std::underlying_type<T>::type& enumIntRef(T& value) { return *reinterpret_cast<typename std::underlying_type<T>::type*>(&value); }
-template<class T> AXE_INLINE constexpr typename std::underlying_type<T>::type const& enumIntRef(const T& value) { return *reinterpret_cast<const typename std::underlying_type<T>::type*>(&value); }
+template<class T> AXE_INLINE constexpr typename underlying_type_t<T> enumInt(T  value) { return static_cast<typename underlying_type_t<T>>(value); }
+
+template<class T> AXE_INLINE constexpr typename underlying_type_t_reference<T>		 enumIntRef(      T& value) { return *reinterpret_cast<underlying_type_t_pointer<T>>(&value); }
+template<class T> AXE_INLINE constexpr typename underlying_type_t_const_reference<T> enumIntRef(const T& value) { return *reinterpret_cast<underlying_type_t_const_pointer<T>>(&value); }
 
 template<class T> AXE_INLINE bool constexpr enumHas(const T& a, const T& b) { return static_cast<T>(enumInt(a) & enumInt(b)) != static_cast<T>(0); }
 
 template<class T> AXE_INLINE T* constCast(const T* v) { return const_cast<T*>(v); }
 template<class T> AXE_INLINE T& constCast(const T& v) { return const_cast<T&>(v); }
 
-template<class T> AXE_INLINE void swap(T& a, T& b) { T tmp = AXE_MOVE(a); a = AXE_MOVE(b); b = AXE_MOVE(tmp); }
+template<class T> AXE_INLINE void swap(T& a, T& b) { T tmp(AXE_MOVE(a)); a = AXE_MOVE(b); b = AXE_MOVE(tmp); }
 
 template< class Obj, class Member > constexpr
 intptr_t memberOffset(Member Obj::*ptrToMember) {
@@ -169,6 +234,12 @@ size_t charStrlen(const T* sz) {
 	const auto* p = sz;
 	while (*p) ++p;
 	return static_cast<size_t>(p - sz);
+}
+
+template <class T, size_t N>
+size_t arraySize(T (&arr)[N])
+{
+	return N;
 }
 
 } // namespace axe
@@ -532,7 +603,7 @@ public:
 	explicit ScopedValue(T& p)						noexcept : _p(&p) { _oldValue = p; }
 	explicit ScopedValue(T& p, const T& newValue)	noexcept : ScopedValue(p) { p = newValue; }
 
-	ScopedValue(ScopedValue && r) noexcept {
+	explicit ScopedValue(ScopedValue && r) noexcept {
 		_p = r._p;
 		_oldValue = r._oldValue;
 		r._p = nullptr;
@@ -559,26 +630,19 @@ private:
 	T _oldValue;
 }; // ScopedValue
 
-template<class T> AXE_NODISCARD AXE_INLINE auto ScopedValue_make(T& p)					{ return ScopedValue<T>(p); }
+template<class T> AXE_NODISCARD AXE_INLINE auto ScopedValue_make(T& p)					  { return ScopedValue<T>(p); }
 template<class T> AXE_NODISCARD AXE_INLINE auto ScopedValue_make(T& p, const T& newValue) { return ScopedValue<T>(p, newValue); }
 
 template<class START_FUNC, class END_FUNC>
 class ScopedAction : public NonCopyable {
 public:
-	using StartFuncType = typename ::std::decay<START_FUNC>::type;
-	using EndFuncType	= typename ::std::decay<END_FUNC>::type;
+	using StartFuncPtrType = typename decay_t<START_FUNC>;
+	using EndFuncPtrType   = typename decay_t<END_FUNC>;
 
-	ScopedAction(START_FUNC&& st, END_FUNC&& ed)
-		: _ed(AXE_FORWARD(ed))
-	{
-		st();
-	}
-	~ScopedAction()
-	{
-		_ed();
-	}
+	explicit ScopedAction(START_FUNC && st, END_FUNC && ed) noexcept : _ed(AXE_FORWARD(ed)) { st(); }
+	~ScopedAction() { _ed(); }
 private:
-	EndFuncType	_ed;
+	EndFuncPtrType _ed;
 }; // ScopedAction
 
 template <class START_FUNC, class END_FUNC> AXE_NODISCARD AXE_INLINE auto ScopedAction_make(START_FUNC&& st, END_FUNC&& ed) {

@@ -13,7 +13,7 @@
 namespace axe {
 
 void run_temp_test() {
-	RUN_TEST(test_Error);
+	RUN_TEST(test_TypeTraits);
 }
 
 void run_all_test() {
@@ -21,6 +21,7 @@ void run_all_test() {
 	RUN_TEST(test_axe_macro);
 	RUN_TEST(test_BinSerializer);
 	RUN_TEST(test_Error);
+	RUN_TEST(test_TypeTraits);
 
 // file
 	RUN_TEST(test_MemMapFile);
@@ -50,7 +51,7 @@ void run_all_test() {
 }
 
 int test_main() {
-#if 1
+#if 0
 	run_temp_test();
 #else
 	run_all_test();

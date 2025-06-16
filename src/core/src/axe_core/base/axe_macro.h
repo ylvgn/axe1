@@ -18,6 +18,8 @@
 #define AXE_IDENTITY(X) X
 #define AXE_CALL(M, ARGS) AXE_IDENTITY( M(ARGS) )
 
+#define AXE_UNUSED(v) (void)(v)
+
 #define AXE_FILE StrView(__FILE__)
 #define AXE_LINE static_cast<int>(__LINE__)
 #define AXE_LOC	 SrcLoc(AXE_FUNC_NAME_SZ, __FILE__, __LINE__)
@@ -83,8 +85,8 @@
 #define AXE_DUMP_HEX(v)                       \
 	do                                        \
 	{                                         \
-		String tmp;                           \
-		StringUtil::binToHex(tmp, v);         \
+		::axe::String tmp;                    \
+		::axe::StringUtil::binToHex(tmp, v);  \
 		AXE_LOG("DUMP_HEX: {}\n{}", #v, tmp); \
 	} while (false) \
 //----
@@ -93,10 +95,10 @@
 #define AXE_CONCAT_2(v0, v1)			v0 ## v1
 #define AXE_CONCAT_3(v0, v1, v2)		v0 ## v1 ## v2
 #define AXE_CONCAT_4(v0, v1, v2, v3)	v0 ## v1 ## v2 ## v3
-//----
 
 #define AXE_CONCAT_SELECT(COUNT) AXE_CONCAT_ ## COUNT
 #define AXE_CONCAT(...)			 AXE_IDENTITY(AXE_CALL(AXE_CONCAT_SELECT, AXE_VA_ARGS_COUNT(__VA_ARGS__)(__VA_ARGS__)))
+//----
 
 #define AXE_UNIQUE_NAME(NAME) AXE_CONCAT(axeUNIQUE_NAME_##NAME, __LINE__)
 #define AXE_NO_NAME			  AXE_UNIQUE_NAME(Unnamed)
@@ -168,18 +170,15 @@
 	AXE_ENUM_ARITHMETIC_OPERATOR_INT(T) \
 //----
 
-#define AXE_ENUM_STR__CASE(V, ...) case AXE_T::V: return #V;
-
+#define AXE_ENUM_STR__CASE(AXE_V, ...) case AXE_T::AXE_V: return #AXE_V;
 #define AXE_ENUM_STR(T)                                                    \
 	inline const char* enumStr(const T& v)                                 \
 	{                                                                      \
 		using AXE_T = T;                                                   \
 		switch (v)                                                         \
 		{                                                                  \
-			T##_ENUM_LIST(AXE_ENUM_STR__CASE)							   \
-			default:													   \
-				AXE_ASSERT(false);										   \
-				return "";												   \
+			T##_ENUM_LIST(AXE_ENUM_STR__CASE) default : AXE_ASSERT(false); \
+			return "";                                                     \
 		}                                                                  \
 	}                                                                      \
 //----
@@ -213,8 +212,6 @@
 //----
 
 #define AXE_NAMED_IO(SE, V)	SE.named_io(#V, V)
-
-#define AXE_UNUSED(v) (void)(v)
 
 #define AXE_STATIC_ASSERT_NO_MEMBER_CLASS(T)  \
 	class T##_Dummy : public T                \

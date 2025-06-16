@@ -11,8 +11,22 @@
 	}while(false)
 //----
 
-#define AXE_TEST_CHECK(a)			AXE_TEST_CHECK_IMPL(AXE_LOC, true,  bool(a), #a)
-#define AXE_TEST_CHECK_SLIENT(a)	AXE_TEST_CHECK_IMPL(AXE_LOC, false, bool(a), #a)
+#define AXE_TEST_CHECK(EXPR)		AXE_TEST_CHECK_IMPL(AXE_LOC, true,  bool(EXPR), #EXPR)
+#define AXE_TEST_CHECK_SLIENT(EXPR) AXE_TEST_CHECK_IMPL(AXE_LOC, false, bool(EXPR), #EXPR)
+
+#define AXE_TEST_CALL_TREATED_AS_SUCC(EXPR) \
+	do { \
+		{ EXPR; } \
+		AXE_LOG("[ Passed ] [{}]", #EXPR); \
+	} while (false) \
+//----
+
+#define AXE_TEST_NOEXCEPT_CALL(EXPR) \
+	do { \
+		try { EXPR; } \
+		catch (...) { AXE_LOG("\t Caught throw: EXPR=[{}]", #EXPR); } \
+	} while (false)	\
+//----
 
 namespace axe {
 

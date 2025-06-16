@@ -1,27 +1,14 @@
 #include <axe_core/base/UnitTest.h>
 
-#define AXE_TEST_NO_THROW_CALL(EXPR)            \
-	do                                          \
-	{                                           \
-		try                                     \
-		{                                       \
-			EXPR;                               \
-		}                                       \
-		catch (...)                             \
-		{                                       \
-			AXE_LOG("\t ignored throw: {}", #EXPR); \
-		}                                       \
-	} while (false) \
-//----
-
 namespace axe {
 
 class Test_Error : public UnitTestBase {
 public:
 	void test_AXE_THROW() {
-		AXE_TEST_NO_THROW_CALL( AXE_THROW(""));
-		AXE_TEST_NO_THROW_CALL( AXE_THROW("unsupported") );
-		AXE_TEST_NO_THROW_CALL( AXE_THROW("{}", 123) );
+		AXE_TEST_CALL_TREATED_AS_SUCC( AXE_TEST_NOEXCEPT_CALL(throw AXE_ERROR("")) );
+		AXE_TEST_CALL_TREATED_AS_SUCC( AXE_TEST_NOEXCEPT_CALL(throw AXE_ERROR("unsupported")) );
+		AXE_TEST_CALL_TREATED_AS_SUCC( AXE_TEST_NOEXCEPT_CALL(throw AXE_ERROR("{}", 123)) );
+		AXE_TEST_CALL_TREATED_AS_SUCC( AXE_TEST_NOEXCEPT_CALL(AXE_THROW()) );
 	}
 
 	int AXE_ASSERT_ONCE_calledCount = 0;
@@ -42,11 +29,16 @@ public:
 	}
 
 	void test_AXE_ASSERT() {
-		AXE_ASSERT(false);
+		AXE_TEST_CALL_TREATED_AS_SUCC( AXE_ASSERT(false) );
+
+		AXE_TEST_CALL_TREATED_AS_SUCC( AXE_ASSERT(1 > 2) );
+		AXE_TEST_CALL_TREATED_AS_SUCC( AXE_ASSERT(1 < 2) );
+		AXE_TEST_CALL_TREATED_AS_SUCC( AXE_ASSERT(1 == 2) );
 	}
 
 	void test_AXE_FATAL_ASSERT() {
-		AXE_FATAL_ASSERT(false);
+		AXE_TEST_CALL_TREATED_AS_SUCC( AXE_FATAL_ASSERT(true) );
+		AXE_TEST_CALL_TREATED_AS_SUCC( AXE_FATAL_ASSERT(false) );
 	}
 };
 
@@ -56,9 +48,14 @@ public:
 void test_Error() {
 	using namespace axe;
 
-	auto sa = ScopedAction_make(
+	auto scopedDisabledAssert = ScopedAction_make(
 		[&]() { Error::s_setEnableAssertion(false); },
 		[&]() { Error::s_setEnableAssertion(true); }
+	);
+
+	auto scopedDisabledDebugBreak = ScopedAction_make(
+		[&]() { Error::s_setEnableDebugBreak(false); },
+		[&]() { Error::s_setEnableDebugBreak(true); }
 	);
 
 	AXE_TEST_CASE(Test_Error, test_AXE_THROW());

@@ -8,9 +8,9 @@
 //----
 
 // usage:
-//     AXE_DISABLE_VC_WARNING(4127 3244)
-//     <code>
-//     AXE_RESTORE_VC_WARNING()
+//   AXE_DISABLE_VC_WARNING(4127 3244)
+//   <code>
+//   AXE_RESTORE_VC_WARNING()
 //
 #if AXE_COMPILER_VC
 	#define AXE_DISABLE_VC_WARNING(X)  \
@@ -30,9 +30,9 @@
 
 #if defined(AXE_COMPILER_VC)
 	#if defined(AXE_EXPORTS)
-		#define AXE_API __declspec(dllexport)
+		#define AXE_API AXE_DLL_EXPORT
 	#elif defined(AXE_IMPORTS)
-		#define AXE_API __declspec(dllimport)
+		#define AXE_API AXE_DLL_IMPORT
 	#else
 		#define AXE_API
 	#endif

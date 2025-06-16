@@ -30,7 +30,7 @@
 //----
 
 template<class T>
-struct fmt::formatter<T, typename std::enable_if_t<std::is_enum_v<T>, char> > {
+struct fmt::formatter<T, typename ::axe::enable_if_t< ::axe::is_enum_v<T>, char> > {
 	static auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
 	static auto format(const T& v, fmt::format_context& ctx) {
 		using namespace axe;

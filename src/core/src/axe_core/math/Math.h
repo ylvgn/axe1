@@ -13,19 +13,19 @@ namespace axe { namespace Math {
 	template<class T> constexpr T byteToM(const T& v) { return v / (1024 * 1024); }
 	template<class T> constexpr T byteToG(const T& v) { return v / (1024 * 1024 * 1024); }
 
-	struct _Helper {
+	struct _Helper : public StaticClass {
 		template<class T>
 		static constexpr T alignTo_uint(T n, T a) {
-			AXE_STATIC_ASSERT(TypeTraits::isUnsigned<T>::value);
+			AXE_STATIC_ASSERT(is_unsigned_v<T>);
 			if (a == 0) return 0;
 			T r = n % a;
 			return r ? (n + a - r) : n;
-		//	return (n + a - 1) / a * a;
+//			return (n + a - 1) / a * a;
 		}
 
 		template<class T>
 		static constexpr T alignTo_int(T n, T a) {
-			AXE_STATIC_ASSERT(TypeTraits::isSigned<T>::value);
+			AXE_STATIC_ASSERT(is_signed_v<T>);
 			if (a == 0) return 0;
 			a = Math::abs(a);
 
@@ -54,11 +54,11 @@ namespace axe { namespace Math {
 	constexpr u64 alignTo(u64 n, u64 a) { return _Helper::alignTo_uint(n, a); }
 
 //--------
-	template< class T > constexpr T		NaN		()				{ return std::numeric_limits<T>::quiet_NaN(); }
-	template< class T > constexpr bool	isNaN	( const T& v )	{ return std::isnan(v); }
+	template< class T > constexpr T		NaN		()				{ return ::std::numeric_limits<T>::quiet_NaN(); }
+	template< class T > constexpr bool	isNaN	( const T& v )	{ return ::std::isnan(v); }
 	
-	template < class T > constexpr T	inf		()				{ return std::numeric_limits<T>::infinity(); }
-	template < class T > constexpr bool	isInf	( const T& v )	{ return std::numeric_limits<T>::has_infinity && v == inf<T>(); }
+	template < class T > constexpr T	inf		()				{ return ::std::numeric_limits<T>::infinity(); }
+	template < class T > constexpr bool	isInf	( const T& v )	{ return ::std::numeric_limits<T>::has_infinity && v == inf<T>(); }
 
 //--------
 	constexpr u64 nextPow2(u64 x) {
@@ -84,51 +84,51 @@ namespace axe { namespace Math {
 		return !(v & (v - 1)) && v;
 	}
 
-	template<class T, class ENABLE = std::enable_if_t< std::is_integral_v<T> > >
+	template<class T, class ENABLE = enable_if_t< is_integral_v<T> > > AXE_NODISCARD
 	constexpr T lowbit(T x) { return x & (-static_cast<i64>(x)); }
 
 	//Splits a floating-point value into fractional and integer parts
-	AXE_INLINE float	modf	( float  v, float  *i ) { return std::modf( v, i ); }
-	AXE_INLINE double	modf	( double v, double *i ) { return std::modf( v, i ); }
+	AXE_NODISCARD AXE_INLINE float	modf	( float  v, float  *i ) { return ::std::modf( v, i ); }
+	AXE_NODISCARD AXE_INLINE double	modf	( double v, double *i ) { return ::std::modf( v, i ); }
 
-	AXE_INLINE float	frac	( float  v )	{ float  intPart; return modf(v, &intPart); }
-	AXE_INLINE double	frac	( double v )	{ double intPart; return modf(v, &intPart); }
+	AXE_NODISCARD AXE_INLINE float	frac	( float  v )	{ float  intPart; return modf(v, &intPart); }
+	AXE_NODISCARD AXE_INLINE double	frac	( double v )	{ double intPart; return modf(v, &intPart); }
 
-	AXE_INLINE float	ceil	( float  a )	{ return std::ceil(a); }
-	AXE_INLINE double	ceil	( double a )	{ return std::ceil(a); }
+	AXE_NODISCARD AXE_INLINE float	ceil	( float  a )	{ return ::std::ceil(a); }
+	AXE_NODISCARD AXE_INLINE double	ceil	( double a )	{ return ::std::ceil(a); }
 
-	AXE_INLINE float	floor	( float  a )	{ return std::floor(a); }
-	AXE_INLINE double	floor	( double a )	{ return std::floor(a); }
+	AXE_NODISCARD AXE_INLINE float	floor	( float  a )	{ return ::std::floor(a); }
+	AXE_NODISCARD AXE_INLINE double	floor	( double a )	{ return ::std::floor(a); }
 
 	//get remainder
-	AXE_INLINE float	fmod	( float  a, float  b ) { return std::fmod(a,b); }
-	AXE_INLINE double	fmod	( double a, double b ) { return std::fmod(a,b); }
+	AXE_NODISCARD AXE_INLINE float	fmod	( float  a, float  b ) { return ::std::fmod(a,b); }
+	AXE_NODISCARD AXE_INLINE double	fmod	( double a, double b ) { return ::std::fmod(a,b); }
 
 	#if AXE_COMPILER_VC | AXE_OS_CYGWIN
-		AXE_INLINE float  trunc	( float  n )	{ float  i; return std::modf( n, &i ); }
-		AXE_INLINE double trunc	( double n )	{ double i; return std::modf( n, &i ); }
+		AXE_NODISCARD AXE_INLINE float  trunc	( float  n )	{ float  i; return ::std::modf( n, &i ); }
+		AXE_NODISCARD AXE_INLINE double trunc	( double n )	{ double i; return ::std::modf( n, &i ); }
 
-		AXE_INLINE float  round	( float  a )	{ return a > 0 ? floor(a+0.5f) : ceil(a-0.5f); }
-		AXE_INLINE double round	( double a )	{ return a > 0 ? floor(a+0.5 ) : ceil(a-0.5 ); }
+		AXE_NODISCARD AXE_INLINE float  round	( float  a )	{ return a > 0 ? floor(a+0.5f) : ceil(a-0.5f); }
+		AXE_NODISCARD AXE_INLINE double round	( double a )	{ return a > 0 ? floor(a+0.5 ) : ceil(a-0.5 ); }
 	#else
-		AXE_INLINE float  trunc	( float  n )	{ return std::trunc(n); }
-		AXE_INLINE double trunc	( double n )	{ return std::trunc(n); }
+		AXE_NODISCARD AXE_INLINE float  trunc	( float  n )	{ return ::std::trunc(n); }
+		AXE_NODISCARD AXE_INLINE double trunc	( double n )	{ return ::std::trunc(n); }
 
-		AXE_INLINE float  round	( float  a )	{ return std::round(a); }
-		AXE_INLINE double round	( double a )	{ return std::round(a); }
+		AXE_NODISCARD AXE_INLINE float  round	( float  a )	{ return ::std::round(a); }
+		AXE_NODISCARD AXE_INLINE double round	( double a )	{ return ::std::round(a); }
 	#endif
 
-	AXE_INLINE int	truncToInt	( float  a )	{ return static_cast<int>( trunc(a) ); }
-	AXE_INLINE int	truncToInt	( double a )	{ return static_cast<int>( trunc(a) ); }
+	AXE_NODISCARD AXE_INLINE int	truncToInt	( float  a )	{ return static_cast<int>( trunc(a) ); }
+	AXE_NODISCARD AXE_INLINE int	truncToInt	( double a )	{ return static_cast<int>( trunc(a) ); }
 
-	AXE_INLINE int	roundToInt	( float  a )	{ return static_cast<int>( round(a) ); }
-	AXE_INLINE int	roundToInt	( double a )	{ return static_cast<int>( round(a) ); }
+	AXE_NODISCARD AXE_INLINE int	roundToInt	( float  a )	{ return static_cast<int>( round(a) ); }
+	AXE_NODISCARD AXE_INLINE int	roundToInt	( double a )	{ return static_cast<int>( round(a) ); }
 
-	AXE_INLINE int	floorTo_Int	( float  a )	{ return static_cast<int>( floor(a) ); }
-	AXE_INLINE int	floorTo_Int	( double a )	{ return static_cast<int>( floor(a) ); }
+	AXE_NODISCARD AXE_INLINE int	floorTo_Int	( float  a )	{ return static_cast<int>( floor(a) ); }
+	AXE_NODISCARD AXE_INLINE int	floorTo_Int	( double a )	{ return static_cast<int>( floor(a) ); }
 
-	AXE_INLINE int	ceilToInt	( float  a )	{ return static_cast<int>( ceil (a) ); }
-	AXE_INLINE int	ceilToInt	( double a )	{ return static_cast<int>( ceil (a) ); }
+	AXE_NODISCARD AXE_INLINE int	ceilToInt	( float  a )	{ return static_cast<int>( ceil (a) ); }
+	AXE_NODISCARD AXE_INLINE int	ceilToInt	( double a )	{ return static_cast<int>( ceil (a) ); }
 
 //----------
 
@@ -176,7 +176,7 @@ namespace axe { namespace Math {
 #pragma mark ----------------
 #endif
 
-	template<class T> T abs(const T& v) { return v < 0 ? -v : v; }
+	template<class T> AXE_NODISCARD T abs(const T& v) { return v < 0 ? -v : v; }
 
 	template<class T> constexpr T	 epsilon();
 	template<>		  constexpr int	 epsilon<int >() { return 0; }
@@ -190,35 +190,35 @@ namespace axe { namespace Math {
 //-------------- Lerp ----------------
 //! linear interpolation out = a+w*(b-a)
 
-	template<class T, class W>
+	template<class T, class W> AXE_NODISCARD
 	AXE_INLINE T	lerp(const T& a, const T& b, const W& w );
 
-	template<class T, class ENABLE = std::enable_if_t< std::is_floating_point_v<T> > >
+	template<class T, class ENABLE = enable_if_t< is_floating_point_v<T> > > AXE_NODISCARD
 	AXE_INLINE T	lerp(T a, T b, T w ) { return (1-w)*a + w*b; }
 
-	template<class T, class ENABLE = std::enable_if_t< std::is_integral_v<T> > >
+	template<class T, class ENABLE = enable_if_t< is_integral_v<T> > > AXE_NODISCARD
 	AXE_INLINE T	lerp(T a, T b, double w ) {
 		double a_ = static_cast<double>(a);
 		double b_ = static_cast<double>(b);
 		return static_cast<T>(lerp<double>(a_, b_, w));
 	}
 
-	template<>
+	template<> AXE_NODISCARD
 	AXE_INLINE float lerp(const float& a, const float& b, const double& w) {
 		return static_cast<float>((1 - w) * a + w * b);
 	}
 
 	//---------
-	AXE_INLINE float	sqrt(float  n) { return std::sqrt(n); }
-	AXE_INLINE double	sqrt(double n) { return std::sqrt(n); }
-	AXE_INLINE int		sqrt(int    n) { return static_cast<int>(std::sqrt(static_cast<double>(n))); }
+	AXE_NODISCARD AXE_INLINE float	sqrt(float  n) { return ::std::sqrt(n); }
+	AXE_NODISCARD AXE_INLINE double	sqrt(double n) { return ::std::sqrt(n); }
+	AXE_NODISCARD AXE_INLINE int	sqrt(int    n) { return static_cast<int>(::std::sqrt(static_cast<double>(n))); }
 
-	AXE_INLINE float	cbrt(float  n) { return std::cbrt(n); }
-	AXE_INLINE double	cbrt(double n) { return std::cbrt(n); }
-	AXE_INLINE int		cbrt(int    n) { return static_cast<int>(std::cbrt(static_cast<double>(n))); }
+	AXE_NODISCARD AXE_INLINE float	cbrt(float  n) { return ::std::cbrt(n); }
+	AXE_NODISCARD AXE_INLINE double	cbrt(double n) { return ::std::cbrt(n); }
+	AXE_NODISCARD AXE_INLINE int	cbrt(int    n) { return static_cast<int>(::std::cbrt(static_cast<double>(n))); }
 
 	//------- reciprocal square root ---------------
-	AXE_INLINE float rsqrt_fast(float n) {
+	AXE_NODISCARD AXE_INLINE float rsqrt_fast(float n) {
 	#if AXE_CPU_FEATURE_SSE2
 		return _mm_cvtss_f32(_mm_rsqrt_ss(_mm_set_ss(n)));
 	#else // https://en.wikipedia.org/wiki/Fast_inverse_square_root
@@ -237,7 +237,7 @@ namespace axe { namespace Math {
 	#endif // AXE_CPU_FEATURE_SSE2
 	}
 
-	AXE_INLINE double rsqrt_fast(double n) {
+	AXE_NODISCARD AXE_INLINE double rsqrt_fast(double n) {
 		uint64_t i;
 		double x2, y;
 		const float threehalfs = 1.5;
@@ -252,12 +252,12 @@ namespace axe { namespace Math {
 		return y;
 	}
 
-	AXE_INLINE int rsqrt_fast(int n) {
+	AXE_NODISCARD AXE_INLINE int rsqrt_fast(int n) {
 		double d = static_cast<double>(n);
 		return roundToInt(rsqrt_fast(d));
 	}
 
-	AXE_INLINE float rsqrt(float v) {
+	AXE_NODISCARD AXE_INLINE float rsqrt(float v) {
 	#if 0 //AXE_CPU_FEATURE_SSE2
 		float  xrsqrt_est = rsqrt_fast(v);
 		return xrsqrt_est * (1.5f - v * 0.5f * xrsqrt_est * xrsqrt_est); // NR iteration
@@ -266,7 +266,7 @@ namespace axe { namespace Math {
 	#endif
 	}
 
-	AXE_INLINE double rsqrt(double v) { return 1.0 / sqrt(v); }
-	AXE_INLINE int    rsqrt(int    v) { return roundToInt(rsqrt(static_cast<double>(v))); }
+	AXE_NODISCARD AXE_INLINE double rsqrt(double v) { return 1.0 / sqrt(v); }
+	AXE_NODISCARD AXE_INLINE int    rsqrt(int    v) { return roundToInt(rsqrt(static_cast<double>(v))); }
 
 }} // namespace axe/Math

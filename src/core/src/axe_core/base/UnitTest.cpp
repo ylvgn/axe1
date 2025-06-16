@@ -15,4 +15,4 @@ bool AXE_TEST_CHECK_IMPL(const SrcLoc& loc, bool verbose, bool success, const ch
 	return success;
 }
 
-} // namespace
+} // namespace axe
