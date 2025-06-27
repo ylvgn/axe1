@@ -1,0 +1,23 @@
+
+#crlf
+#core.autocrlf=false
+core.safecrlf=true
+
+#lf
+#* text=auto eol=lf
+
+* -text
+
+*.bat       eol=crlf
+*.sln       eol=crlf
+*.vcproj	eol=crlf
+*.csproj    eol=crlf
+
+*.sh        eol=lf
+
+*.docx   diff=astextplain
+*.DOCX   diff=astextplain
+
+*.png binary
+*.jpg binary
+*.pdf binary
