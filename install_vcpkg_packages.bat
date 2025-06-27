@@ -21,5 +21,6 @@ call %VCPKG_ROOT%\bootstrap-vcpkg.bat
 %vcpkg% install spirv-cross:%triplets% --recurse
 %vcpkg% install shaderc:%triplets% --recurse
 %vcpkg% install directx-dxc:%triplets% --recurse
+%vcpkg% install directx-headers:%triplets% --recurse
 
 @pause

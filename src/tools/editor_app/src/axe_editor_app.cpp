@@ -2,43 +2,90 @@
 
 namespace axe {
 
-class MainWin : public NativeUIWindow {
+class EditorApp;
+
+class MainWin : public NativeUIWindow
+{
 	using Base = NativeUIWindow;
 public:
-	virtual void onCreate(CreateDesc& desc) override {
-		Base::onCreate(desc);
-	}
+
+	EditorApp* app();
+
+	virtual void onCreate(CreateDesc& desc) override;
 
 	virtual void onCloseButton() override {
 		NativeUIApp::current()->quit(0);
 	}
+
+	virtual void onDraw() override {
+		if (!_renderContext)
+			return;
+
+		_renderContext->setFrameBufferSize(clientRect().size);
+		_renderContext->beginRender();
+		_renderContext->endRender();
+
+		onDrawNeeded();
+	}
+
+	SPtr<RenderContext> _renderContext;
 };
 
 class EditorApp : public NativeUIApp {
 	using Base = NativeUIApp;
 public:
+
+	RenderDevice* renderDevice() { return _renderDevice; }
+
 	virtual void onCreate(CreateDesc& desc) override {
 		setCurDirRelativeToExecutable("/../../../Test101");
 
-		AXE_ZoneScopedN("Foo Memory leak");
-
-		int* a = new int[8];
-		a[0]   = 100;
-//		delete[] a;
+		{ // create renderer
+			Renderer::CreateDesc renderDesc;
+			renderDesc.api = RendererApi::DX12;
+			auto* p = Renderer::s_create(renderDesc);
+			
+			auto deviceDesc = RenderDevice_CreateDesc();
+			_renderDevice	= p->createRenderDevice(deviceDesc);
+		}
 
 		{ // create window
-			TempString title = "AXE Editor";
+			TempString title("AXE Editor -");
+			AXE_ASSERT(Renderer::s_instance()->devices().size() > 0);
+
+			for (auto& device : Renderer::s_instance()->devices()) {
+				FmtTo(title, " [{}({}, VSync: {})]", device->debugName(), device->api(), device->vsync());
+			}
 
 			NativeUIWindow::CreateDesc winDesc;
 			winDesc.isMainWindow = true;
-			_mainWin.create(winDesc);
-			_mainWin.setWindowTitle(title);
+			_mainWin = new MainWin();
+			_mainWin->create(winDesc);
+			_mainWin->setWindowTitle(title);
 		}
 	}
 
 private:
-	MainWin	_mainWin;
+	MainWin*		_mainWin;
+	RenderDevice*	_renderDevice;
 };
+
+
+EditorApp* MainWin::app() {
+	return static_cast<EditorApp*>(NativeUIApp::current());
+}
+
+void MainWin::onCreate(CreateDesc& desc)
+{
+	Base::onCreate(desc);
+
+	{ // create render context
+		RenderContext::CreateDesc renderContextDesc;
+		renderContextDesc.window = this;
+		_renderContext = app()->renderDevice()->createContext(renderContextDesc);
+	}
+}
+
 
 } // namespace axe
 

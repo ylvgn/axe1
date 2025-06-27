@@ -38,6 +38,7 @@ find_package(spirv_cross_glsl   CONFIG REQUIRED)
 find_package(spirv_cross_hlsl   CONFIG REQUIRED)
 find_package(spirv_cross_msl    CONFIG REQUIRED)
 find_package(directx-dxc        CONFIG REQUIRED)
+find_package(directx-headers    CONFIG REQUIRED)
 
 #-- core ---
 add_subdirectory(src/core)

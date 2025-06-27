@@ -1,0 +1,40 @@
+#pragma once
+
+#if AXE_RENDER_HAS_DX12
+
+#include <axe_render/Renderer.h>
+#include "Render_DX12_Common.h"
+
+namespace axe {
+
+class Renderer_DX12 : public Renderer {
+	using This = Renderer_DX12;
+	using Base = Renderer;
+	using Util = DX12Util;
+public:
+	AXE_DOWNCAST_GET_INSTANCE()
+
+	Renderer_DX12(CreateDesc& desc);
+
+	virtual RenderDevice* onCreateRenderDevice(RenderDevice_CreateDesc& desc) final;
+
+	RenderDevice_DX12* findDevice(int i = 0) const;
+
+	DX12_IDXGIFactory* dxgiFactory() { return _dxgiFactory; }
+	DX12_ID3D12Device* d3dDevice(int i = 0);
+
+private:
+	struct LiveObjectReporter
+	{
+		// At application shutdown will auto called this destructor, for tracking DXGI/D3D resource leaks
+		~LiveObjectReporter();
+	} _internal_reporter;
+
+	void _getHardwareAdapterBasicInfo();
+
+	ComPtr<DX12_IDXGIFactory> _dxgiFactory;
+}; // Renderer_DX12
+
+} // namespace axe
+
+#endif // AXE_RENDER_HAS_DX12
