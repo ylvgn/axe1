@@ -1,19 +1,16 @@
 
 #crlf
-#core.autocrlf=false
-core.safecrlf=true
+#core.safecrlf=true
 
 #lf
-#* text=auto eol=lf
+* text=auto eol=lf
 
-* -text
+*.bat     text  eol=crlf
+*.sln     text  eol=crlf
+*.vcproj  text	eol=crlf
+*.csproj  text  eol=crlf
 
-*.bat       eol=crlf
-*.sln       eol=crlf
-*.vcproj	eol=crlf
-*.csproj    eol=crlf
-
-*.sh        eol=lf
+*.sh      text  eol=lf
 
 *.docx   diff=astextplain
 *.DOCX   diff=astextplain
@@ -21,3 +18,7 @@ core.safecrlf=true
 *.png binary
 *.jpg binary
 *.pdf binary
+*.bin binary
+*.exr binary
+*.fbx binary
+*.ttf binary
