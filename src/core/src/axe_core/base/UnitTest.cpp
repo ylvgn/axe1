@@ -10,6 +10,7 @@ bool AXE_TEST_CHECK_IMPL(const SrcLoc& loc, bool verbose, bool success, const ch
 	auto str = fmt::format("{} {}\n", (success ? "[ OK ]" : "[FAIL]"), msg);
 	std::cout << str;
 	if (!success) {
+		std::cout << loc << '\n';
 		assert(false);
 	}
 	return success;

@@ -2,20 +2,38 @@
 
 namespace axe {
 
+#if 0
+#pragma mark ========= WeakRefBlock ============
+#endif
 class WeakRefBlock : public NonCopyable {
 public:
-	void* _obj = nullptr;
-	std::atomic_int	_weakCount = 0;
+	void*	  _obj = nullptr;
+	AtomicInt _weakCount = 0;
 }; // WeakRefBlock
 
 
+#if 0
+#pragma mark ========= RefCountBase ============
+#endif
 class RefCountBase : public NonCopyable {
 public:
 	WeakRefBlock*	_weakRefBlock = nullptr;
-	std::atomic_int	_refCount = 0;
+	AtomicInt		_refCount	  = 0;
+
+	virtual ~RefCountBase() {
+		AXE_ASSERT(_refCount == 0);
+	}
+
+	virtual void onRefCountZero() {
+		axe_delete(this);
+	}
+
 }; // RefCountBase
 
 
+#if 0
+#pragma mark ========= SPtr ============
+#endif
 template<class T>
 class SPtr : public NonCopyable {
 public:
@@ -58,7 +76,7 @@ public:
 					_p->_weakRefBlock->_obj = nullptr;
 					_p->_weakRefBlock = nullptr;
 				}
-				axe_delete(_p);
+				_p->onRefCountZero();
 			}
 		}
 		_p = p;

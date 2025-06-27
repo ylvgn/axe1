@@ -3,7 +3,7 @@
 #include "../string/Fmt.h"
 
 #define AXE_ERROR(...) Error(AXE_LOC, Fmt(__VA_ARGS__))
-#define AXE_THROW()	   Error_Undefined(AXE_LOC)
+#define AXE_THROW()	   throw Error_Undefined(AXE_LOC)
 
 #define AXE_ASSERT_IMPL_SELECT(COUNT) AXE_ASSERT_IMPL_##COUNT
 #define AXE_ASSERT_IMPL_1(expr)						      do{ if (!(expr)) { ::axe::Error::s_assert(__FUNCTION__, __FILE__, __LINE__, #expr);								} } while(false)
@@ -12,9 +12,12 @@
 #define AXE_ASSERT_IMPL_4(expr, msg, title, hacking_expr) do{ if (!(expr)) { ::axe::Error::s_assert(__FUNCTION__, __FILE__, __LINE__, #expr, msg, title); { hacking_expr; } } } while(false)
 #define AXE_ASSERT_IMPL(...)   AXE_IDENTITY(AXE_CALL(AXE_ASSERT_IMPL_SELECT, AXE_VA_ARGS_COUNT(__VA_ARGS__)(__VA_ARGS__)))
 
-#define AXE_ASSERT_ONCE(...)   AXE_RUN_ONCE(AXE_ASSERT_IMPL(__VA_ARGS__))
-#define AXE_ASSERT(expr)	   AXE_ASSERT_ONCE(expr, "", "---- ASSERT ----")
-#define AXE_FATAL_ASSERT(expr) AXE_ASSERT_ONCE(expr, "", "---- FATAL ASSERT ----", axe_force_crash())
+#define AXE_ASSERT_ONCE(...)		 AXE_RUN_ONCE(AXE_ASSERT_IMPL(__VA_ARGS__))
+#define AXE_ASSERT(expr)			 AXE_ASSERT_ONCE(expr, "", "---- ASSERT ----")
+#define AXE_FATAL_ASSERT(expr)		 AXE_ASSERT_ONCE(expr, "", "---- FATAL ASSERT ----", axe_force_crash())
+#define AXE_ASSERT_NOT_IMPLEMENTED() AXE_ASSERT_ONCE(false, AXE_FUNC_FULLNAME_SZ, "AXE_ASSERT_NOT_IMPLEMENTED");
+
+#define AXE_VALIDATE(expr) ::axe::Error::s_validate(__FUNCTION__, __FILE__, __LINE__, expr, #expr, "")
 
 namespace axe {
 
@@ -38,18 +41,27 @@ public:
 					   , StrView msg = StrView()
 					   , StrView title = "---- ERROR ASSERT ----");
 
+	static bool s_validate(StrView	funcName
+						 , StrView	filename
+						 , int		lineNumber
+						 , bool		validation
+						 , StrView	expr
+						 , StrView	msg = StrView());
+
 	Error(const SrcLoc& loc, StrView msg = StrView());
 
 	void onFormat(fmt::format_context& ctx) const;
 
-private:
-	Error() = delete; // please create from AXE_ERROR
+protected:
+	Error() = default; // please create from AXE_ERROR
 
+	void _assert();
+
+	TempString _msg;
+	SrcLoc	   _loc;
+private:
 	static bool _s_enableAssertion;
 	static bool _s_enableDebugBreak;
-
-	SrcLoc	   _loc;
-	TempString _msg;
 }; // Error
 AXE_FORMATTER(Error)
 

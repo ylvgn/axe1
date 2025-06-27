@@ -6,16 +6,31 @@
 #include <axe_core/string/StringUtil.h>
 #include <axe_core/math/Rect2.h>
 
+#define AXE_WIN32_THROWIF_LAST_ERROR()                             \
+	do                                                             \
+	{                                                              \
+		auto errorCode = ::WSAGetLastError();                      \
+		if (errorCode)                                             \
+		{                                                          \
+			throw Error_Win32_ErrorCodeString(AXE_LOC, errorCode); \
+		}                                                          \
+	} while (false) \
+//----
+
+#define AXE_WIN32_THROWIF_HRESULT_ERROR(hr)                \
+	do                                                     \
+	{                                                      \
+		if (FAILED(hr))                                    \
+		{                                                  \
+			throw Error_Win32_HRESULT_String(AXE_LOC, hr); \
+		}                                                  \
+	} while (false) \
+//----
+
 namespace axe {
 
 class Win32Util : public NativeUICommonBase {
 public:
-	static void errorTo(String& out, ::DWORD in_errorcode = ::WSAGetLastError());
-	static void errorTo(String& out, ::HRESULT hr) { errorTo(out, static_cast<::DWORD>(hr)); }
-
-	static String error(::DWORD in_errorcode = ::WSAGetLastError()) { String o; errorTo(o, in_errorcode); return o; }
-	static String error(::HRESULT hr) { return error(static_cast<::DWORD>(hr)); }
-
 	static void convert(Rect2f&  o, const ::RECT&  i);
 	static void convert(Rect2i&  o, const ::RECT&  i);
 	static void convert(Vec2f&   o, const ::POINT& i);
@@ -43,7 +58,11 @@ public:
 AXE_STATIC_ASSERT_NO_MEMBER_CLASS(Win32Util);
 
 
+#if 0
+#pragma mark ========= Win32_ErrorCodeString ============
+#endif
 class Win32_ErrorCodeString {
+	using This = Win32_ErrorCodeString;
 public:
 	Win32_ErrorCodeString(::DWORD errorCode);
 
@@ -53,12 +72,65 @@ public:
 	void onFormat(fmt::format_context& ctx) const;
 
 private:
-	String_<1024> _str;
+	String_<256> _str;
 }; // Win32_ErrorCodeString
+AXE_FORMATTER(Win32_ErrorCodeString)
 
+
+#if 0
+#pragma mark ========= Error_Win32_ErrorCodeString ============
+#endif
+class Error_Win32_ErrorCodeString : public Error {
+	using This = Error_Win32_ErrorCodeString;
+	using Base = Error;
+public:
+	explicit Error_Win32_ErrorCodeString(const SrcLoc& loc, ::DWORD errorCode) {
+		_loc = loc;
+		Win32_ErrorCodeString s(errorCode);
+		FmtTo(_msg, "Win32 Error({}): {}\n{}", errorCode, s);
+		Base::_assert();
+	}
+}; // Error_Win32_ErrorCodeString
+AXE_FORMATTER(Error_Win32_ErrorCodeString)
+
+
+#if 0
+#pragma mark ========= Win32_HRESULT_String ============
+#endif
+class Win32_HRESULT_String {
+	using This = Win32_ErrorCodeString;
+public:
+	Win32_HRESULT_String(::HRESULT hr);
+
+	StrView		strView() const	{ return _str; }
+	operator	StrView() const	{ return strView(); }
+
+	void onFormat(fmt::format_context& ctx) const;
+
+private:
+	String_<256> _str;
+}; // Win32_HRESULT_String
+AXE_FORMATTER(Win32_HRESULT_String)
+
+
+#if 0
+#pragma mark ========= Error_Win32_HRESULT_String ============
+#endif
+class Error_Win32_HRESULT_String : public Error {
+	using This = Error_Win32_HRESULT_String;
+	using Base = Error;
+public:
+	explicit Error_Win32_HRESULT_String(const SrcLoc& loc, ::HRESULT hr)
+	{
+		_loc = loc;
+		Win32_HRESULT_String s(hr);
+		FmtTo(_msg, "HRESULT Error(0x{:0X}): {}", hr, s);
+		Base::_assert();
+	}
+}; // Error_Win32_HRESULT_String
+AXE_FORMATTER(Error_Win32_HRESULT_String)
 
 } // namespace axe
-
 
 template<>
 struct fmt::formatter<::RECT> {

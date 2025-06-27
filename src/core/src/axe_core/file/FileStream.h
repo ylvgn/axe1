@@ -46,6 +46,6 @@ private:
 	String _filename;
 
 	NativeFd _fd = kInvalid;
-};
+}; // FileStream
 
 } // namespace axe

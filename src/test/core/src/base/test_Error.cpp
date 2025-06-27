@@ -40,6 +40,12 @@ public:
 		AXE_TEST_CALL_TREATED_AS_SUCC( AXE_FATAL_ASSERT(true) );
 		AXE_TEST_CALL_TREATED_AS_SUCC( AXE_FATAL_ASSERT(false) );
 	}
+
+	void test_AXE_VALIDATE() {
+		AXE_TEST_CHECK(AXE_VALIDATE(1 == 1));
+		AXE_TEST_CHECK(AXE_VALIDATE(true));
+		AXE_TEST_CHECK(!AXE_VALIDATE(1 > 123));
+	}
 };
 
 } // namespace axe
@@ -62,4 +68,5 @@ void test_Error() {
 	AXE_TEST_CASE(Test_Error, test_AXE_ASSERT_ONCE());
 	AXE_TEST_CASE(Test_Error, test_AXE_ASSERT());
 //	AXE_TEST_CASE(Test_Error, test_AXE_FATAL_ASSERT());
+	AXE_TEST_CASE(Test_Error, test_AXE_VALIDATE());
 }

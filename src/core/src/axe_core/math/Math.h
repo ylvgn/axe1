@@ -9,9 +9,13 @@ namespace axe { namespace Math {
 	template<class T> constexpr T clamp01	(const T& v) { return clamp(v, T(0), T(1)); }
 	template<class T> constexpr T saturate	(const T& v) { return clamp01(v); }
 
-	template<class T> constexpr T byteToK(const T& v) { return v / 1024; }
-	template<class T> constexpr T byteToM(const T& v) { return v / (1024 * 1024); }
-	template<class T> constexpr T byteToG(const T& v) { return v / (1024 * 1024 * 1024); }
+	template<class T> constexpr T byteToK(const T& v) { return v / (1024/*1 << 10*/); }
+	template<class T> constexpr T byteToM(const T& v) { return v / (1 << 20); }
+	template<class T> constexpr T byteToG(const T& v) { return v / (1 << 30); }
+
+	template<class T> constexpr T KSizeInBytes() { return static_cast<T>(1 << 10); }
+	template<class T> constexpr T MSizeInBytes() { return static_cast<T>(1 << 20); }
+	template<class T> constexpr T GSizeInBytes() { return static_cast<T>(1 << 30); }
 
 	struct _Helper : public StaticClass {
 		template<class T>

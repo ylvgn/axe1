@@ -13,14 +13,14 @@
 
 #define AXE_WARN_ONCE(...)	do{ AXE_RUN_ONCE(axe::g_log.write(axe::Log::Level::Warning, __VA_ARGS__)); } while(false)
 
-#define AXE_TODO(...)                                       \
-	AXE_RUN_ONCE(                                           \
-		axe::TempString tmp = "[TODO] ";                    \
-		axe::FmtTo(tmp, __VA_ARGS__);						\
-		axe::FmtTo(tmp, "\n  - [{}]\n", AXE_LOC);           \
-		axe::g_log.onWrite(axe::Log::Level::Warning, tmp)	\
-	); \
+#define AXE_TODO(...)                                         \
+	AXE_RUN_ONCE(                                             \
+		::axe::TempString tmp = "[TODO] ";                    \
+		::axe::FmtTo(tmp, __VA_ARGS__);                       \
+		::axe::FmtTo(tmp, "\n  - [{}]\n", AXE_LOC);           \
+		::axe::g_log.onWrite(axe::Log::Level::Warning, tmp)); \
 //----
+
 
 namespace axe {
 

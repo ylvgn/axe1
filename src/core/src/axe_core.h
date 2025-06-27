@@ -36,6 +36,7 @@
 
 #include <axe_core/pointer/SPtr.h>
 #include <axe_core/pointer/ComPtr.h>
+#include <axe_core/pointer/WPtr.h>
 
 #include <axe_core/net/Socket.h>
 #include <axe_core/net/Poll.h>

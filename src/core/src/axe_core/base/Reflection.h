@@ -3,6 +3,10 @@
 #include "axe_base.h"
 #include <axe_core/log/Log.h>
 
+#define AXE_DOWNCAST_GET_INSTANCE() \
+	AXE_INLINE static This* s_instance() { return static_cast<This*>(Base::s_instance()); }
+//---------
+
 #define AXE_STRUCT_TYPE(T, BASE) \
 private: \
 	using This = T; \

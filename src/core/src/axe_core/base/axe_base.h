@@ -11,13 +11,19 @@
 #include "AXE_OS.h"
 
 //---- c++ headers
+#include <atomic>
+#include <thread>
+#include <mutex>
 #include <cassert>
 #include <exception>
 #include <iostream>
 #include <cstdlib>
 #include <cstdint>
-#include <atomic>
 #include <functional>
+
+#if AXE_CPLUSPLUS_17
+	#include <shared_mutex>
+#endif
 //#include <stdfloat> require c++23
 
 //---- externals
@@ -103,6 +109,16 @@ using Char16	 = char16_t;
 using Char32	 = char32_t;
 using CharW		 = wchar_t;
 using CharU		 = Char32; // unicode code point
+
+AXE_STATIC_ASSERT(sizeof(i8)  == 1);
+AXE_STATIC_ASSERT(sizeof(i16) == 2);
+AXE_STATIC_ASSERT(sizeof(i32) == 4);
+AXE_STATIC_ASSERT(sizeof(i64) == 8);
+AXE_STATIC_ASSERT(sizeof(u8)  == 1);
+AXE_STATIC_ASSERT(sizeof(u16) == 2);
+AXE_STATIC_ASSERT(sizeof(u32) == 4);
+AXE_STATIC_ASSERT(sizeof(u64) == 8);
+
 } // namespace axe
 
 #if AXE_COMPILER_VC
@@ -179,7 +195,7 @@ using CharU		 = Char32; // unicode code point
 	op( ::axe::f128 ) \
 //----
 
-#define AX_TYPE_LIST_ALL_PRIMITIVES(op) \
+#define AXE_TYPE_LIST_ALL_PRIMITIVES(op) \
 	AXE_TYPE_LIST_BOOL(op)  \
 	AXE_TYPE_LIST_SINT(op)  \
 	AXE_TYPE_LIST_UINT(op)  \
@@ -222,23 +238,22 @@ template<class T> AXE_INLINE T& constCast(const T& v) { return const_cast<T&>(v)
 
 template<class T> AXE_INLINE void swap(T& a, T& b) { T tmp(AXE_MOVE(a)); a = AXE_MOVE(b); b = AXE_MOVE(tmp); }
 
-template< class Obj, class Member > constexpr
-intptr_t memberOffset(Member Obj::*ptrToMember) {
+template <class Obj, class Member> constexpr
+intptr_t memberOffset(Member Obj::* ptrToMember) {
 	Obj* c = nullptr;
 	Member* m = &(c->*ptrToMember);
 	return reinterpret_cast<intptr_t>(m);
 }
 
-template<class T> constexpr
-size_t charStrlen(const T* sz) {
+template <class T, class R = size_t> constexpr
+R charStrlen(const T* sz) {
 	const auto* p = sz;
 	while (*p) ++p;
-	return static_cast<size_t>(p - sz);
+	return static_cast<R>(p - sz);
 }
 
 template <class T, size_t N>
-size_t arraySize(T (&arr)[N])
-{
+size_t arraySize(T (&arr)[N]) {
 	return N;
 }
 
@@ -249,31 +264,48 @@ size_t arraySize(T (&arr)[N])
 
 namespace axe {
 
-template<class T> using UPtr = eastl::unique_ptr<T>;
+template <class T> using AtomicT = eastl::atomic<T>;
+using AtomicInt8	= AtomicT<i8>;
+using AtomicInt16	= AtomicT<i16>;
+using AtomicInt32	= AtomicT<i32>;
+using AtomicInt64	= AtomicT<i64>;
+
+using AtomicUInt8	= AtomicT<u8>;
+using AtomicUInt16	= AtomicT<u16>;
+using AtomicUInt32	= AtomicT<u32>;
+using AtomicUInt64	= AtomicT<u64>;
+
+using AtomicInt		= AtomicT<int>;
+using AtomicUInt	= AtomicT<unsigned int>;
+
+using Mutex			= ::std::mutex;
+using SharedMutex	= ::std::shared_mutex;
+
+template <class T> using UPtr = eastl::unique_ptr<T>;
 template <class T, class... Args> AXE_INLINE UPtr<T> UPtr_make(Args&&... args) {
 	return eastl::make_unique<T>(AXE_FORWARD(args)...);
 }
 
-template<class T> using Span = eastl::span<T>; // mutable
+template <class T> using Span = eastl::span<T>; // mutable
 using ByteSpan = Span<const u8>;
 
-template<class DST, class SRC> inline 
+template <class DST, class SRC> inline 
 Span<DST> spanCast(Span<SRC> src) {
 	size_t sizeInBytes = src.size() * sizeof(SRC);
 	return Span<DST>(reinterpret_cast<DST*>(src.data()), sizeInBytes / sizeof(DST));
 }
 
-template<class T, size_t N, bool bEnableOverflow = true>
+template <class T, size_t N, bool bEnableOverflow = true>
 struct Vector_Base {
 	using Type = typename eastl::fixed_vector<T, N, bEnableOverflow>;
 };
 
-template<class T>
+template <class T>
 struct Vector_Base<T, 0, true> {
 	using Type = typename eastl::vector<T>;
 };
 
-template<class T, size_t N = 0, bool bEnableOverflow = true>
+template <class T, size_t N = 0, bool bEnableOverflow = true>
 class Vector : public Vector_Base<T, N, bEnableOverflow>::Type {
 	using Base = typename Vector_Base<T, N, bEnableOverflow>::Type;
 	using This = Vector;
@@ -282,7 +314,8 @@ public:
 	using Base::end;
 
 	Vector() = default;
-	Vector(std::initializer_list<T> list) noexcept : Base(list) {}
+	Vector(::std::initializer_list<T> ilist) noexcept : Base(ilist) {}
+	Vector(const ::std::initializer_list<remove_cv_t<T>>& list) noexcept : Base(list.begin(), list.end()) {}
 
 	void appendRange(const Span<const T>& rhs) { Base::insert(end(), rhs.begin(), rhs.end()); }
 
@@ -307,8 +340,8 @@ public:
 	void move(This& rhs) { Base::clear(); *this = eastl::move(rhs); }
 };
 
-template<class T> using List_Base = typename eastl::list<T>;
-template<class T>
+template <class T> using List_Base = typename eastl::list<T>;
+template <class T>
 class List : public List_Base<T> {
 	using Base		= typename List_Base<T>;
 	using size_type = typename Base::size_type;
@@ -331,12 +364,12 @@ public:
 	bool inBound(int i) const { return i >= 0 && i < Base::size(); }
 };
 
-template<class KEY, class VALUE>	using Map		= eastl::map<KEY, VALUE>;
-template<class KEY, class VALUE>	using VectorMap	= eastl::vector_map<KEY, VALUE>;
-template<class VALUE>				using StringMap	= eastl::string_map<VALUE>;
-template<class KEY>					using Set		= eastl::set<KEY>;
-template<size_t N>					using Bitset	= eastl::bitset<N>;
-template<class T>					using Opt		= eastl::optional<T>;
+template <class KEY, class VALUE>	using Map		= eastl::map<KEY, VALUE>;
+template <class KEY, class VALUE>	using VectorMap	= eastl::vector_map<KEY, VALUE>;
+template <class VALUE>				using StringMap	= eastl::string_map<VALUE>;
+template <class KEY>				using Set		= eastl::set<KEY>;
+template <size_t N>					using Bitset	= eastl::bitset<N>;
+template <class T>					using Opt		= eastl::optional<T>;
 
 using Any = eastl::any;
 
@@ -426,6 +459,7 @@ public:
 
 	using Base::npos;
 	using Base::append;
+	using Base::assign;
 
 						StringT() = default;
 						StringT(const T* begin, const T* end)	EA_NOEXCEPT : Base(begin, end) {}
@@ -443,14 +477,16 @@ public:
 	template<size_t N>	void operator= (const StringT<T, N>& r)	{ Base::assign(s.data(), s.size()); }
 	template<class R>	void operator= (R&& r)					{ Base::operator=(AXE_FORWARD(r)); }
 
-						void operator+=(StrViewT v)				{ Base::append(v.begin(), v.end()); }
-	template<size_t N>	void operator+=(const StringT<T, N>& v) { Base::append(v.begin(), v.end()); }
+						void operator+=(StrViewT s)				{ Base::append(s.begin(), s.end()); }
+	template<size_t N>	void operator+=(const StringT<T, N>& s) { Base::append(s.begin(), s.end()); }
 	template<class R>	void operator+=(const R& r)				{ Base::operator+=(r); }
 
 						void append(const StrViewT& s)			{ Base::append(s.data(), s.size()); }
 						void append(T& ch)						{ Base::append(StrViewT(ch)); }
 						void append(const StringT& s)			{ Base::append(s.data(), s.size()); }
 	template<size_t M>	void append(const StringT<T, M>& s)		{ Base::append(s.data(), s.size()); }
+
+						void assign(const StrViewT& s)			{ Base::assign(s.data(), s.size()); }
 
 	template<class... ARGS>	void append(ARGS&&... args) {
 		StrViewT views[]{ AXE_FORWARD(args)... };

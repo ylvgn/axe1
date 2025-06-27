@@ -39,12 +39,17 @@ void Error::s_assert(StrView funcName
 	}
 }
 
+bool Error::s_validate(StrView funcName, StrView filename, int lineNumber, bool validation, StrView expr, StrView msg) {
+	if (validation) return true;
+	AXE_RUN_ONCE(Error::s_assert(funcName, filename, lineNumber, expr, msg, "---- VALIDATE ----"));
+	return false;
+}
+
 Error::Error(const SrcLoc& loc, StrView msg)
 	: _loc(loc)
 	, _msg(msg)
 {
-	AXE_LOG("{}", *this);
-	AXE_ASSERT(false);
+	_assert();
 }
 
 void Error::onFormat(fmt::format_context& ctx) const {
@@ -52,6 +57,11 @@ void Error::onFormat(fmt::format_context& ctx) const {
 		fmt::format_to(ctx.out(), "[Error] {}", _loc);
 	else
 		fmt::format_to(ctx.out(), "[Error] {}\n  - {}", _msg, _loc);
+}
+
+void Error::_assert() {
+	AXE_LOG("{}", *this);
+	AXE_ASSERT(false);
 }
 
 } // namespace axe

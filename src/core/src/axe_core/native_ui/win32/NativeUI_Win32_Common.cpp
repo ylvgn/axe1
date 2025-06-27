@@ -5,24 +5,6 @@
 
 namespace axe {
 
-void Win32Util::errorTo(String& out, ::DWORD in_errorcode /*= ::WSAGetLastError()*/) {
-// retrieving-error-messages: https://docs.microsoft.com/en-us/windows/win32/seccrypto/retrieving-error-messages
-// system error code lookup: https://learn.microsoft.com/en-us/windows/win32/debug/system-error-codes
-	out.clear();
-
-	TempStringW tmp;
-	tmp.resizeToLocalBufSize();
-	auto dwChars = ::FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-								   NULL,
-								   in_errorcode,
-								   MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), // NULL
-								   tmp.data(),
-								   static_cast<::DWORD>(tmp.size()),
-								   NULL);
-
-	out = dwChars ? UtfUtil::toString(tmp) : Fmt("[{}]", in_errorcode);
-}
-
 void Win32Util::convert(Rect2f& o, const ::RECT& i)
 {
 	o.x = static_cast<float>(i.left);
@@ -213,22 +195,33 @@ Win32_ErrorCodeString::Win32_ErrorCodeString(::DWORD errorCode) {
 // retrieving-error-messages: https://docs.microsoft.com/en-us/windows/win32/seccrypto/retrieving-error-messages
 // system error code lookup: https://learn.microsoft.com/en-us/windows/win32/debug/system-error-codes
 
-	TempStringW tmp;
+	StringW_< decltype(This::_str)::kMaxSize > tmp;
 	tmp.resizeToLocalBufSize();
-	auto dwChars = ::FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS
-								 , NULL
-								 , errorCode
-								 , MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT)
-								 , tmp.data()
-								 , static_cast<::DWORD>(tmp.size())
-								 , NULL);
-
-	if (dwChars) {
+	if (0 != FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS
+						 , NULL
+						 , errorCode
+						 , MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT)
+						 , tmp.data()
+						 , static_cast<::DWORD>(tmp.size()), NULL))
+	{
 		UtfUtil::convert(_str, tmp);
 	}
 }
 
 void Win32_ErrorCodeString::onFormat(fmt::format_context& ctx) const {
+	fmt::format_to(ctx.out(), "{}", _str);
+}
+
+Win32_HRESULT_String::Win32_HRESULT_String(::HRESULT hr) {
+	::_com_error err(hr, nullptr);
+
+	if (auto* sz = err.ErrorMessage()) {
+		StringW_< decltype(This::_str)::kMaxSize > tmp(sz);
+		UtfUtil::convert(_str, tmp);
+	}
+}
+
+void Win32_HRESULT_String::onFormat(fmt::format_context& ctx) const {
 	fmt::format_to(ctx.out(), "{}", _str);
 }
 
