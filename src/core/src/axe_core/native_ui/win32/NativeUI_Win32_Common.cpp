@@ -5,76 +5,96 @@
 
 namespace axe {
 
-void Win32Util::convert(Rect2f& o, const ::RECT& i)
-{
-	o.x = static_cast<float>(i.left);
-	o.y = static_cast<float>(i.top);
-	o.w = static_cast<float>(i.right - i.left);
-	o.h = static_cast<float>(i.bottom - i.top);
+void Win32Util::convert(Rect2f& o, const ::RECT& i) {
+	using DST = typename decltype(o.x);
+
+	o.x = static_cast<DST>(i.left);
+	o.y = static_cast<DST>(i.top);
+	o.w = static_cast<DST>(i.right - i.left);
+	o.h = static_cast<DST>(i.bottom - i.top);
 }
 
-void Win32Util::convert(Rect2i& o, const ::RECT& i)
-{
+void Win32Util::convert(Rect2i& o, const ::RECT& i) {
 	o.x = i.left;
 	o.y = i.top;
 	o.w = i.right - i.left;
 	o.h = i.bottom - i.top;
 }
 
-void Win32Util::convert(Vec2f& o, const ::POINT& i)
-{
-	o.x = static_cast<float>(i.x);
-	o.y = static_cast<float>(i.y);
+void Win32Util::convert(::RECT& o, const Rect2i& i) {
+	using DST = typename decltype(o.left);
+
+	o.left   = static_cast<DST>(i.xMin());
+	o.top    = static_cast<DST>(i.yMin());
+	o.right  = static_cast<DST>(i.xMax());
+	o.bottom = static_cast<DST>(i.yMax());
 }
 
-void Win32Util::convert(Vec2i& o, const ::POINT& i)
-{
+void Win32Util::convert(Vec2f& o, const ::POINT& i) {
+	using DST = typename decltype(o.x);
+
+	o.x = static_cast<DST>(i.x);
+	o.y = static_cast<DST>(i.y);
+}
+
+void Win32Util::convert(Vec2i& o, const ::POINT& i) {
 	o.x = i.x;
 	o.y = i.y;
 }
 
-void Win32Util::convert(Vec2f& o, const ::SIZE& i)
-{
-	o.x = static_cast<float>(i.cx);
-	o.y = static_cast<float>(i.cy);
+void Win32Util::convert(Vec2f& o, const ::SIZE& i) {
+	using DST = typename decltype(o.x);
+
+	o.x = static_cast<DST>(i.cx);
+	o.y = static_cast<DST>(i.cy);
 }
 
-void Win32Util::convert(Vec2i& o, const ::SIZE& i)
-{
-	o.x = static_cast<int>(i.cx);
-	o.y = static_cast<int>(i.cy);
+void Win32Util::convert(Vec2i& o, const ::SIZE& i) {
+	using DST = typename decltype(o.x);
+
+	o.x = static_cast<DST>(i.cx);
+	o.y = static_cast<DST>(i.cy);
 }
 
-void Win32Util::convert(::RECT& o, const Rect2f& i)
-{
-	o.left	 = static_cast<LONG>(i.x);
-	o.top	 = static_cast<LONG>(i.y);
-	o.right	 = static_cast<LONG>(i.xMax());
-	o.bottom = static_cast<LONG>(i.yMax());
+void Win32Util::convert(::RECT& o, const Rect2f& i) {
+	using DST = typename decltype(o.left);
+
+	o.left	 = static_cast<DST>(i.xMin());
+	o.top	 = static_cast<DST>(i.yMin());
+	o.right	 = static_cast<DST>(i.xMax());
+	o.bottom = static_cast<DST>(i.yMax());
 }
 
-void Win32Util::convert(::POINT& o, const Vec2f& i)
-{
-	o.x = static_cast<LONG>(i.x);
-	o.y = static_cast<LONG>(i.y);
+void Win32Util::convert(::POINT& o, const Vec2f& i) {
+	using DST = typename decltype(o.x);
+
+	o.x = static_cast<DST>(i.x);
+	o.y = static_cast<DST>(i.y);
 }
 
-void Win32Util::convert(::POINT& o, const Vec2i& i)
-{
-	o.x = static_cast<LONG>(i.x);
-	o.y = static_cast<LONG>(i.y);
+void Win32Util::convert(::POINT& o, const Vec2i& i) {
+	using DST = typename decltype(o.x);
+
+	o.x = static_cast<DST>(i.x);
+	o.y = static_cast<DST>(i.y);
 }
 
-void Win32Util::convert(::SIZE& o, const Vec2f& i)
-{
-	o.cx = static_cast<LONG>(i.x);
-	o.cy = static_cast<LONG>(i.y);
+void Win32Util::convert(::SIZE& o, const Vec2f& i) {
+	using DST = typename decltype(o.cx);
+
+	o.cx = static_cast<DST>(i.x);
+	o.cy = static_cast<DST>(i.y);
 }
 
-inline void Win32Util::convert(::SIZE& o, const Vec2i& i)
-{
-	o.cx = static_cast<LONG>(i.x);
-	o.cy = static_cast<LONG>(i.y);
+inline void Win32Util::convert(::SIZE& o, const Vec2i& i) {
+	using DST = typename decltype(o.cx);
+
+	o.cx = static_cast<DST>(i.x);
+	o.cy = static_cast<DST>(i.y);
+}
+
+void Win32Util::convert(u64& o, const ::LARGE_INTEGER& i) {
+	o = static_cast<u64>(i.HighPart) << 32 | i.LowPart;
 }
 
 int Win32Util::toVKKey(const KeyCode& i) {

@@ -287,4 +287,4 @@ void FileStream::writeBytes(ByteSpan data) {
 
 #endif
 
-}
+} // namespace axe

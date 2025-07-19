@@ -200,8 +200,8 @@ public:
 
 	template<class VERTEX, class ATTR>
 	void addElement(Semantic semantic, ATTR VERTEX::* attr) { // e.g. attr = &VertexT_xxx::VertexT_xxxMember
-		if (std::is_array<ATTR>()) {
-			size_t n = std::extent<ATTR>();
+		if (is_array<ATTR>()) {
+			size_t n = extent_v<ATTR>;
 			for (size_t i = 0; i < n; i++) {
 				_addElement(semantic, attr, i);
 			}
@@ -221,7 +221,7 @@ public:
 private:
 	template<class VERTEX, class ATTR>
 	void _addElement(Semantic semantic, ATTR VERTEX::* attr, size_t index) {
-		using A = std::remove_extent_t<ATTR>;
+		using A = remove_extent_t<ATTR>;
 		auto& o = elements.push_back();
 		o.semantic = semantic;
 		o.dataType = RenderDataTypeUtil::get<A>();

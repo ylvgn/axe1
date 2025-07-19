@@ -12,14 +12,15 @@
 
 //---- c++ headers
 #include <atomic>
-#include <thread>
-#include <mutex>
 #include <cassert>
-#include <exception>
-#include <iostream>
-#include <cstdlib>
+#include <chrono>
 #include <cstdint>
+#include <cstdlib>
+#include <exception>
 #include <functional>
+#include <iostream>
+#include <mutex>
+#include <thread>
 
 #if AXE_CPLUSPLUS_17
 	#include <shared_mutex>
@@ -49,6 +50,8 @@
 #include <EASTL/unique_ptr.h>
 #include <EASTL/shared_ptr.h>
 #include <EASTL/weak_ptr.h>
+#include <EASTL/tuple.h>
+#include <EASTL/internal/thread_support.h>
 
 #if TRACY_ENABLE
 	#include <tracy/Tracy.hpp>
@@ -264,32 +267,16 @@ size_t arraySize(T (&arr)[N]) {
 
 namespace axe {
 
-template <class T> using AtomicT = eastl::atomic<T>;
-using AtomicInt8	= AtomicT<i8>;
-using AtomicInt16	= AtomicT<i16>;
-using AtomicInt32	= AtomicT<i32>;
-using AtomicInt64	= AtomicT<i64>;
-
-using AtomicUInt8	= AtomicT<u8>;
-using AtomicUInt16	= AtomicT<u16>;
-using AtomicUInt32	= AtomicT<u32>;
-using AtomicUInt64	= AtomicT<u64>;
-
-using AtomicInt		= AtomicT<int>;
-using AtomicUInt	= AtomicT<unsigned int>;
-
-using Mutex			= ::std::mutex;
-using SharedMutex	= ::std::shared_mutex;
-
-template <class T> using UPtr = eastl::unique_ptr<T>;
-template <class T, class... Args> AXE_INLINE UPtr<T> UPtr_make(Args&&... args) {
-	return eastl::make_unique<T>(AXE_FORWARD(args)...);
+template <class T> using UPtr = typename ::eastl::unique_ptr<T>;
+template <class T, class... Args> AXE_NODISCARD
+AXE_INLINE UPtr<T> UPtr_make(Args&&... args) {
+	return ::eastl::make_unique<T>(AXE_FORWARD(args)...);
 }
 
-template <class T> using Span = eastl::span<T>; // mutable
+template <class T> using Span = typename ::eastl::span<T>; // mutable
 using ByteSpan = Span<const u8>;
 
-template <class DST, class SRC> inline 
+template <class DST, class SRC> AXE_INLINE 
 Span<DST> spanCast(Span<SRC> src) {
 	size_t sizeInBytes = src.size() * sizeof(SRC);
 	return Span<DST>(reinterpret_cast<DST*>(src.data()), sizeInBytes / sizeof(DST));
@@ -297,12 +284,12 @@ Span<DST> spanCast(Span<SRC> src) {
 
 template <class T, size_t N, bool bEnableOverflow = true>
 struct Vector_Base {
-	using Type = typename eastl::fixed_vector<T, N, bEnableOverflow>;
+	using Type = typename ::eastl::fixed_vector<T, N, bEnableOverflow>;
 };
 
 template <class T>
 struct Vector_Base<T, 0, true> {
-	using Type = typename eastl::vector<T>;
+	using Type = typename ::eastl::vector<T>;
 };
 
 template <class T, size_t N = 0, bool bEnableOverflow = true>
@@ -310,11 +297,12 @@ class Vector : public Vector_Base<T, N, bEnableOverflow>::Type {
 	using Base = typename Vector_Base<T, N, bEnableOverflow>::Type;
 	using This = Vector;
 public:
+
 	using Base::begin;
 	using Base::end;
 
 	Vector() = default;
-	Vector(::std::initializer_list<T> ilist) noexcept : Base(ilist) {}
+	Vector(::std::initializer_list<T> ilist)					noexcept : Base(ilist) {}
 	Vector(const ::std::initializer_list<remove_cv_t<T>>& list) noexcept : Base(list.begin(), list.end()) {}
 
 	void appendRange(const Span<const T>& rhs) { Base::insert(end(), rhs.begin(), rhs.end()); }
@@ -333,25 +321,27 @@ public:
 
 	bool inBound(int i) const { return i >= 0 && i < Base::size(); }
 
-	void remove(const T& value) { eastl::remove(begin(), end(), value); }
+	void remove(const T& value) { ::eastl::remove(begin(), end(), value); }
 
 	void resizeToLocalBufSize() { Base::resize(N); }
 
-	void move(This& rhs) { Base::clear(); *this = eastl::move(rhs); }
-};
+	void move(This& rhs) { Base::clear(); *this = ::eastl::move(rhs); }
+}; // Vector
 
-template <class T> using List_Base = typename eastl::list<T>;
+
+template <class T> using List_Base = typename ::eastl::list<T>;
 template <class T>
 class List : public List_Base<T> {
 	using Base		= typename List_Base<T>;
 	using size_type = typename Base::size_type;
 public:
+
 	using Base::begin;
 	using Base::end;
 
 			 List() = default;
-	explicit List(size_type n)						: Base(n)	 {}
-			 List(std::initializer_list<T> list)	: Base(list) {}
+	explicit List(size_type n)						noexcept : Base(n)	  {}
+			 List(::std::initializer_list<T> ilist)	noexcept : Base(ilist) {}
 
 	Span<      T> span()			{ return Span<      T>(begin(), end()); }
 	Span<const T> span() const		{ return Span<const T>(begin(), end()); }
@@ -362,25 +352,26 @@ public:
 	void appendRange(const Span<const T>& r) { Base::insert_range(r.begin(), r.end()); }
 
 	bool inBound(int i) const { return i >= 0 && i < Base::size(); }
-};
+}; // List
 
-template <class KEY, class VALUE>	using Map		= eastl::map<KEY, VALUE>;
-template <class KEY, class VALUE>	using VectorMap	= eastl::vector_map<KEY, VALUE>;
-template <class VALUE>				using StringMap	= eastl::string_map<VALUE>;
-template <class KEY>				using Set		= eastl::set<KEY>;
-template <size_t N>					using Bitset	= eastl::bitset<N>;
-template <class T>					using Opt		= eastl::optional<T>;
 
-using Any = eastl::any;
+template <class KEY, class VALUE>	using Map		= typename ::eastl::map<KEY, VALUE>;
+template <class KEY, class VALUE>	using VectorMap	= typename ::eastl::vector_map<KEY, VALUE>;
+template <class VALUE>				using StringMap	= typename ::eastl::string_map<VALUE>;
+template <class KEY>				using Set		= typename ::eastl::set<KEY>;
+template <size_t N>					using Bitset	= typename ::eastl::bitset<N>;
+template <class T>					using Opt		= typename ::eastl::optional<T>;
 
-template <class T, class... Args> inline
-Any Any_make(Args&&... args) {
-	return eastl::make_any<T>(AXE_FORWARD(args)...);
+using Any = typename ::eastl::any;
+
+template <class T, class... Args> AXE_NODISCARD
+AXE_INLINE Any Any_make(Args&&... args) {
+	return ::eastl::make_any<T>(AXE_FORWARD(args)...);
 }
 
-template<class T, size_t N, bool bEnableOverflow = true> class StringT; // forward declare
+template<class T, size_t N, bool bEnableOverflow = true> class StringT;
 
-template<class T> using StrViewT_Base = eastl::basic_string_view<T>;
+template<class T> using StrViewT_Base = typename ::eastl::basic_string_view<T>;
 template<class T>
 class StrViewT : public StrViewT_Base<T> { // immutable string view
 	using Base			= typename StrViewT_Base<T>;
@@ -389,14 +380,15 @@ class StrViewT : public StrViewT_Base<T> { // immutable string view
 
 	using Base::mnCount;
 	using Base::mpBegin;
+
 public:
 						constexpr StrViewT() = default;
-						constexpr StrViewT(const StrViewT& other)					noexcept : Base(other) {}
-						constexpr StrViewT(const T* s)								noexcept : Base(s) {}
-						constexpr explicit StrViewT(const T* s, size_type count)	noexcept : Base(s, count) {}
-						constexpr explicit StrViewT(T& ch)							noexcept : Base(&ch, 1) {}
-						constexpr StrViewT(const Base& s)							noexcept : Base(s.data(), s.size()) {}
-	template<size_t N>	constexpr StrViewT(const StringT<T, N>& s)					noexcept : Base(s.data(), s.size()) {}
+						constexpr StrViewT(const StrViewT& other)				 noexcept : Base(other) {}
+						constexpr StrViewT(const T* s)							 noexcept : Base(s) {}
+						constexpr explicit StrViewT(const T* s, size_type count) noexcept : Base(s, count) {}
+						constexpr explicit StrViewT(T& ch)						 noexcept : Base(&ch, 1) {}
+						constexpr StrViewT(const Base& s)						 noexcept : Base(s.data(), s.size()) {}
+	template<size_t N>	constexpr StrViewT(const StringT<T, N>& s)				 noexcept : Base(s.data(), s.size()) {}
 
 	explicit operator bool() const { return !empty(); }
 
@@ -429,7 +421,8 @@ private:
 		if (!inBound(i))
 			throw std::out_of_range("StrViewT::_checkBound");
 	}
-};
+}; // StrViewT
+
 
 using StrViewA  = StrViewT<Char8>;
 using StrViewW  = StrViewT<CharW>;
@@ -438,23 +431,25 @@ using StrView8  = StrViewT<Char8>;
 using StrView16 = StrViewT<Char16>;
 using StrView32 = StrViewT<Char32>;
 
+
 template<class T, size_t N, bool bEnableOverflow = true>
 class StringT_Base {
 public:
-	using Type = typename eastl::fixed_string<T, N, bEnableOverflow>;
+	using Type = typename ::eastl::fixed_string<T, N, bEnableOverflow>;
 };
 
 template<class T>
 class StringT_Base<T, 0, true> {
 public:
-	using Type = typename eastl::basic_string<T>;
+	using Type = typename ::eastl::basic_string<T>;
 };
 
 template<class T, size_t N, bool bEnableOverflow = true>
 class StringT : public StringT_Base<T, N, bEnableOverflow>::Type {
+	using This = StringT;
 	using Base = typename StringT_Base<T, N, bEnableOverflow>::Type;
 public:
-	using view_type = typename eastl::basic_string_view<T>;
+	using view_type = typename ::eastl::basic_string_view<T>;
 	using StrViewT	= typename StrViewT<T>;
 
 	using Base::npos;
@@ -462,14 +457,14 @@ public:
 	using Base::assign;
 
 						StringT() = default;
-						StringT(const T* begin, const T* end)	EA_NOEXCEPT : Base(begin, end) {}
-						StringT(const T* p, size_t n)			EA_NOEXCEPT : Base(p, n) {}
-						StringT(StrViewT view)					EA_NOEXCEPT : Base(view.data(), view.size()) {}
-						StringT(StringT&& str)					EA_NOEXCEPT : Base(std::move(str)) {}
-						StringT(const T* sz)					EA_NOEXCEPT : Base(sz) {}
-						StringT(const StringT& s)				EA_NOEXCEPT : Base(s.data(), s.size()) {}
-						StringT(const Base& s)					EA_NOEXCEPT : Base(s.data(), s.size()) {}
-	template<size_t M>	StringT(const StringT<T, M>& s)			EA_NOEXCEPT : Base(s.data(), s.size()) {}
+						StringT(const T* begin, const T* end)	noexcept : Base(begin, end) {}
+						StringT(const T* p, size_t n)			noexcept : Base(p, n) {}
+						StringT(StrViewT view)					noexcept : Base(view.data(), view.size()) {}
+						StringT(StringT&& str)					noexcept : Base(std::move(str)) {}
+						StringT(const T* sz)					noexcept : Base(sz) {}
+						StringT(const StringT& s)				noexcept : Base(s.data(), s.size()) {}
+						StringT(const Base& s)					noexcept : Base(s.data(), s.size()) {}
+	template<size_t M>	StringT(const StringT<T, M>& s)			noexcept : Base(s.data(), s.size()) {}
 
 	explicit operator bool() const { return !Base::empty(); }
 
@@ -488,17 +483,41 @@ public:
 
 						void assign(const StrViewT& s)			{ Base::assign(s.data(), s.size()); }
 
-	template<class... ARGS>	void append(ARGS&&... args) {
+	template <class... ARGS>
+	void append(ARGS&&... args) {
 		StrViewT views[]{ AXE_FORWARD(args)... };
 		size_t n = sizeof...(args);
 		if (!n) return;
 		for (size_t i = 0; i < n; ++i) {
 			const auto& sv = views[i];
-			if (sv) append(sv);
+			if (sv)
+				append(sv);
 		}
 	}
 
-	template<class... ARGS> void set(ARGS&&... args) { Base::clear(); append(AXE_FORWARD(args)...); }
+	template <class... ARGS>
+	void appendFormat(ARGS&&... args) {
+		fmt::format_to(std::back_inserter(*this), AXE_FORWARD(args)...);
+	}
+
+	template <class... ARGS>
+	void set(ARGS&&... args) {
+		Base::clear();
+		append(AXE_FORWARD(args)...);
+	}
+
+	template <class... ARGS>
+	void format(ARGS&&... args) {
+		Base::clear();
+		appendFormat(AXE_FORWARD(args)...);
+	}
+
+	template <class... ARGS>
+	static This s_format(ARGS&&... args) {
+		This str;
+		str.format(AXE_FORWARD(args)...);
+		return str;
+	}
 
 	StrViewT	view() const { return StrViewT(data(), size()); }
 
@@ -511,10 +530,11 @@ public:
 	}
 
 	void resizeToLocalBufSize() { Base::resize(N); }
-};
+}; // StringT
 
-template<size_t N, bool bEnableOverflow = true> using StringA_ = StringT<Char8, N, bEnableOverflow>;
-template<size_t N, bool bEnableOverflow = true> using StringW_ = StringT<CharW, N, bEnableOverflow>;
+
+template<size_t N, bool bEnableOverflow = true> using StringA_  = StringT<Char8, N, bEnableOverflow>;
+template<size_t N, bool bEnableOverflow = true> using StringW_  = StringT<CharW, N, bEnableOverflow>;
 
 template<size_t N, bool bEnableOverflow = true> using String8_  = StringT<Char8,  N, bEnableOverflow>;
 template<size_t N, bool bEnableOverflow = true> using String16_ = StringT<Char16, N, bEnableOverflow>;
@@ -561,11 +581,11 @@ StringT<T, N> operator+(const StringT<T, N>& a, const T* b) {
 	return a + view;
 }
 
-AXE_NODISCARD inline StrView StrView_make(ByteSpan s) {
+AXE_NODISCARD AXE_INLINE StrView StrView_make(ByteSpan s) {
 	return StrView(reinterpret_cast<const char*>(s.data()), s.size());
 }
 
-AXE_NODISCARD inline ByteSpan ByteSpan_make(StrView v) {
+AXE_NODISCARD AXE_INLINE ByteSpan ByteSpan_make(StrView v) {
 	return ByteSpan(reinterpret_cast<const u8*>(v.data()), v.size());
 }
 
@@ -596,6 +616,116 @@ inline StrView16 StrView_c_str(const Char16 * s) { return s ? StrView16(s, charS
 inline StrView32 StrView_c_str(const Char32 * s) { return s ? StrView32(s, charStrlen(s)) : StrView32(); }
 inline StrViewW  StrView_c_str(const CharW  * s) { return s ? StrViewW (s, wcslen(s))	  : StrViewW (); }
 
+
+template <class T> using AtomicT = typename ::eastl::atomic<T>;
+using AtomicInt8	= AtomicT<i8>;
+using AtomicInt16	= AtomicT<i16>;
+using AtomicInt32	= AtomicT<i32>;
+using AtomicInt64	= AtomicT<i64>;
+
+using AtomicUInt8	= AtomicT<u8>;
+using AtomicUInt16	= AtomicT<u16>;
+using AtomicUInt32	= AtomicT<u32>;
+using AtomicUInt64	= AtomicT<u64>;
+
+using AtomicInt		= AtomicT<int>;
+using AtomicUInt	= AtomicT<unsigned int>;
+
+
+template<int... ints>
+using IntSequence = typename ::eastl::integer_sequence<int, ints...>;
+
+template <int N>
+using IntSequence_make = typename ::eastl::make_integer_sequence<int, N>;
+
+
+template <class... ARGS> using TupleT_Base = typename ::eastl::tuple<ARGS...>;
+template <class... ARGS>
+class Tuple : public TupleT_Base<ARGS...> {
+	using This = Tuple;
+	using Base = typename TupleT_Base<ARGS...>;
+public:
+	static constexpr size_t kSize = ::eastl::tuple_size<Base>::value;
+
+	AXE_INLINE constexpr size_t size() const { return kSize; }
+
+	constexpr Tuple()				: Base() {};
+	constexpr Tuple(ARGS&&... args) : Base(AXE_FORWARD(args)...) {};
+
+	template<int INDEX> using Element = typename ::eastl::tuple_element<INDEX, Base>::type;
+	template<int INDEX, class T = Element<INDEX>> AXE_INLINE constexpr       T& get()				{ return ::eastl::get<INDEX>(*this); }
+	template<int INDEX, class T = Element<INDEX>> AXE_INLINE constexpr const T& get() const			{ return ::eastl::get<INDEX>(*this); }
+	template<int INDEX, class T = Element<INDEX>> AXE_INLINE constexpr       T  getValue() const	{ return ::eastl::get<INDEX>(*this); }
+
+	template<class FUNC> constexpr void forEach(FUNC& h)					{ UnrollHelper<      This, FUNC, kSize>::call(this, h); }
+	template<class FUNC> constexpr void forEach(FUNC&& h) const				{ UnrollHelper<const This, FUNC, kSize>::call(this, h); }
+	template<class HANDLER> constexpr static void s_forEachType(HANDLER& h) { UnrollTypeHelper<HANDLER, kSize>::call(h); }
+
+	template<class TUPLE2> auto join(const TUPLE2& tuple2) const { return Tuple_join(*this, tuple2); }
+
+	void onFormat(fmt::format_context& ctx) const {
+		TempString s("Tuple[");
+		forEach([&s](auto index, const auto& value) {
+			if (index > 0) s.append(", ");
+			s.appendFormat("{}", value);
+		});
+		s.append("]");
+		fmt::format_to(ctx.out(), s);
+	}
+
+private:
+	template<class TUPLE, class FUNC, int N> struct UnrollHelper;
+	template<class TUPLE, class FUNC> struct UnrollHelper<TUPLE, FUNC, 0> { static void call(TUPLE* tuple, FUNC& func) {} };
+
+	template<class TUPLE, class FUNC, int N>
+	struct UnrollHelper {
+		static void call(TUPLE* tuple, FUNC& func) {
+			static constexpr int INDEX = N-1;
+			UnrollHelper<TUPLE, FUNC, INDEX>::call(tuple, func);
+			func(INDEX, tuple->template get<INDEX>());
+		}
+	};
+
+	template<class HANDLER, int N> struct UnrollTypeHelper;
+	template<class HANDLER> struct UnrollTypeHelper<HANDLER, 0> { static void call(HANDLER& h) {} };
+
+	template<class HANDLER, int N>
+	struct UnrollTypeHelper {
+		static void call(HANDLER& h) {
+			static constexpr int INDEX = N-1;
+			using Field = typename Tuple::template Element<INDEX>;
+			UnrollTypeHelper<HANDLER, INDEX>::call(h);
+			h.template handle< INDEX, Field >();
+		}
+	};
+}; // Tuple
+
+template <class... ARGS> AXE_NODISCARD
+AXE_INLINE constexpr auto Tuple_make(ARGS&&... args) {
+	return Tuple<ARGS...>(AXE_FORWARD(args)...);
+}
+
+
+template<
+	class TUPLE0, int... INDEX0,
+	class TUPLE1, int... INDEX1
+> AXE_INLINE constexpr
+auto Tuple_join_helper(	const TUPLE0& t0, const IntSequence<INDEX0...>&,
+						const TUPLE1& t1, const IntSequence<INDEX1...>&)
+{
+	return Tuple_make(
+		t0.template getValue<INDEX0>() ...,
+		t1.template getValue<INDEX1>() ...
+	);
+}
+
+template<class TUPLE0, class TUPLE1>
+AXE_INLINE constexpr
+auto Tuple_join(const TUPLE0& t0, const TUPLE1& t1) {
+	return Tuple_join_helper(t0, IntSequence_make<TUPLE0::kSize>(),
+							 t1, IntSequence_make<TUPLE1::kSize>());
+}
+
 } // namespace axe
 
 #include "../string/Fmt.h"
@@ -619,6 +749,8 @@ public:
 	int			line = 0;
 }; // SrcLoc
 AXE_FORMATTER(SrcLoc)
+
+AXE_FORMATTER_T(class... ARGS, Tuple<ARGS...>)
 
 } // namespace axe
 

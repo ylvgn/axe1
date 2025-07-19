@@ -3,6 +3,10 @@
 #include <axe_core/log/Log.h>
 #include "FilePath.h"
 
+#if AXE_OS_WINDOWS
+	#include <axe_core/native_ui/win32/NativeUI_Win32_Common.h>
+#endif
+
 namespace axe {
 
 void Directory::create(StrView dir) {
@@ -45,11 +49,10 @@ void Directory::getDirectories(Vector<Entry>& result, StrView path, bool subDir,
 	});
 }
 
-#if AXE_OS_WINDOWS
-
 #if 0
 #pragma mark ================= Windows ====================
 #endif
+#if AXE_OS_WINDOWS
 
 class Directory_Win32Handle : public NonCopyable {
 public:
@@ -70,34 +73,44 @@ public:
 		}
 	}
 
-	operator ::HANDLE()	{ return _h; }
+	operator ::HANDLE()	const { return _h; }
 
 private:
 	::HANDLE _h;
-};
+}; // Directory_Win32Handle
 
 void Directory::setCurrent(StrView dir) {
 	TempStringW pathW = UtfUtil::toStringW(dir);
 	int ret = ::SetCurrentDirectory(pathW.c_str());
 	if (!ret) {
-		auto errorCode = ::WSAGetLastError();
-		switch (errorCode) {
+		auto dwErrorCode = ::WSAGetLastError();
+		switch (dwErrorCode) {
 			case ERROR_FILE_NOT_FOUND:
 			case ERROR_PATH_NOT_FOUND:
-				AXE_LOG("[Warning] The system cannot find the file specified: {}", dir); break;
-			default: throw AXE_ERROR("::SetCurrentDirectory({}) error: {}", dir, errorCode); // TODO WSAGetLastError -> Win32Util::error()
+				AXE_LOG_WARN("The system cannot find the file specified: {}", dir); break;
+			default: {
+				AXE_LOG_ERROR("::SetCurrentDirectory invalid path: {}", dir);
+				AXE_WIN32_THROW_SYSTEM_ERROR(dwErrorCode);
+			} break;
 		}
 	}
+
+#if defined(_DEBUG)
 	AXE_DUMP_VAR(Directory::current());
+#endif
 }
 
 void Directory::currentTo(String& out) {
 	out.clear();
+
 	StringW_<MAX_PATH> dirW;
 	dirW.resizeToLocalBufSize();
+
 	auto requiredSize = ::GetCurrentDirectory(MAX_PATH, dirW.data());
-	if (!requiredSize)
-		throw AXE_ERROR("::GetCurrentDirectory error: {}", ::WSAGetLastError());
+	if (!requiredSize) {
+		AXE_WIN32_THROWIF_LAST_ERROR();
+	}
+
 	dirW.resize(requiredSize);
 	UtfUtil::convert(out, dirW);
 	out.replaceChars('\\', '/');
@@ -108,10 +121,15 @@ void Directory::_create(StrView dir) {
 	UtfUtil::convert(dirW, dir);
 	auto ret = ::CreateDirectory(dirW.c_str(), nullptr);
 	if (!ret) {
-		auto errorCode = ::WSAGetLastError();
-		switch (errorCode) {
-			case ERROR_ALREADY_EXISTS: AXE_LOG("[Warning] Cannot create a file when that file already exists: {}", dir); break; // TODO incase error from makefile, but why???
-			default: throw AXE_ERROR("::CreateDirectory({}) error: {}", dir, errorCode);
+		auto dwErrorCode = ::WSAGetLastError();
+		switch (dwErrorCode) {
+			case ERROR_ALREADY_EXISTS:
+				AXE_TODO("Just incase error from makefile, but unknow why happen")
+				AXE_LOG_WARN("Cannot create a file when that file already exists: {}", dir); break;
+			default: {
+				AXE_LOG_ERROR("::CreateDirectory invalid path: {}", dir);
+				AXE_WIN32_THROW_SYSTEM_ERROR(dwErrorCode);
+			} break;
 		}
 	}
 }
@@ -121,12 +139,12 @@ void Directory::_remove(StrView dir) {
 	dirW += 0;
 
 	// https://learn.microsoft.com/en-us/windows/win32/api/shellapi/ns-shellapi-shfileopstructa
-	::SHFILEOPSTRUCTW op	= {};
-	op.hwnd					= NULL;
-	op.wFunc				= FO_DELETE;
-	op.pFrom				= dirW.c_str(); // This string must be double-null terminated.
-	op.pTo					= NULL;
-	op.fFlags				= FOF_ALLOWUNDO | FOF_NO_UI;
+	::SHFILEOPSTRUCTW op = {};
+	op.hwnd				 = NULL;
+	op.wFunc			 = FO_DELETE;
+	op.pFrom			 = dirW.c_str(); // This string must be double-null terminated.
+	op.pTo				 = NULL;
+	op.fFlags			 = FOF_ALLOWUNDO | FOF_NO_UI;
 
 	::SHFileOperationW(&op);
 }
@@ -140,28 +158,26 @@ bool Directory::exists(StrView dir) {
 
 void Directory::_appendGetFileSystemEntries(Vector<Entry>& result, StrView path, bool subDir, FilterFunc filter) {
 	TempStringW pathW;
-	TempString pathA = Fmt("{0}/*", path.empty() ? "." : path);
+	auto pathA = TempString::s_format("{}/*", path.empty() ? "." : path);
 
-	// exceed the MAX_PATH limits TODO: https://learn.microsoft.com/en-us/windows/win32/fileio/naming-a-file
+	AXE_TODO("exceed the MAX_PATH limits TODO: https://learn.microsoft.com/en-us/windows/win32/fileio/naming-a-file");
 	if (pathA.size() >= MAX_PATH) {
 		throw AXE_ERROR("path too long: path={}\nsize={}", pathA, pathA.size());
 	}
 	UtfUtil::convert(pathW, pathA);
 
-	::WIN32_FIND_DATA data; // WIN32_FIND_DATA: https://learn.microsoft.com/en-us/windows/win32/api/minwinbase/ns-minwinbase-win32_find_dataa
-#if 1
-	// FindFirstFileEx: https://learn.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-findfirstfileexa
+	::WIN32_FIND_DATA data {0};
 	Directory_Win32Handle h(::FindFirstFileEx(pathW.c_str(), FindExInfoBasic, &data, FindExSearchNameMatch, NULL, 0));
-#else
-	// FindFirstFile: https://learn.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-findnextfilea
-	axDirectory_Win32Handle h(::FindFirstFile(pathW.c_str(), &data));
-#endif
+
 	if (!h.isValid())
-		throw AXE_ERROR("::FindFirstFileEx INVALID_HANDLE_VALUE: path={}", path);
+		throw AXE_ERROR("::FindFirstFileEx INVALID_HANDLE_VALUE: path={}\n", path);
 
 	do {
 		auto filename = StrView_c_str(data.cFileName);
-		if (filename == L"." || filename == L"..") continue;
+
+		if (filename == L"." || filename == L"..")
+			continue;
+
 		const auto& dwAttrib = data.dwFileAttributes;
 
 		Entry e;
@@ -181,15 +197,14 @@ void Directory::_appendGetFileSystemEntries(Vector<Entry>& result, StrView path,
 
 	auto errorCode = ::WSAGetLastError();
 	if (errorCode != ERROR_NO_MORE_FILES) {
-		throw AXE_ERROR("unknonw error: path={}", path);
+		throw AXE_ERROR("unknown error: path={}\n", path);
 	}
 }
 
-#else
-
 #if 0
-#pragma mark ================= Unix ====================
+#pragma mark =================  Non-Windows ====================
 #endif
+#else
 
 Directory::_create(StrView dir) {
 	TempStringA dirA;
@@ -208,6 +223,6 @@ bool Directory::exists(StrView dir) {
 	return ( s.st_mode & S_IFDIR ) != 0;
 }
 
-#endif // Unix
+#endif
 
 } // namespace axe

@@ -3,8 +3,8 @@
 #include "NativeUI_Common.h"
 
 #if AXE_OS_WINDOWS
-	#include "Win32/NativeUIApp_Win32.h"
-	#include "Win32/NativeUIWindow_Win32.h"
+	#include "win32/NativeUIApp_Win32.h"
+	#include "win32/NativeUIWindow_Win32.h"
 
 	namespace axe {
 		using NativeUIWindow_Impl	= NativeUIWindow_Win32;
@@ -18,7 +18,7 @@
 namespace axe {
 
 class NativeUIWindow : public NativeUIWindow_Impl {
-};
+}; // NativeUIWindow
 
 class NativeUIApp : public NativeUIApp_Impl {
 public:

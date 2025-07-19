@@ -27,7 +27,7 @@ struct integral_constant {
 	using value_type = T;
 	using type		 = integral_constant;
 
-				  constexpr	operator value_type()   const noexcept { return value; }
+				  constexpr	operator value_type()   const noexcept { return value; } // implicit conversion to value_type
 	AXE_NODISCARD constexpr value_type operator()() const noexcept { return value; }
 };
 

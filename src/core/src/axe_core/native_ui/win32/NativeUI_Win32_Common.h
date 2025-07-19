@@ -6,24 +6,26 @@
 #include <axe_core/string/StringUtil.h>
 #include <axe_core/math/Rect2.h>
 
-#define AXE_WIN32_THROWIF_LAST_ERROR()                             \
-	do                                                             \
-	{                                                              \
-		auto errorCode = ::WSAGetLastError();                      \
-		if (errorCode)                                             \
-		{                                                          \
-			throw Error_Win32_ErrorCodeString(AXE_LOC, errorCode); \
-		}                                                          \
+#define AXE_WIN32_THROW_SYSTEM_ERROR(dwSystemErrorCode) throw Error_Win32_ErrorCodeString(AXE_LOC, dwSystemErrorCode)
+#define AXE_WIN32_THROWIF_LAST_ERROR()                         \
+	do                                                         \
+	{                                                          \
+		auto _axe_tmp_error_code = ::WSAGetLastError();        \
+		if (_axe_tmp_error_code)                               \
+		{                                                      \
+			AXE_WIN32_THROW_SYSTEM_ERROR(_axe_tmp_error_code); \
+		}                                                      \
 	} while (false) \
 //----
 
-#define AXE_WIN32_THROWIF_HRESULT_ERROR(hr)                \
-	do                                                     \
-	{                                                      \
-		if (FAILED(hr))                                    \
-		{                                                  \
-			throw Error_Win32_HRESULT_String(AXE_LOC, hr); \
-		}                                                  \
+#define AXE_WIN32_THROWIF_HRESULT_ERROR(hr)                         \
+	do                                                              \
+	{                                                               \
+		auto _axe_tmp_hr = (hr);                                    \
+		if (FAILED(_axe_tmp_hr))                                    \
+		{                                                           \
+			throw Error_Win32_HRESULT_String(AXE_LOC, _axe_tmp_hr); \
+		}                                                           \
 	} while (false) \
 //----
 
@@ -31,27 +33,35 @@ namespace axe {
 
 class Win32Util : public NativeUICommonBase {
 public:
-	static void convert(Rect2f&  o, const ::RECT&  i);
-	static void convert(Rect2i&  o, const ::RECT&  i);
-	static void convert(Vec2f&   o, const ::POINT& i);
-	static void convert(Vec2i&   o, const ::POINT& i);
-	static void convert(Vec2f&   o, const ::SIZE&  i);
-	static void convert(Vec2i&   o, const ::SIZE&  i);
-	static void convert(::RECT&  o, const Rect2f&  i);
-	static void convert(::POINT& o, const Vec2f&   i);
-	static void convert(::POINT& o, const Vec2i&   i);
-	static void convert(::SIZE&  o, const Vec2f&   i);
-	static void convert(::SIZE&  o, const Vec2i&   i);
+	static void convert(  Rect2f& o, const ::RECT   & i);
+	static void convert(::RECT	& o, const   Rect2f & i);
 
-	static Rect2f toRect2f(const ::RECT& i)		{ Rect2f o; convert(o, i); return o; }
-	static Rect2i toRect2i(const ::RECT& i)		{ Rect2i o; convert(o, i); return o; }
+	static void convert(  Rect2i& o, const ::RECT   & i);
+	static void convert(::RECT  & o, const   Rect2i & i);
+
+	static void convert(  Vec2f	& o, const ::POINT  & i);
+	static void convert(::POINT	& o, const   Vec2f  & i);
+
+	static void convert(::POINT	& o, const   Vec2i  & i);
+	static void convert(  Vec2i	& o, const ::POINT  & i);
+
+	static void convert(  Vec2f	& o, const ::SIZE   & i);
+	static void convert(::SIZE	& o, const   Vec2f  & i);
+
+	static void convert(  Vec2i	& o, const ::SIZE   & i);
+	static void convert(::SIZE	& o, const   Vec2i  & i);
+
+	static void convert(u64& o, const ::LARGE_INTEGER& i);
+
+	static Rect2f toRect2f(const ::RECT&  i)	{ Rect2f o; convert(o, i); return o; }
+	static Rect2i toRect2i(const ::RECT&  i)	{ Rect2i o; convert(o, i); return o; }
 	static	Vec2f  toVec2f(const ::POINT& i)	{ Vec2f  o; convert(o, i); return o; }
 	static	Vec2i  toVec2i(const ::POINT& i)	{ Vec2i  o; convert(o, i); return o; }
-	static	Vec2f  toVec2f(const ::SIZE& i)		{ Vec2f  o; convert(o, i); return o; }
-	static	Vec2i  toVec2i(const ::SIZE& i)		{ Vec2i  o; convert(o, i); return o; }
+	static	Vec2f  toVec2f(const ::SIZE&  i)	{ Vec2f  o; convert(o, i); return o; }
+	static	Vec2i  toVec2i(const ::SIZE&  i)	{ Vec2i  o; convert(o, i); return o; }
 
 	static ::POINT	toPoint(const Vec2f& i)		{ ::POINT o; convert(o, i); return o; }
-	static ::RECT	toRect(const Rect2f& i)		{ ::RECT o;  convert(o, i); return o; }
+	static ::RECT	toRect(const Rect2f& i)		{ ::RECT  o; convert(o, i); return o; }
 
 	static int		toVKKey(const KeyCode& i);
 }; // Win32Util

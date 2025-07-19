@@ -16,8 +16,8 @@
 #define AXE_TODO(...)                                         \
 	AXE_RUN_ONCE(                                             \
 		::axe::TempString tmp = "[TODO] ";                    \
-		::axe::FmtTo(tmp, __VA_ARGS__);                       \
-		::axe::FmtTo(tmp, "\n  - [{}]\n", AXE_LOC);           \
+		tmp.appendFormat(__VA_ARGS__);                        \
+		tmp.appendFormat("\n  - [{}]\n", AXE_LOC);            \
 		::axe::g_log.onWrite(axe::Log::Level::Warning, tmp)); \
 //----
 
@@ -31,6 +31,7 @@ namespace axe {
 	E(Error,)	\
 //----
 AXE_ENUM_CLASS(Log_Level, u8)
+
 
 class Log : public NonCopyable {
 public:

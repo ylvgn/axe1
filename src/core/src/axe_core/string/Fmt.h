@@ -43,7 +43,7 @@ namespace axe {
 template<class STR, class... ARGS> inline
 void FmtTo(STR& outStr, ARGS&&... args) {
 	AXE_STATIC_ASSERT(sizeof...(args) > 0);
-	fmt::format_to(std::back_inserter(outStr), AXE_FORWARD(args)...);
+	outStr.appendFormat(AXE_FORWARD(args)...);
 }
 
 template<class... ARGS> inline

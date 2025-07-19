@@ -24,7 +24,7 @@ public:
 	static const char* findCharFromEnd	(StrView view, StrView charList, bool ignoreCase);
 
 	static int  ignoreCaseCompare(StrView a, StrView b);
-	static int  ignoreCaseCompare(char a, char b)		{ return tolower(a) - tolower(b); }
+	static int  ignoreCaseCompare(char	  a, char	 b)	{ return tolower(a) - tolower(b); }
 	static int  ignoreCaseCompare(wchar_t a, wchar_t b) { return towlower(a) - towlower(b); }
 
 	static constexpr const char* extractFromPrefix(const char* src, const char* prefix);
@@ -43,8 +43,9 @@ public:
 
 	static bool tryParse(StrView view, f32& outValue);
 	static bool tryParse(StrView view, f64& outValue);
-};
+}; // StringUtil
 AXE_STATIC_ASSERT_NO_MEMBER_CLASS(StringUtil);
+
 
 inline
 Pair<StrView, StrView> StringUtil::splitByChar(StrView view, StrView seperators) {

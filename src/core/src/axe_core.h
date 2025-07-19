@@ -46,6 +46,14 @@
 
 #include <axe_core/file/FilePath.h>
 
+#include <axe_core/system/SystemInfo.h>
 #include <axe_core/cmd/CommandLine.h>
 
 #include <axe_core/native_ui/NativeUI.h>
+
+#include <axe_core/atomic/ScopedLock.h>
+#include <axe_core/atomic/LockProtected.h>
+#include <axe_core/atomic/Mutex.h>
+#include <axe_core/atomic/SharedMutex.h>
+#include <axe_core/atomic/CondVar.h>
+#include <axe_core/atomic/Thread.h>

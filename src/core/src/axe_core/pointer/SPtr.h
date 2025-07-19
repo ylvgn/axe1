@@ -17,9 +17,6 @@ public:
 #endif
 class RefCountBase : public NonCopyable {
 public:
-	WeakRefBlock*	_weakRefBlock = nullptr;
-	AtomicInt		_refCount	  = 0;
-
 	virtual ~RefCountBase() {
 		AXE_ASSERT(_refCount == 0);
 	}
@@ -28,6 +25,8 @@ public:
 		axe_delete(this);
 	}
 
+	WeakRefBlock* _weakRefBlock = nullptr;
+	AtomicInt	  _refCount		= 0;
 }; // RefCountBase
 
 
