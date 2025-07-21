@@ -56,6 +56,23 @@
 struct IUnknown;	// All Com Obj inherit from IUnknown
 #include <comdef.h> // Com error
 
+// Win32 Version: https://learn.microsoft.com/en-us/cpp/porting/modifying-winver-and-win32-winnt?view=msvc-170
+#if (_WIN32_WINNT >= _WIN32_WINNT_NT4)
+	#define AXE_OS_WINDOWS_NT4_OR_LATER 1
+#endif
+#if (_WIN32_WINNT >= _WIN32_WINNT_VISTA)
+	#define AXE_OS_WINDOWS_VISTA_OR_LATER 1
+#endif
+#if (_WIN32_WINNT >= _WIN32_WINNT_WIN7)
+	#define AXE_OS_WINDOWS_WIN7_OR_LATER 1
+#endif
+#if (_WIN32_WINNT >= _WIN32_WINNT_WIN8)
+	#define AXE_OS_WINDOWS_WIN8_OR_LATER 1
+#endif
+#if (_WIN32_WINNT >= _WIN32_WINNT_WIN10)
+	#define AXE_OS_WINDOWS_WIN10_OR_LATER 1
+#endif
+
 #ifndef AXE_TRY_USE_OPENGL
 	#error
 #elif AXE_TRY_USE_OPENGL

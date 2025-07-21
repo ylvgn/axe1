@@ -278,12 +278,12 @@ bool NativeUIWindow_Win32::_handleNativeUIMouseEvent(HWND hwnd, UINT msg, WPARAM
 
 		case WM_MOUSEMOVE:		{ ev.type = Type::Move;	} break;
 
-	#if (_WIN32_WINNT >= 0x0400) || (_WIN32_WINDOWS > 0x0400)
+	#if (AXE_OS_WINDOWS_NT4_OR_LATER)
 		// vertical  scroll wheel 
 		case WM_MOUSEWHEEL:		{ ev.type = Type::Scroll;	ev.scroll.set(0,GET_WHEEL_DELTA_WPARAM(wParam)); } break;
 	#endif
 
-	#if (_WIN32_WINNT >= 0x0600)
+	#if (AXE_OS_WINDOWS_VISTA_OR_LATER)
 		// horizontal scroll wheel 
 		case WM_MOUSEHWHEEL:	{ ev.type = Type::Scroll;	ev.scroll.set(GET_WHEEL_DELTA_WPARAM(wParam),0); } break;
 	#endif

@@ -37,6 +37,8 @@ public:
 		});
 	}
 
+	Tuple<MUTEXES*...> mutexes() { return _mtxes; }
+
 private:
 	void _lock(Tuple<MUTEXES* ...>& rhs) {
 		_unlock();
@@ -97,8 +99,10 @@ public:
 		}
 	}
 
+	Mutex* mutex() { return _mutex; }
+
 private:
-	MUTEX* _mutex = nullptr;
+	Mutex* _mutex = nullptr;
 }; // ScopedLock<T>
 
 
@@ -109,6 +113,6 @@ public:
 
 	explicit ScopedLock() = default;
 	explicit ScopedLock(Dummy&) noexcept {}
-};
+}; // ScopedLock<>
 
 } // namespace axe

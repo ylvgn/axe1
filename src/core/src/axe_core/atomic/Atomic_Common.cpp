@@ -41,7 +41,7 @@ void ThreadId::onFormat(fmt::format_context& ctx) const {
 }
 
 #if 0
-#pragma mark ========= Unix ============
+#pragma mark ========= pthread ============
 #endif
 #else
 

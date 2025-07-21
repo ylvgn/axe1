@@ -227,6 +227,10 @@ AXE_INLINE void axe_force_crash() {
 template<class T> AXE_INLINE void axe_delete(T* p)			 noexcept { delete p; }
 template<class T> AXE_INLINE void axe_delete_set_null(T* &p) noexcept { axe_delete<T>(p); p = nullptr; }
 
+template <class Rep> AXE_INLINE void axe_sleep(Rep milliseconds) {
+	::std::this_thread::sleep_for(::std::chrono::duration<Rep, ::std::milli>(milliseconds));
+}
+
 namespace axe {
 
 template<class T> AXE_INLINE constexpr typename underlying_type_t<T> enumInt(T  value) { return static_cast<typename underlying_type_t<T>>(value); }
@@ -649,16 +653,16 @@ public:
 
 	AXE_INLINE constexpr size_t size() const { return kSize; }
 
-	constexpr Tuple()				: Base() {};
-	constexpr Tuple(ARGS&&... args) : Base(AXE_FORWARD(args)...) {};
+	constexpr Tuple()				noexcept : Base() {};
+	constexpr Tuple(ARGS&&... args) noexcept : Base(AXE_FORWARD(args)...) {};
 
 	template<int INDEX> using Element = typename ::eastl::tuple_element<INDEX, Base>::type;
 	template<int INDEX, class T = Element<INDEX>> AXE_INLINE constexpr       T& get()				{ return ::eastl::get<INDEX>(*this); }
 	template<int INDEX, class T = Element<INDEX>> AXE_INLINE constexpr const T& get() const			{ return ::eastl::get<INDEX>(*this); }
 	template<int INDEX, class T = Element<INDEX>> AXE_INLINE constexpr       T  getValue() const	{ return ::eastl::get<INDEX>(*this); }
 
-	template<class FUNC> constexpr void forEach(FUNC& h)					{ UnrollHelper<      This, FUNC, kSize>::call(this, h); }
-	template<class FUNC> constexpr void forEach(FUNC&& h) const				{ UnrollHelper<const This, FUNC, kSize>::call(this, h); }
+	template<class FUNC>	constexpr void forEach(FUNC& h)					{ UnrollHelper<      This, FUNC, kSize>::call(this, h); }
+	template<class FUNC>	constexpr void forEach(FUNC&& h) const			{ UnrollHelper<const This, FUNC, kSize>::call(this, h); }
 	template<class HANDLER> constexpr static void s_forEachType(HANDLER& h) { UnrollTypeHelper<HANDLER, kSize>::call(h); }
 
 	template<class TUPLE2> auto join(const TUPLE2& tuple2) const { return Tuple_join(*this, tuple2); }

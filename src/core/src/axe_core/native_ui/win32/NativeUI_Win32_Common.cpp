@@ -211,6 +211,25 @@ int Win32Util::toVKKey(const KeyCode& i) {
 	return 0;
 }
 
+#if 0
+#pragma mark ========= Win32_Handle ============
+#endif
+
+Win32_Handle::~Win32_Handle() {
+	unref();
+}
+
+void Win32_Handle::set(::HANDLE h) { unref(); _h = h; }
+void Win32_Handle::unref() {
+	if(isValid())
+	{
+		::CloseHandle(_h); _h = INVALID_HANDLE_VALUE;
+	}
+}
+
+#if 0
+#pragma mark ========= Win32_ErrorCodeString ============
+#endif
 Win32_ErrorCodeString::Win32_ErrorCodeString(::DWORD errorCode) {
 // retrieving-error-messages: https://docs.microsoft.com/en-us/windows/win32/seccrypto/retrieving-error-messages
 // system error code lookup: https://learn.microsoft.com/en-us/windows/win32/debug/system-error-codes
@@ -232,6 +251,10 @@ void Win32_ErrorCodeString::onFormat(fmt::format_context& ctx) const {
 	fmt::format_to(ctx.out(), "{}", _str);
 }
 
+
+#if 0
+#pragma mark ========= Win32_HRESULT_String ============
+#endif
 Win32_HRESULT_String::Win32_HRESULT_String(::HRESULT hr) {
 	::_com_error err(hr, nullptr);
 

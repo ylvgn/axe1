@@ -16,6 +16,8 @@ public:
 	void	lockRead()		{ _m.lock_shared(); }
 	void	unlockRead()	{ _m.unlock_shared(); }
 
+	bool 	try_lock() 		{ return tryLock(); }
+
 private:
 	Impl _m;
 }; // SharedMutex

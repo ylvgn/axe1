@@ -17,7 +17,7 @@ public:
 	template<class SCOPEDLOCK>
 	static void _s_test_single_lock_thread_main(StrView url)
 	{
-		::std::this_thread::sleep_for(::std::chrono::seconds(2));
+		axe_sleep(2000);
 		auto seconds_since_epoch = ::std::chrono::duration_cast<::std::chrono::seconds>(
 			::std::chrono::system_clock::now().time_since_epoch()
 		);
@@ -66,7 +66,7 @@ public:
 	static void s_send_mail(Employee&, Employee&)
 	{
 		// Simulate a time-consuming messaging operation
-		::std::this_thread::sleep_for(::std::chrono::seconds(1));
+		axe_sleep(1000);
 	}
  
 	static void s_assign_lunch_partner(Employee& e1, Employee& e2)

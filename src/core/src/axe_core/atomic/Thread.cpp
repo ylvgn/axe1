@@ -102,8 +102,9 @@ void Thread::_start() {
 		needSetAffinity = true;
 #endif
 
-	if (needSetAffinity)
+	if (needSetAffinity) {
 		_setAffinity(_affinity);
+	}
 
 	::ResumeThread(_threadId.nativeHandle());
 }
@@ -114,13 +115,17 @@ DWORD WINAPI Thread::s_proc(LPVOID p) {
 }
 
 void Thread::join() {
-	if (!_threadId) return;
+	if (!_threadId)
+		return;
+
 	::WaitForSingleObject(_threadId.nativeHandle(), INFINITE);
 	detach();
 }
 
 void Thread::detach() {
-	if (!_threadId) return;
+	if (!_threadId)
+		return;
+
 	::CloseHandle(_threadId.nativeHandle());
 	_threadId.reset();
 }
@@ -145,7 +150,8 @@ void Thread::_setAffinity(const AffinityMask& mask) {
 #pragma mark ========= pthread ============
 #endif
 #else
-	#error "pthread TODO"
+
+#error "pthread TODO"
 
 void* Thread::s_proc(void* p) {
 	static_cast<axThread*>(p)->_invokeFunc();

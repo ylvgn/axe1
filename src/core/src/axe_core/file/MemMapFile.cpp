@@ -12,7 +12,7 @@ void MemMapFile::open(StrView filename) {
 	_fs.openRead(filename);
 
 	if (_fs.fileSize() >= SIZE_T_MAX)
-		throw AXE_ERROR("memmap file size too larget");
+		throw AXE_ERROR("memmap file size too large");
 
 	auto size = static_cast<size_t>(_fs.fileSize());
 	if (size <= 0) {
@@ -22,19 +22,21 @@ void MemMapFile::open(StrView filename) {
 
 	_mapping = ::CreateFileMapping(_fs.nativeFd(), nullptr, PAGE_READONLY, 0, 0, nullptr);
 	if (!_mapping) {
-		throw AXE_ERROR("::CreateFileMapping error");
+		throw AXE_ERROR("::CreateFileMapping");
 	}
 
 	auto* data = reinterpret_cast<u8*>(::MapViewOfFile(_mapping, FILE_MAP_READ, 0, 0, 0));
 	if (!data) {
-		throw AXE_ERROR("::MapViewOfFile error");
+		throw AXE_ERROR("::MapViewOfFile");
 	}
 
 	_span = ByteSpan(data, size);
 }
 
 void MemMapFile::close() {
-	if (_span.size() <= 0) return;
+	if (_span.size() <= 0)
+		return;
+
 	::UnmapViewOfFile(_span.data());
 
 	if (_mapping) {
@@ -46,6 +48,9 @@ void MemMapFile::close() {
 	_fs.close();
 }
 
+#if 0
+#pragma mark ========= Unix ============
+#endif
 #else
 
 void MemMapFile::open(StrView filename) {
@@ -53,15 +58,17 @@ void MemMapFile::open(StrView filename) {
 	_fs.openRead(filename);
 
 	if (_fs.fileSize() >= SIZE_T_MAX)
-		throw AXE_ERROR("memmap file size too larget");
+		throw AXE_ERROR("memmap file size too large");
 
 	auto size = static_cast<size_t>(_fs.fileSize());
-	if (size <= 0) return;
+	if (size <= 0)
+		return;
 
 	auto* data = reinterpret_cast<u8*>(::mmap(0, size, PROT_READ, MAP_PRIVATE, _fs.nativeFd(), 0));
 	if (data == MAP_FAILED || data == nullptr) {
-		throw AXE_ERROR("memmap");
+		throw AXE_ERROR("::mmap");
 	}
+
 	_span = ByteSpan(data, size);
 }
 

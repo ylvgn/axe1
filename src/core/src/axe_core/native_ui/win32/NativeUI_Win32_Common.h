@@ -69,6 +69,29 @@ AXE_STATIC_ASSERT_NO_MEMBER_CLASS(Win32Util);
 
 
 #if 0
+#pragma mark ========= Win32_Handle ============
+#endif
+class Win32_Handle : public NonCopyable {
+public:
+	Win32_Handle() = default;
+	explicit Win32_Handle(::HANDLE h) noexcept : _h(h) {}
+
+	~Win32_Handle();
+
+	void set(::HANDLE h);
+	void unref();
+
+	AXE_NODISCARD ::HANDLE get() { return _h; }
+	operator	  ::HANDLE()	 { return _h; }
+
+	bool isValid() const { return _h != INVALID_HANDLE_VALUE; }
+
+private:
+	::HANDLE _h = INVALID_HANDLE_VALUE;
+}; // Win32_Handle
+
+
+#if 0
 #pragma mark ========= Win32_ErrorCodeString ============
 #endif
 class Win32_ErrorCodeString {

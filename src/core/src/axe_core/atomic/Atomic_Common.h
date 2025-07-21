@@ -17,6 +17,11 @@ namespace axe {
 AXE_ENUM_CLASS(ThreadPriority, u8)
 
 
+#if 0
+#pragma mark ========= ThreadId_Native ============
+#pragma mark ========= ThreadAffinityMask ============
+#pragma mark ========= kThreadId_Native_Null ============
+#endif
 #if AXE_OS_WINDOWS
 	using ThreadAffinityMask = ::DWORD_PTR;
 
@@ -85,6 +90,13 @@ AXE_FORMATTER(ThreadId)
 #endif
 class ThreadUtil : public StaticClass {
 public:
+
+	template <class... Args>
+	static AXE_INLINE void Log(Args&&... args)
+	{
+		AXE_LOG("Thread {}: {}", ThreadId::s_current(), AXE_FORWARD(args)...);
+	}
+
 #if 1 // C++11
 	static AXE_INLINE void yield() { ::std::this_thread::yield(); }
 

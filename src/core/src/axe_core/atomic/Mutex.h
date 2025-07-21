@@ -16,8 +16,6 @@ public:
 	AXE_INLINE bool tryLock();
 	AXE_INLINE void unlock();
 
-	AXE_INLINE bool try_lock() { AXE_TODO("cuz ScopedLock is using ::std::lock") return tryLock(); }
-
 	AXE_NODISCARD ScopedLock scopedLock() { return ScopedLock(*this); }
 
 #if AXE_OS_WINDOWS
@@ -26,8 +24,11 @@ public:
 	using NativeMutex = pthread_mutex_t;
 #endif
 
+	AXE_INLINE bool try_lock() { return tryLock(); }
+
 	NativeMutex* nativeMutex() { return &_m; }
 
+private:
 	NativeMutex _m;
 }; // Mutex
 

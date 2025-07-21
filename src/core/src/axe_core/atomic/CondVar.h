@@ -1,29 +1,47 @@
 #pragma once
 
-//#include "Mutex.h"
+#include "Mutex.h"
 
 namespace axe {
 
-class CondVar : public NonCopyable {
-	using Impl = ::std::condition_variable;
+class CondVar : private NonCopyable {
+	using This = CondVar;
 public:
-	//using Locked = Mutex::ScopedLock; // TODO
+	using Locked = typename Mutex::ScopedLock;
 
-	using Locked = ::std::unique_lock<std::mutex>;
+	CondVar();
+	~CondVar();
 
-	void broadcast() { _m.notify_all(); }
-	void signal() { _m.notify_one(); }
+	void wait(Locked& locked);
 
-	void wait(Locked& locked) { _m.wait(locked); }
-
-	bool timedWait(Locked& locked, int waitMilliseconds)
-	{
-		_m.wait_for(locked, ::std::chrono::milliseconds(waitMilliseconds));
-		return true;
+	template <class Predicate>
+	void wait(Locked& locked, Predicate pred) {
+		while (!pred())
+		{
+			wait(locked);
+		}
 	}
 
+	void signal();
+	void broadcast();
+
+	bool timedWait(Locked& locked, int waitMilliseconds);
+
+	AXE_INLINE void notify_one() { signal(); }
+	AXE_INLINE void notify_all() { broadcast(); }
+
+#if AXE_OS_WINDOWS
+	using NativeCondVar = ::CONDITION_VARIABLE;
+#else
+	using NativeCondVar = pthread_cond_t;
+#endif
+
 private:
-	Impl _m;
+#if AXE_OS_WINDOWS
+	BOOL _timedWait(Locked& locked, ::DWORD waitMilliseconds);
+#endif
+
+	NativeCondVar _cv;
 }; // CondVar
 
 } // namespace axe

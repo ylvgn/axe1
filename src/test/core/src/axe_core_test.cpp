@@ -13,7 +13,7 @@
 namespace axe {
 
 void run_temp_test() {
-	RUN_TEST(test_Thread);
+	RUN_TEST(test_CondVar);
 }
 
 void run_all_test() {
@@ -25,6 +25,7 @@ void run_all_test() {
 	RUN_TEST(test_Tuple);
 	RUN_TEST(test_Mutex);
 	RUN_TEST(test_Thread);
+	RUN_TEST(test_CondVar);
 
 // file
 	RUN_TEST(test_MemMapFile);

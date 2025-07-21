@@ -28,10 +28,9 @@ void FileStream::open(StrView filename, FileMode mode, FileAccess access, FileSh
 	close();
 	_filename = filename;
 
-
-	DWORD	create_flags	= 0;
-	DWORD	access_flags	= 0;
-	DWORD	share_flags		= 0;
+	::DWORD	create_flags	= 0;
+	::DWORD	access_flags	= 0;
+	::DWORD	share_flags		= 0;
 
 	switch (mode) {
 		case FileMode::CreateNew: 		create_flags |= CREATE_NEW;		break;
@@ -55,9 +54,16 @@ void FileStream::open(StrView filename, FileMode mode, FileAccess access, FileSh
 	TempStringW filenameW;
 	UtfUtil::convert(filenameW, filename);
 
-	_fd = ::CreateFile(filenameW.c_str(), access_flags, share_flags, nullptr, create_flags, FILE_ATTRIBUTE_NORMAL, nullptr );
+	_fd = ::CreateFile(filenameW.c_str()
+					 , access_flags
+					 , share_flags
+					 , nullptr
+					 , create_flags
+					 , FILE_ATTRIBUTE_NORMAL
+					 , nullptr);
+
 	if (_fd == kInvalid()) {
-		DWORD err = ::GetLastError();
+		::DWORD err = ::GetLastError();
 		switch( err ) {
 			case ERROR_FILE_NOT_FOUND:		throw AXE_ERROR("file not found");
 			case ERROR_PATH_NOT_FOUND:		throw AXE_ERROR("path not found");
@@ -73,47 +79,53 @@ void FileStream::open(StrView filename, FileMode mode, FileAccess access, FileSh
 void FileStream::close() {
 	if (!isOpened()) return;
 	BOOL ret = ::CloseHandle(_fd);
-	if (!ret) throw AXE_ERROR("close file error");
+	if (!ret)
+		throw AXE_ERROR("::CloseHandle");
+
 	_fd = kInvalid();
 }
 
 void FileStream::readBytes(Span<u8> data) {
 	_ensure_fd();
-	if (data.size() <= 0) return;
+	if (data.size() <= 0)
+		return;
 	if (data.size() >= UINT32_MAX)
-		throw AXE_ERROR("file read");
+		throw AXE_ERROR("file size too large");
 
-	DWORD dwSize = static_cast<DWORD>(data.size());
-	DWORD result;
+	auto dwSize = static_cast<::DWORD>(data.size());
+	::DWORD result;
 	BOOL ret = ::ReadFile(_fd, data.data(), dwSize, &result, nullptr);
 	if (!ret) {
-		DWORD e = ::GetLastError();
+		::DWORD e = ::GetLastError();
 		switch (e) {
 			case ERROR_LOCK_VIOLATION: throw AXE_ERROR("file lock violation");
 		}
-		throw AXE_ERROR("file read");
+		throw AXE_ERROR("::ReadFile");
 	}
 }
 
 void FileStream::writeBytes(ByteSpan data) {
 	_ensure_fd();
-	if (data.size() <= 0) return;
-	if (data.size() >= UINT32_MAX)
-		throw AXE_ERROR("file read");
 
-	DWORD dwSize = static_cast<DWORD>(data.size());
-	DWORD result;
+	if (data.size() <= 0)
+		return;
+	if (data.size() >= UINT32_MAX)
+		throw AXE_ERROR("file size too large");
+
+	auto dwSize = static_cast<::DWORD>(data.size());
+	::DWORD result;
 	BOOL ret = ::WriteFile(_fd, data.data(), dwSize, &result, nullptr);
-	if (!ret) throw AXE_ERROR("file write");
+	if (!ret)
+		throw AXE_ERROR("::WriteFile");
 }
 
 FileSize FileStream::fileSize() {
 	_ensure_fd();
 
-	DWORD high = 0;
-	DWORD low  = ::GetFileSize(_fd, &high);
+	::DWORD high = 0;
+	::DWORD low  = ::GetFileSize(_fd, &high);
 	if (low == INVALID_FILE_SIZE)
-		throw AXE_ERROR("file size");
+		throw AXE_ERROR("::GetFileSize");
 
 	auto fileSize = static_cast<FileSize>(high) << 32 | low;
 	return fileSize;
@@ -121,6 +133,7 @@ FileSize FileStream::fileSize() {
 
 void FileStream::setFileSize(FileSize newSize) {
 	_ensure_fd();
+
 	FileSize oldPos = getPos();
 	setPos(newSize);
 	::SetEndOfFile(_fd);
@@ -131,24 +144,28 @@ void FileStream::setFileSize(FileSize newSize) {
 
 FileSize FileStream::getPos() {
 	_ensure_fd();
-	LONG high = 0;
-	LONG low  = ::SetFilePointer(_fd, 0, &high, FILE_CURRENT);
-	if (low < 0 || high < 0) throw AXE_ERROR("get file pos");
+
+	::LONG high = 0;
+	::LONG low  = ::SetFilePointer(_fd, 0, &high, FILE_CURRENT);
+	if (low < 0 || high < 0)
+		throw AXE_ERROR("get file pos");
 	auto pos = static_cast<FileSize>(low) | static_cast<FileSize>(high) << 32;
 	return pos;
 }
 
 void FileStream::setPos(FileSize pos) {
 	_ensure_fd();
-	LONG high = static_cast<LONG>(pos >> 32);
-	LONG low  = static_cast<LONG>(pos);
+
+	auto high = static_cast<::LONG>(pos >> 32);
+	auto low  = static_cast<::LONG>(pos);
 	::SetFilePointer( _fd, low, &high, FILE_BEGIN);
 }
 
 void FileStream::setPosFromEnd(FileSize pos) {
 	_ensure_fd();
-	LONG high = static_cast<LONG>(pos >> 32);
-	LONG low  = static_cast<LONG>(pos);
+
+	auto high = static_cast<::LONG>(pos >> 32);
+	auto low  = static_cast<::LONG>(pos);
 	::SetFilePointer( _fd, low, &high, FILE_END);
 }
 
