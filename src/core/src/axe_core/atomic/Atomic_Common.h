@@ -94,7 +94,8 @@ public:
 	template <class... Args>
 	static AXE_INLINE void Log(Args&&... args)
 	{
-		AXE_LOG("Thread {}: {}", ThreadId::s_current(), AXE_FORWARD(args)...);
+		auto msg = TempString::s_format(AXE_FORWARD(args)...);
+		AXE_LOG("Thread {}: {}", ThreadId::s_current(), msg);
 	}
 
 #if 1 // C++11

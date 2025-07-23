@@ -13,7 +13,7 @@
 namespace axe {
 
 void run_temp_test() {
-	RUN_TEST(test_CondVar);
+	RUN_TEST(test_Thread);
 }
 
 void run_all_test() {

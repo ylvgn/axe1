@@ -22,6 +22,14 @@ public:
 		// construct but don't lock
 	}
 
+	explicit ScopedLock(ScopedLock&& r) noexcept
+		: _mtxes(AXE_MOVE(r._mtxes))
+	{
+		_mtxesCount	  = r._size();
+		r._mtxes      = {};
+		r._mtxesCount = 0;
+	}
+
 	~ScopedLock() noexcept { unlock(); }
 
 	void lock(MUTEXES&... mtxes) {
@@ -32,23 +40,32 @@ public:
 	}
 
 	void unlock() {
-		_mtxes.forEach([](auto index, const auto& m) {
-			m->unlock();
+		_mtxes.forEach([this](auto index, const auto& pMtx) {
+			if (index >= _size())
+				return;
+			pMtx->unlock();
 		});
 	}
 
 	Tuple<MUTEXES*...> mutexes() { return _mtxes; }
 
 private:
-	void _lock(Tuple<MUTEXES* ...>& rhs) {
+	void _lock(Tuple<MUTEXES* ...>& mtxes) {
 		_unlock();
-		rhs.forEach([](auto index, const auto& m) {
-			m->lock();
+		mtxes.forEach([](auto index, const auto& pMtx) {
+			pMtx->lock();
 		});
-		_mtxes = rhs;
+		_mtxes = mtxes;
+		_mtxes._mtxesCount = mtxes.size();
 	}
 
+	AXE_INLINE size_t _size() const {
+		return _mtxesCount.has_value() ? _mtxesCount.value() : _mtxes.size();
+	}
+
+protected:
 	Tuple<MUTEXES* ...> _mtxes;
+	Opt<size_t>			_mtxesCount;
 }; // ScopedLock<ARGS...>
 
 template <class... MUTEXES> AXE_NODISCARD
@@ -73,7 +90,7 @@ public:
 		// construct but don't lock
 	}
 
-	ScopedLock(ScopedLock&& r)
+	explicit ScopedLock(ScopedLock&& r) noexcept
 		: _mutex(r._mutex)
 	{
 		r._mutex = nullptr;
@@ -101,7 +118,7 @@ public:
 
 	Mutex* mutex() { return _mutex; }
 
-private:
+protected:
 	Mutex* _mutex = nullptr;
 }; // ScopedLock<T>
 

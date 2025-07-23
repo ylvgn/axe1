@@ -3,6 +3,7 @@
 #include <axe_core/system/SystemInfo.h>
 #include <axe_core/atomic/Thread.h>
 #include <axe_core/atomic/Mutex.h>
+#include <axe_core/atomic/CondVar.h>
 
 #if AXE_OS_WINDOWS
 	#include <axe_core/native_ui/win32/NativeUI_Win32_Common.h>
@@ -272,11 +273,11 @@ public:
 					break;
 
 				if (Test_Thread::s_isPrimeNumber(v)) {
-					AXE_LOG("Thread {}: prime {}", _id, v);
+					ThreadUtil::Log("CPU{}: prime: {}", _id, v);
 					_req->addResult(v);
 				}
 			}
-			AXE_LOG("Thread {}: ended", _id);
+			ThreadUtil::Log("CPU{}: ended", _id);
 		}
 
 		Request* _req	= nullptr;
@@ -380,10 +381,143 @@ public:
 		req.finish();
 	}
 
+	class MyPrimeNumberRequest005 {
+		using This = MyPrimeNumberRequest005;
+
+		struct Request
+		{
+			i64 start	= 0;
+			i64 count	= 0;
+			i64 current = 0;
+		};
+
+		struct Result
+		{
+			Vector<i64> primeNumbers;
+			int			endedThread = 0;
+		};
+
+		CondVarProtected<Request> _request;
+		CondVarProtected<Result>  _result;
+
+	public:
+		void init(i64 start, i64 count) {
+			auto req	 = _request.scopedLock();
+			req->start   = start;
+			req->current = start;
+			req->count   = count;
+		}
+
+		i64 getNext() {
+			auto req = _request.scopedLock();
+			if (req->current >= req->start + req->count)
+				return 0;
+
+			auto ret = req->current;
+			req->current++;
+			return ret;
+		}
+
+		void addResult(i64 v) {
+			{
+				auto res = _result.scopedLock();
+				res->primeNumbers.push_back(v);
+			}
+
+			_result.notify_all(); // just for MainThread print some msg, and there no need notify_all is fine.
+		}
+
+		void finish() {
+			auto res = _result.scopedLock();
+			AXE_LOG("resultCount={}", res->primeNumbers.size());
+		}
+
+		void threadEnded()
+		{
+			{
+				auto res = _result.scopedLock();
+				res->endedThread++;
+			}
+			_result.notify_all();
+		}
+
+		void waitForEnd() {
+			auto res = _result.scopedLock();
+			for (;;)
+			{
+				AXE_LOG("MainThread: resultCount={}", res->primeNumbers.size());
+				if (res->endedThread >= kThreadCount) {
+					break;
+				}
+				res.wait();
+			}
+
+			AXE_LOG("waitForEnd is done");
+		}
+	}; // MyPrimeNumberRequest005
+
+
+	class MyPrimeNumberThread005 : private Thread {
+		using This = MyPrimeNumberThread005;
+		using Base = Thread;
+	public:
+		using Request = MyPrimeNumberRequest005;
+
+		void run(Request& req, i64 id) {
+			_req	= &req;
+			_id		= id;
+
+			Thread_CreateDesc threadDescs;
+			auto name = TempString::s_format("MyPrimeNumberThread005 - {}", id);
+			threadDescs.name  = name;
+			threadDescs.entry = [this]() { onThreadProc(); };
+
+			Base::setAffinity(1LL << _id);
+			Base::start(threadDescs);
+		}
+
+		void onThreadProc() {
+//			AXE_DUMP_VAR(_id);
+
+			for (;;) {
+				i64 v = _req->getNext();
+				if (v == 0) {
+					break;
+				}
+
+				if (Test_Thread::s_isPrimeNumber(v)) {
+					ThreadUtil::Log("CPU{}: prime: {}", _id, v);
+					_req->addResult(v);
+				}
+			}
+
+			ThreadUtil::Log("CPU{}: ended", _id);
+			_req->threadEnded();
+		}
+
+		Request* _req	= nullptr;
+		i64		 _id	= 0;
+	}; // MyPrimeNumberThread005
+
+	void _test_primeNumber_conditionVariable() {
+		auto scoped = MyScopedStopWatch_make(_stopWatch);
+
+		MyPrimeNumberRequest005 req;
+		req.init(kPrimeStart, kThreadCount * kBatchSize);
+		{
+			MyPrimeNumberThread005 threads[kThreadCount];
+			for (i64 i = 0; i < kThreadCount; i++) {
+				threads[i].run(req, i);
+			}
+		}
+		req.waitForEnd();
+		req.finish();
+	}
+
 	void test_primeNumber() {
 		static const int kCpuCount = SystemInfo::cpuCount();
 		if (kThreadCount > kCpuCount) {
-			AXE_LOG_WARN("bypass expect thread count {}, but only has {}", kThreadCount, kCpuCount);
+			AXE_LOG_WARN("[bypass] expect cpu proc count {}, but only got {}", kThreadCount, kCpuCount);
 			return;
 		}
 
@@ -391,6 +525,7 @@ public:
 		_test_primeNumber_multiThread_BatchMode();
 		_test_primeNumber_multiThread_BossMode<MyPrimeNumberThread003<MyPrimeNumberRequest003>>();
 		_test_primeNumber_multiThread_BossMode<MyPrimeNumberThread003<MyPrimeNumberRequest004>>();
+		_test_primeNumber_conditionVariable();
 	}
 
 	MyStopWatch _stopWatch;
