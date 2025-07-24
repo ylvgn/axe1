@@ -43,7 +43,7 @@ AXE_INLINE void* operator new(size_t numBytes) {
 }
 AXE_INLINE void operator delete(void* p) noexcept {
 	AXE_TracyFree(p);
-	free(p);
+	::free(p);
 }
 
 AXE_INLINE void* operator new[](size_t numBytes) {
@@ -54,7 +54,7 @@ AXE_INLINE void* operator new[](size_t numBytes) {
 
 AXE_INLINE void  operator delete[](void* p) noexcept {
 	AXE_TracyFree(p);
-	free(p);
+	::free(p);
 }
 #endif // !EASTL_DLL
 

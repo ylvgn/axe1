@@ -635,13 +635,10 @@ using AtomicUInt64	= AtomicT<u64>;
 using AtomicInt		= AtomicT<int>;
 using AtomicUInt	= AtomicT<unsigned int>;
 
-
-template<int... ints>
-using IntSequence = typename ::eastl::integer_sequence<int, ints...>;
-
-template <int N>
-using IntSequence_make = typename ::eastl::make_integer_sequence<int, N>;
-
+template <int... ints>	 using IntSequence		  = typename ::eastl::integer_sequence<int, ints...>;
+template <int N>		 using IntSequence_make	  = typename ::eastl::make_integer_sequence<int, N>;
+template <int N>		 using IndexSequence_make = typename IntSequence_make<N>;
+template <typename... T> using IndexSequenceFor	  = typename IndexSequence_make<sizeof...(T)>;
 
 template <class... ARGS> using TupleT_Base = typename ::eastl::tuple<ARGS...>;
 template <class... ARGS>
@@ -649,12 +646,11 @@ class Tuple : public TupleT_Base<ARGS...> {
 	using This = Tuple;
 	using Base = typename TupleT_Base<ARGS...>;
 public:
-	static constexpr size_t kSize = ::eastl::tuple_size<Base>::value;
+	static constexpr size_t kSize = ::eastl::tuple_size_v<This>;
 
 	AXE_INLINE constexpr size_t size() const { return kSize; }
 
-	constexpr Tuple()				noexcept : Base() {};
-	constexpr Tuple(ARGS&&... args) noexcept : Base(AXE_FORWARD(args)...) {};
+	using Base::tuple;
 
 	template<int INDEX> using Element = typename ::eastl::tuple_element<INDEX, Base>::type;
 	template<int INDEX, class T = Element<INDEX>> AXE_INLINE constexpr       T& get()				{ return ::eastl::get<INDEX>(*this); }
@@ -664,6 +660,10 @@ public:
 	template<class FUNC>	constexpr void forEach(FUNC& h)					{ UnrollHelper<      This, FUNC, kSize>::call(this, h); }
 	template<class FUNC>	constexpr void forEach(FUNC&& h) const			{ UnrollHelper<const This, FUNC, kSize>::call(this, h); }
 	template<class HANDLER> constexpr static void s_forEachType(HANDLER& h) { UnrollTypeHelper<HANDLER, kSize>::call(h); }
+
+	template<class FUNC>	constexpr void forEachReverse(FUNC& h)				   { UnrollHelperReverse<      This, FUNC, kSize>::call(this, h); }
+	template<class FUNC>	constexpr void forEachReverse(FUNC&& h) const		   { UnrollHelperReverse<const This, FUNC, kSize>::call(this, h); }
+	template<class HANDLER> constexpr static void s_forEachTypeReverse(HANDLER& h) { UnrollTypeHelperReverse<HANDLER, kSize>::call(h); }
 
 	template<class TUPLE2> auto join(const TUPLE2& tuple2) const { return Tuple_join(*this, tuple2); }
 
@@ -690,6 +690,20 @@ private:
 		}
 	};
 
+	template<class TUPLE, class FUNC, int N> struct UnrollHelperReverse;
+	template<class TUPLE, class FUNC> struct UnrollHelperReverse<TUPLE, FUNC, 0> { static void call(TUPLE* tuple, FUNC& func) {} };
+	template<class TUPLE, class FUNC, int N>
+	struct UnrollHelperReverse {
+		static void call(TUPLE* tuple, FUNC& func) {
+			static constexpr int INDEX = N-1;
+			if (INDEX >= 0)
+			{
+				func(INDEX, tuple->template get<INDEX>());
+				UnrollHelperReverse<TUPLE, FUNC, INDEX>::call(tuple, func);
+			}
+		}
+	};
+
 	template<class HANDLER, int N> struct UnrollTypeHelper;
 	template<class HANDLER> struct UnrollTypeHelper<HANDLER, 0> { static void call(HANDLER& h) {} };
 
@@ -702,13 +716,29 @@ private:
 			h.template handle< INDEX, Field >();
 		}
 	};
+
+	template<class HANDLER, int N> struct UnrollTypeHelperReverse;
+	template<class HANDLER> struct UnrollTypeHelperReverse<HANDLER, 0> { static void call(HANDLER& h) {} };
+
+	template<class HANDLER, int N>
+	struct UnrollTypeHelperReverse {
+		static void call(HANDLER& h) {
+			static constexpr int INDEX = N-1;
+			using Field = typename Tuple::template Element<INDEX>;
+			if (INDEX >= 0)
+			{
+				h.template handle< INDEX, Field >();
+				UnrollTypeHelperReverse<HANDLER, INDEX>::call(h);
+			}
+		}
+	};
+	
 }; // Tuple
 
 template <class... ARGS> AXE_NODISCARD
 AXE_INLINE constexpr auto Tuple_make(ARGS&&... args) {
 	return Tuple<ARGS...>(AXE_FORWARD(args)...);
 }
-
 
 template<
 	class TUPLE0, int... INDEX0,
@@ -731,6 +761,16 @@ auto Tuple_join(const TUPLE0& t0, const TUPLE1& t1) {
 }
 
 } // namespace axe
+
+namespace eastl {
+	// kind of EASTL/tuple.h
+	template <class... Ts>
+	struct tuple_size<::axe::Tuple<Ts...> > : public integral_constant<size_t, sizeof...(Ts)> {};
+
+	template <size_t I, class... Ts>
+	struct tuple_element<I, ::axe::Tuple<Ts...> > : public tuple_element<I, ::axe::Tuple<Ts...>> { };
+} // namespace eastl
+
 
 #include "../string/Fmt.h"
 
