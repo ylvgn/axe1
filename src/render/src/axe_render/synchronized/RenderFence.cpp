@@ -2,6 +2,18 @@
 
 namespace axe {
 
+const TypeInfo* RenderFence::s_getType() {
+	class TI : public TI_Base {
+	public:
+		TI() {
+			name = "RenderFence";
+			AXE_TODO("");
+		}
+	};
+	static TI ti;
+	return &ti;
+}
+
 void RenderFence::create(RenderFence_CreateDesc& desc) {
 	onCreate(desc);
 }

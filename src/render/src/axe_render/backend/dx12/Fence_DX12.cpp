@@ -5,23 +5,32 @@
 
 namespace axe  {
 
-Fence_DX12::Fence_DX12(CreateDesc& desc)
-	: Base(desc)
-	, _lastCompletedValue(desc.initialFenceValue)
-	, _curSignal(desc.initialFenceValue + 1)
-	, _lastSignaled(0)
-{
-	AXE_ASSERT(desc.device != nullptr);
+const TypeInfo* Fence_DX12::s_getType() {
+	class TI : public TI_Base {
+	public:
+		TI() {
+			name = "Fence_DX12";
+			AXE_TODO("");
+		}
+	};
+	static TI ti;
+	return &ti;
+}
+
+void Fence_DX12::onCreate(CreateDesc& desc) {
+	_lastCompletedValue = desc.initialFenceValue;
+	_curSignal			= desc.initialFenceValue + 1;
+	_lastSignaled		= 0;
 
 	::HRESULT hr;
 
-	auto* device	= static_cast<Device_DX12*>(desc.device);
+	auto* device	= static_cast<Device_DX12*>(_device);
 	auto* d3dDevice = device->d3dDevice();
 
 	hr = d3dDevice->CreateFence(desc.initialFenceValue, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(_d3dFence.ptrForInit()));
 	AXE_DX12_THROWIF_HRESULT_ERROR(hr, d3dDevice);
 
-	Util::setDebugName(_d3dFence.ptr(), desc.debugName);
+	Util::setDebugName(_d3dFence.ptr(), "Fence_DX12");
 
 	_onGpuCompletedEvent = CreateEvent(nullptr, false, false, L"DX12 Fence Event");
 
@@ -45,7 +54,6 @@ void Fence_DX12::cpuWait(UINT64 expectGpuCompletedValue) {
 	}
 
 	auto scopedLock = ScopedLock_make(_fenceWaitCS);
-
 	// Double-check after acquiring the lock (avoid race condition between threads)
 	if (onCheckCompleted()) {
 		// locked checking
@@ -57,8 +65,7 @@ void Fence_DX12::cpuWait(UINT64 expectGpuCompletedValue) {
 
 	DWORD result = WaitForSingleObject(_onGpuCompletedEvent, INFINITE); // CPU thread is blocking here until the GPU signals the fence. (INFINITE is Wait Forever)
 
-	if (result == WAIT_OBJECT_0)
-	{
+	if (result == WAIT_OBJECT_0) {
 		// finished
 	}
 }

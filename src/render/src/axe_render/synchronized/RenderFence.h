@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../RenderDeviceObject.h"
+#include "../RenderResource.h"
 
 namespace axe {
 
@@ -10,9 +10,8 @@ public:
 }; // RenderFence_CreateDesc
 
 
-class RenderFence : public RenderDeviceObject {
-	using This = RenderFence;
-	using Base = RenderDeviceObject;
+class RenderFence : public RenderResource {
+	AXE_ABSTRACT_CLASS_TYPE(RenderFence, RenderResource)
 public:
 	using CreateDesc = RenderFence_CreateDesc;
 
