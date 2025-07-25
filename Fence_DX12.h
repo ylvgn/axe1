@@ -2,18 +2,18 @@
 
 #if AXE_RENDER_HAS_DX12
 
-#include <axe_render/RenderFence.h>
-#include "Render_DX12_Common.h"
+#include <axe_render/synchronized/RenderFence.h>
+#include "Common_DX12.h"
 
 namespace axe {
 
-class RenderFence_DX12 : public RenderFence {
-	using This = RenderFence_DX12;
+class Fence_DX12 : public RenderFence {
+	using This = Fence_DX12;
 	using Base = RenderFence;
 	using Util = DX12Util;
 public:
-	RenderFence_DX12(CreateDesc& desc);
-	~RenderFence_DX12();
+	Fence_DX12(CreateDesc& desc);
+	~Fence_DX12();
 
 	DX12_ID3D12Fence* d3dFence() { return _d3dFence; }
 
@@ -36,7 +36,7 @@ private:
 	HANDLE _onGpuCompletedEvent;
 
 	Mutex _fenceWaitCS;
-}; // RenderFence_DX12
+}; // Fence_DX12
 
 } // namespace axe
 

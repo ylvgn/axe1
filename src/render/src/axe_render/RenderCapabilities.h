@@ -1,11 +1,12 @@
 #pragma once
 
-#include "Render_Common.h"
+#include "RenderCommonBase.h"
 
 namespace axe {
 
 class RenderCapabilities_Info {
 public:
+	bool hasTearing		  = false;
 	bool hasComputeShader = false;
 	bool shaderHasFloat64 = false;
 	bool hasRaytracing	  = false;
@@ -17,6 +18,7 @@ class RenderCapabilities : public NonCopyable {
 public:
 	using Info = RenderCapabilities_Info;
 
+	bool hasTearing()		const { return _info.hasTearing; }
 	bool hasComputeShader() const { return _info.hasComputeShader; }
 	bool shaderHasFloat64() const { return _info.shaderHasFloat64; }
 	bool hasRaytracing()	const { return _info.hasRaytracing; }

@@ -3,21 +3,25 @@
 #if AXE_RENDER_HAS_DX12
 
 #include <axe_render/RenderCapabilities.h>
-#include "Render_DX12_Common.h"
+#include "Common_DX12.h"
 
 namespace axe {
+/*
+- Refs: 
+  - d3dx12_check_feature_support.h
+*/
 
-// Reference:
-//	- d3dx12_check_feature_support.h
-class RenderCapabilities_DX12 : public RenderCapabilities {
-	using This = RenderCapabilities_DX12;
+class Capabilities_DX12 : public RenderCapabilities {
+	using This = Capabilities_DX12;
 	using Base = RenderCapabilities;
 	using Util = DX12Util;
 public:
-	RenderCapabilities_DX12(RenderDevice_DX12* device);
+	Capabilities_DX12(Device_DX12* device);
 
 	::D3D_FEATURE_LEVEL _d3dMaxFeatureLevel = static_cast<::D3D_FEATURE_LEVEL>(0);
 private:
+	void _checkTearing(DX12_IDXGIFactory* dxgiFactory);
+
 	void _queryOptions  (DX12_ID3D12Device* device);
 	void _queryOptions1 (DX12_ID3D12Device* device);
 	void _queryOptions2 (DX12_ID3D12Device* device);
@@ -44,7 +48,8 @@ private:
 	void _queryHighestShaderModel(DX12_ID3D12Device* device);
 	void _queryHighestFeatureLevel(DX12_ID3D12Device* device);
 
-}; // RenderCapabilities_DX12
+}; // Capabilities_DX12
 
 } // namespace axe
+
 #endif // AXE_RENDER_HAS_DX12

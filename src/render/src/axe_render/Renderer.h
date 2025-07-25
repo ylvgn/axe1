@@ -29,8 +29,8 @@ public:
 
 	const RenderAdapterInfo* findAdapterInfo(int i = 0) const { return _adapterInfos.inBound(i) ? &_adapterInfos[i] : nullptr; }
 
-	Device*		  findDevice(int i = 0) const { return _devices.inBound(i) ? _devices[i] : nullptr; }
-	Span<Device*> devices() { return _devices; }
+	Device*	findDevice(int i = 0) const { return _devices.inBound(i) ? _devices[i] : nullptr; }
+	Span<Device*> devices()	{ return _devices; }
 
 	RenderDevice* createRenderDevice(RenderDevice_CreateDesc& desc);
 

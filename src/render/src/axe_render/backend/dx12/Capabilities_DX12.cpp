@@ -1,13 +1,17 @@
 #if AXE_RENDER_HAS_DX12
 
-#include "RenderCapabilities_DX12.h"
-#include "RenderDevice_DX12.h"
+#include "Capabilities_DX12.h"
+#include "Device_DX12.h"
 
 namespace axe {
 
-RenderCapabilities_DX12::RenderCapabilities_DX12(RenderDevice_DX12* device) {
-	auto* d3dDevice = device->d3dDevice();
+Capabilities_DX12::Capabilities_DX12(Device_DX12* device) {
+	auto* d3dFactory = Util::dxgiFactory();
+	{
+		_checkTearing(d3dFactory);
+	}
 
+	auto* d3dDevice = device->d3dDevice();
 	{
 		_queryHighestFeatureLevel(d3dDevice);
 		_queryHighestShaderModel(d3dDevice);
@@ -43,7 +47,18 @@ RenderCapabilities_DX12::RenderCapabilities_DX12(RenderDevice_DX12* device) {
 	}
 }
 
-void RenderCapabilities_DX12::_queryOptions(DX12_ID3D12Device* device)
+void Capabilities_DX12::_checkTearing(DX12_IDXGIFactory* dxgiFactory) {
+	::HRESULT hr;
+
+	BOOL allowTearingFlag = FALSE;
+	hr = dxgiFactory->CheckFeatureSupport(DXGI_FEATURE_PRESENT_ALLOW_TEARING
+										, &allowTearingFlag
+										, sizeof(allowTearingFlag));
+	AXE_DX12_THROWIF_HRESULT_ERROR(hr);
+	_info.hasTearing = static_cast<bool>(allowTearingFlag);
+}
+
+void Capabilities_DX12::_queryOptions(DX12_ID3D12Device* device)
 {
 	::HRESULT hr;
 	::D3D12_FEATURE_DATA_D3D12_OPTIONS op = {};
@@ -54,7 +69,7 @@ void RenderCapabilities_DX12::_queryOptions(DX12_ID3D12Device* device)
 	_info.shaderHasFloat64 = op.DoublePrecisionFloatShaderOps;
 }
 
-void RenderCapabilities_DX12::_queryOptions1(DX12_ID3D12Device* device) {
+void Capabilities_DX12::_queryOptions1(DX12_ID3D12Device* device) {
 	::HRESULT hr;
 	::D3D12_FEATURE_DATA_D3D12_OPTIONS1 op = {};
 	hr = device->CheckFeatureSupport(D3D12_FEATURE_D3D12_OPTIONS1, &op, sizeof(op));
@@ -63,7 +78,7 @@ void RenderCapabilities_DX12::_queryOptions1(DX12_ID3D12Device* device) {
 	AXE_UNUSED(op);
 }
 
-void RenderCapabilities_DX12::_queryOptions2(DX12_ID3D12Device* device) {
+void Capabilities_DX12::_queryOptions2(DX12_ID3D12Device* device) {
 	::HRESULT hr;
 	::D3D12_FEATURE_DATA_D3D12_OPTIONS2 op = {};
 	hr = device->CheckFeatureSupport(D3D12_FEATURE_D3D12_OPTIONS2, &op, sizeof(op));
@@ -72,7 +87,7 @@ void RenderCapabilities_DX12::_queryOptions2(DX12_ID3D12Device* device) {
 	AXE_UNUSED(op);
 }
 
-void RenderCapabilities_DX12::_queryOptions3(DX12_ID3D12Device* device) {
+void Capabilities_DX12::_queryOptions3(DX12_ID3D12Device* device) {
 	::HRESULT hr;
 	::D3D12_FEATURE_DATA_D3D12_OPTIONS3 op = {};
 	hr = device->CheckFeatureSupport(D3D12_FEATURE_D3D12_OPTIONS3, &op, sizeof(op));
@@ -81,7 +96,7 @@ void RenderCapabilities_DX12::_queryOptions3(DX12_ID3D12Device* device) {
 	AXE_UNUSED(op);
 }
 
-void RenderCapabilities_DX12::_queryOptions4(DX12_ID3D12Device* device) {
+void Capabilities_DX12::_queryOptions4(DX12_ID3D12Device* device) {
 	::HRESULT hr;
 	::D3D12_FEATURE_DATA_D3D12_OPTIONS4 op = {};
 	hr = device->CheckFeatureSupport(D3D12_FEATURE_D3D12_OPTIONS4, &op, sizeof(op));
@@ -90,7 +105,7 @@ void RenderCapabilities_DX12::_queryOptions4(DX12_ID3D12Device* device) {
 	AXE_UNUSED(op);
 }
 
-void RenderCapabilities_DX12::_queryOptions5(DX12_ID3D12Device* device) {
+void Capabilities_DX12::_queryOptions5(DX12_ID3D12Device* device) {
 	::HRESULT hr;
 	::D3D12_FEATURE_DATA_D3D12_OPTIONS5 op = {};
 	hr = device->CheckFeatureSupport(D3D12_FEATURE_D3D12_OPTIONS5, &op, sizeof(op));
@@ -99,7 +114,7 @@ void RenderCapabilities_DX12::_queryOptions5(DX12_ID3D12Device* device) {
 	_info.hasRaytracing = op.RaytracingTier != D3D12_RAYTRACING_TIER_NOT_SUPPORTED;
 }
 
-void RenderCapabilities_DX12::_queryOptions6(DX12_ID3D12Device* device) {
+void Capabilities_DX12::_queryOptions6(DX12_ID3D12Device* device) {
 	::HRESULT hr;
 	::D3D12_FEATURE_DATA_D3D12_OPTIONS6 op = {};
 	hr = device->CheckFeatureSupport(D3D12_FEATURE_D3D12_OPTIONS6, &op, sizeof(op));
@@ -108,7 +123,7 @@ void RenderCapabilities_DX12::_queryOptions6(DX12_ID3D12Device* device) {
 	AXE_UNUSED(op);
 }
 
-void RenderCapabilities_DX12::_queryOptions7(DX12_ID3D12Device* device) {
+void Capabilities_DX12::_queryOptions7(DX12_ID3D12Device* device) {
 	::HRESULT hr;
 	::D3D12_FEATURE_DATA_D3D12_OPTIONS7 op = {};
 	hr = device->CheckFeatureSupport(D3D12_FEATURE_D3D12_OPTIONS7, &op, sizeof(op));
@@ -117,7 +132,7 @@ void RenderCapabilities_DX12::_queryOptions7(DX12_ID3D12Device* device) {
 	_info.hasMeshShader = op.MeshShaderTier != D3D12_MESH_SHADER_TIER_NOT_SUPPORTED;
 }
 
-void RenderCapabilities_DX12::_queryOptions8(DX12_ID3D12Device* device) {
+void Capabilities_DX12::_queryOptions8(DX12_ID3D12Device* device) {
 #if defined(D3D12_SDK_VERSION) && (D3D12_SDK_VERSION >= 3)
 	::HRESULT hr;
 	::D3D12_FEATURE_DATA_D3D12_OPTIONS8 op = {};
@@ -128,7 +143,7 @@ void RenderCapabilities_DX12::_queryOptions8(DX12_ID3D12Device* device) {
 #endif
 }
 
-void RenderCapabilities_DX12::_queryOptions9(DX12_ID3D12Device* device) {
+void Capabilities_DX12::_queryOptions9(DX12_ID3D12Device* device) {
 #if defined(D3D12_SDK_VERSION) && (D3D12_SDK_VERSION >= 3)
 	::HRESULT hr;
 	::D3D12_FEATURE_DATA_D3D12_OPTIONS9 op = {};
@@ -139,7 +154,7 @@ void RenderCapabilities_DX12::_queryOptions9(DX12_ID3D12Device* device) {
 #endif
 }
 
-void RenderCapabilities_DX12::_queryOptions10(DX12_ID3D12Device* device) {
+void Capabilities_DX12::_queryOptions10(DX12_ID3D12Device* device) {
 #if defined(D3D12_SDK_VERSION) && (D3D12_SDK_VERSION >= 4)
 	::HRESULT hr;
 	::D3D12_FEATURE_DATA_D3D12_OPTIONS10 op = {};
@@ -150,7 +165,7 @@ void RenderCapabilities_DX12::_queryOptions10(DX12_ID3D12Device* device) {
 #endif
 }
 
-void RenderCapabilities_DX12::_queryOptions11(DX12_ID3D12Device* device) {
+void Capabilities_DX12::_queryOptions11(DX12_ID3D12Device* device) {
 #if defined(D3D12_SDK_VERSION) && (D3D12_SDK_VERSION >= 4)
 	::HRESULT hr;
 	::D3D12_FEATURE_DATA_D3D12_OPTIONS11 op = {};
@@ -161,7 +176,7 @@ void RenderCapabilities_DX12::_queryOptions11(DX12_ID3D12Device* device) {
 #endif
 }
 
-void RenderCapabilities_DX12::_queryOptions12(DX12_ID3D12Device* device) {
+void Capabilities_DX12::_queryOptions12(DX12_ID3D12Device* device) {
 #if defined(D3D12_SDK_VERSION) && (D3D12_SDK_VERSION >= 600)
 	::HRESULT hr;
 	::D3D12_FEATURE_DATA_D3D12_OPTIONS12 op = {};
@@ -172,7 +187,7 @@ void RenderCapabilities_DX12::_queryOptions12(DX12_ID3D12Device* device) {
 #endif
 }
 
-void RenderCapabilities_DX12::_queryOptions13(DX12_ID3D12Device* device) {
+void Capabilities_DX12::_queryOptions13(DX12_ID3D12Device* device) {
 #if defined(D3D12_SDK_VERSION) && (D3D12_SDK_VERSION >= 602)
 	::HRESULT hr;
 	::D3D12_FEATURE_DATA_D3D12_OPTIONS13 op = {};
@@ -183,7 +198,7 @@ void RenderCapabilities_DX12::_queryOptions13(DX12_ID3D12Device* device) {
 #endif
 }
 
-void RenderCapabilities_DX12::_queryOptions14(DX12_ID3D12Device* device) {
+void Capabilities_DX12::_queryOptions14(DX12_ID3D12Device* device) {
 #if defined(D3D12_SDK_VERSION) && (D3D12_SDK_VERSION >= 606)
 	::HRESULT hr;
 	::D3D12_FEATURE_DATA_D3D12_OPTIONS14 op = {};
@@ -194,7 +209,7 @@ void RenderCapabilities_DX12::_queryOptions14(DX12_ID3D12Device* device) {
 #endif
 }
 
-void RenderCapabilities_DX12::_queryOptions15(DX12_ID3D12Device* device) {
+void Capabilities_DX12::_queryOptions15(DX12_ID3D12Device* device) {
 #if defined(D3D12_SDK_VERSION) && (D3D12_SDK_VERSION >= 606)
 	::HRESULT hr;
 	::D3D12_FEATURE_DATA_D3D12_OPTIONS15 op = {};
@@ -205,7 +220,7 @@ void RenderCapabilities_DX12::_queryOptions15(DX12_ID3D12Device* device) {
 #endif
 }
 
-void RenderCapabilities_DX12::_queryOptions16(DX12_ID3D12Device* device) {
+void Capabilities_DX12::_queryOptions16(DX12_ID3D12Device* device) {
 #if defined(D3D12_SDK_VERSION) && (D3D12_SDK_VERSION >= 608)
 	::HRESULT hr;
 	::D3D12_FEATURE_DATA_D3D12_OPTIONS16 op = {};
@@ -216,7 +231,7 @@ void RenderCapabilities_DX12::_queryOptions16(DX12_ID3D12Device* device) {
 #endif
 }
 
-void RenderCapabilities_DX12::_queryOptions17(DX12_ID3D12Device* device) {
+void Capabilities_DX12::_queryOptions17(DX12_ID3D12Device* device) {
 #if defined(D3D12_SDK_VERSION) && (D3D12_SDK_VERSION >= 609)
 	::HRESULT hr;
 	::D3D12_FEATURE_DATA_D3D12_OPTIONS17 op = {};
@@ -227,7 +242,7 @@ void RenderCapabilities_DX12::_queryOptions17(DX12_ID3D12Device* device) {
 #endif
 }
 
-void RenderCapabilities_DX12::_queryOptions18(DX12_ID3D12Device* device) {
+void Capabilities_DX12::_queryOptions18(DX12_ID3D12Device* device) {
 #if defined(D3D12_SDK_VERSION) && (D3D12_SDK_VERSION >= 609)
 	::HRESULT hr;
 	::D3D12_FEATURE_DATA_D3D12_OPTIONS18 op = {};
@@ -238,7 +253,7 @@ void RenderCapabilities_DX12::_queryOptions18(DX12_ID3D12Device* device) {
 #endif
 }
 
-void RenderCapabilities_DX12::_queryOptions19(DX12_ID3D12Device* device) {
+void Capabilities_DX12::_queryOptions19(DX12_ID3D12Device* device) {
 #if defined(D3D12_SDK_VERSION) && (D3D12_SDK_VERSION >= 610)
 	::HRESULT hr;
 	::D3D12_FEATURE_DATA_D3D12_OPTIONS19 op = {};
@@ -249,7 +264,7 @@ void RenderCapabilities_DX12::_queryOptions19(DX12_ID3D12Device* device) {
 #endif
 }
 
-void RenderCapabilities_DX12::_queryOptions20(DX12_ID3D12Device* device) {
+void Capabilities_DX12::_queryOptions20(DX12_ID3D12Device* device) {
 #if defined(D3D12_SDK_VERSION) && (D3D12_SDK_VERSION >= 611)
 	::HRESULT hr;
 	::D3D12_FEATURE_DATA_D3D12_OPTIONS20 op = {};
@@ -260,7 +275,7 @@ void RenderCapabilities_DX12::_queryOptions20(DX12_ID3D12Device* device) {
 #endif
 }
 
-void RenderCapabilities_DX12::_queryOptions21(DX12_ID3D12Device* device) {
+void Capabilities_DX12::_queryOptions21(DX12_ID3D12Device* device) {
 #if defined(D3D12_SDK_VERSION) && (D3D12_SDK_VERSION >= 612)
 	::HRESULT hr;
 	::D3D12_FEATURE_DATA_D3D12_OPTIONS21 op = {};
@@ -271,7 +286,7 @@ void RenderCapabilities_DX12::_queryOptions21(DX12_ID3D12Device* device) {
 #endif
 }
 
-void RenderCapabilities_DX12::_queryHighestShaderModel(DX12_ID3D12Device* device) {
+void Capabilities_DX12::_queryHighestShaderModel(DX12_ID3D12Device* device) {
     ::HRESULT hr;
 	::D3D12_FEATURE_DATA_SHADER_MODEL s = {};
 
@@ -329,7 +344,7 @@ void RenderCapabilities_DX12::_queryHighestShaderModel(DX12_ID3D12Device* device
 	}
 }
 
-void RenderCapabilities_DX12::_queryHighestFeatureLevel(DX12_ID3D12Device* device)
+void Capabilities_DX12::_queryHighestFeatureLevel(DX12_ID3D12Device* device)
 {
 	::HRESULT hr;
 

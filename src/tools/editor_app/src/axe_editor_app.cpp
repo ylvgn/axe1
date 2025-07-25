@@ -3,35 +3,29 @@
 namespace axe {
 
 class EditorApp;
+class MainWin;
 
-class MainWin : public NativeUIWindow
-{
+class MainWin : public NativeUIWindow {
+	using This = MainWin;
 	using Base = NativeUIWindow;
 public:
+	using VertexT = VertexT_Color<Color4f, 1, Vertex_Pos>;
+
+	virtual void onCreate(CreateDesc& desc) final;
+	virtual void onCloseButton() final;
+	virtual void onDraw() final;
 
 	EditorApp* app();
-
-	virtual void onCreate(CreateDesc& desc) override;
-
-	virtual void onCloseButton() override {
-		NativeUIApp::current()->quit(0);
-	}
-
-	virtual void onDraw() override {
-		if (!_renderContext)
-			return;
-
-		_renderContext->setFrameBufferSize(clientRect().size);
-		_renderContext->beginRender();
-		_renderContext->endRender();
-
-		onDrawNeeded();
-	}
+	RenderDevice* renderDevice();
 
 	SPtr<RenderContext> _renderContext;
-};
+	RenderMesh			_renderMesh;
+	RenderCommandBuffer _cmdBuf;
+}; // MainWin
+
 
 class EditorApp : public NativeUIApp {
+	using This = EditorApp;
 	using Base = NativeUIApp;
 public:
 
@@ -54,7 +48,7 @@ public:
 			AXE_ASSERT(Renderer::s_instance()->devices().size() > 0);
 
 			for (auto& device : Renderer::s_instance()->devices()) {
-				FmtTo(title, " [{}({}, VSync: {})]", device->debugName(), device->api(), device->vsync());
+				FmtTo(title, " [{}({}, VSync: {})]", device->debugName(), device->api(), device->VSync());
 			}
 
 			NativeUIWindow::CreateDesc winDesc;
@@ -66,26 +60,76 @@ public:
 	}
 
 private:
-	MainWin*		_mainWin;
-	RenderDevice*	_renderDevice;
-};
+	MainWin*		_mainWin = nullptr;
+	RenderDevice*	_renderDevice = nullptr;
+}; // EditorApp
 
 
 EditorApp* MainWin::app() {
 	return static_cast<EditorApp*>(NativeUIApp::current());
 }
 
-void MainWin::onCreate(CreateDesc& desc)
-{
+RenderDevice* MainWin::renderDevice() {
+	return app()->renderDevice();
+}
+
+void MainWin::onCloseButton() {
+	NativeUIApp::current()->quit(0);
+}
+
+void MainWin::onCreate(CreateDesc& desc) {
 	Base::onCreate(desc);
 
 	{ // create render context
 		RenderContext::CreateDesc renderContextDesc;
 		renderContextDesc.window = this;
-		_renderContext = app()->renderDevice()->createContext(renderContextDesc);
+		_renderContext = renderDevice()->createContext(renderContextDesc);
+	}
+
+	{
+		EditMesh editMesh;
+
+		editMesh.pos.emplace_back(0.0f,  0.5f, 0.0f);
+		editMesh.pos.emplace_back(0.5f, -0.5f, 0.0f);
+		editMesh.pos.emplace_back(-0.5f,-0.5f, 0.0f);
+
+		editMesh.color.emplace_back(255, 0, 0, 255);
+		editMesh.color.emplace_back(0, 255, 0, 255);
+		editMesh.color.emplace_back(0, 0, 255, 255);
+
+		_renderMesh._internalSetDevice(renderDevice());
+		_renderMesh.create(editMesh);
 	}
 }
 
+void MainWin::onDraw()
+{
+	if (!_renderContext)
+		return;
+
+	_renderContext->setFrameBufferSize(clientRect().size);
+	_renderContext->beginRender();
+	_cmdBuf.reset(_renderContext);
+	_cmdBuf.clearFrameBuffers()->setColor({ 0, 0, 0.2f, 1 });
+	{ // draw mesh
+		for (auto& sm : _renderMesh.subMeshes())
+		{
+			auto* cmd = _cmdBuf.addDrawCall();
+			#if _DEBUG
+				cmd->debugLoc = SrcLoc();
+			#endif
+			cmd->primitive	  = sm.primitive();
+			cmd->vertexLayout = sm.vertexLayout();
+			cmd->vertexBuffer = sm.vertexBuffer();
+			cmd->vertexCount  = sm.vertexCount();
+		}
+	}
+	_cmdBuf.swapBuffers();
+	_renderContext->commit(_cmdBuf);
+	_renderContext->endRender();
+
+	onDrawNeeded();
+}
 
 } // namespace axe
 

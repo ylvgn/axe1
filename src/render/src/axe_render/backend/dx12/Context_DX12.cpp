@@ -1,22 +1,17 @@
 #if AXE_RENDER_HAS_DX12
 
-#include "RenderContext_DX12.h"
+#include "Context_DX12.h"
 #include "Renderer_DX12.h"
-#include "RenderDevice_DX12.h"
+#include "Device_DX12.h"
 #include <axe_render/vertex/Vertex.h>
+#include <axe_render/command/RenderCommand.h>
 
 namespace axe {
 
-DX12_ID3D12Device* RenderContext_DX12::_d3dDevice() {
-	return _device->d3dDevice();
-}
-
-RenderContext_DX12::RenderContext_DX12(CreateDesc& desc)
-	: Base(desc)
+Context_DX12::Context_DX12(RenderDevice* device, CreateDesc& desc)
+	: Base(device, desc)
 {
 	::HRESULT hr;
-
-	_device = static_cast<decltype(_device)>(desc.device);
 
 	auto* d3dDevice = _d3dDevice();
 	auto* renderer	  = Util::renderer();
@@ -24,8 +19,7 @@ RenderContext_DX12::RenderContext_DX12(CreateDesc& desc)
 
 	auto& _hwnd = desc.window->_hwnd;
 
-	{
-		// create command queue
+	{ // create command queue
 		::D3D12_COMMAND_QUEUE_DESC queueDesc = {};
 		queueDesc.Flags						 = D3D12_COMMAND_QUEUE_FLAG_NONE;
 		queueDesc.Type						 = D3D12_COMMAND_LIST_TYPE_DIRECT;
@@ -33,31 +27,7 @@ RenderContext_DX12::RenderContext_DX12(CreateDesc& desc)
 		AXE_DX12_THROWIF_HRESULT_ERROR(hr, d3dDevice);
 	}
 
-	{
-		// Describe and create the swap chain.
-#if 1
-		::DXGI_SWAP_CHAIN_DESC swapChainDesc			 = {};
-		swapChainDesc.BufferCount						 = FrameCount;
-		swapChainDesc.BufferDesc.Width					 = static_cast<int>(desc.window->clientRect().w);
-		swapChainDesc.BufferDesc.Height					 = static_cast<int>(desc.window->clientRect().h);
-		swapChainDesc.BufferDesc.Format					 = DXGI_FORMAT_R8G8B8A8_UNORM;
-		swapChainDesc.BufferDesc.RefreshRate.Numerator	 = 60;
-		swapChainDesc.BufferDesc.RefreshRate.Denominator = 1;
-		swapChainDesc.BufferUsage						 = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-		swapChainDesc.SwapEffect						 = DXGI_SWAP_EFFECT_FLIP_DISCARD;
-		swapChainDesc.OutputWindow						 = _hwnd;
-		swapChainDesc.SampleDesc.Count					 = 1;
-		swapChainDesc.Windowed							 = TRUE;
-		swapChainDesc.Flags								 = 0;
-
-		ComPtr<IDXGISwapChain> swapChain;
-		hr = dxgiFactory->CreateSwapChain(
-			m_commandQueue.ptr(), // Swap chain needs the queue so that it can force a flush on it.
-			&swapChainDesc,
-			swapChain.ptrForInit());
-		AXE_DX12_THROWIF_HRESULT_ERROR(hr, d3dDevice);
-#else
-		// Create swap chain
+	{ // create swap chain
 		::DXGI_SWAP_CHAIN_DESC1 swapChainDesc = {};
 		swapChainDesc.BufferCount			  = FrameCount;
 		swapChainDesc.Width					  = static_cast<int>(desc.window->clientRect().w);
@@ -70,7 +40,6 @@ RenderContext_DX12::RenderContext_DX12(CreateDesc& desc)
 		ComPtr<IDXGISwapChain1> swapChain;
 		dxgiFactory->CreateSwapChainForHwnd(m_commandQueue.Get(), _hwnd, &swapChainDesc, nullptr, nullptr, swapChain.ptrForInit());
 		AXE_DX12_THROWIF_HRESULT_ERROR(hr, d3dDevice);
-#endif
 
 		hr = swapChain.As(&m_swapChain);
 		AXE_DX12_THROWIF_HRESULT_ERROR(hr, d3dDevice);
@@ -109,7 +78,15 @@ RenderContext_DX12::RenderContext_DX12(CreateDesc& desc)
 	#endif
 }
 
-void RenderContext_DX12::_createRenderTargetView() {
+DX12_ID3D12Device* Context_DX12::_d3dDevice() {
+	return renderDevice()->d3dDevice();
+}
+
+Device_DX12* Context_DX12::renderDevice() {
+	return static_cast<Device_DX12*>(_device);
+}
+
+void Context_DX12::_createRenderTargetView() {
 	_releaseRenderTargetView();
 
 	::HRESULT hr;
@@ -128,11 +105,11 @@ void RenderContext_DX12::_createRenderTargetView() {
 	}
 }
 
-void RenderContext_DX12::_releaseRenderTargetView() {
+void Context_DX12::_releaseRenderTargetView() {
 	AXE_TODO("");
 }
 
-void RenderContext_DX12::_test_LoadAssets()
+void Context_DX12::_test_LoadAssets()
 {
 	using VertexT = VertexT_Color<Color4f, 1, Vertex_Pos>;
 
@@ -282,7 +259,7 @@ void RenderContext_DX12::_test_LoadAssets()
 	}
 }
 
-void RenderContext_DX12::onBeginRender() {
+void Context_DX12::onBeginRender() {
 	AXE_RUN_ONCE(_test_LoadAssets());
 
 	::HRESULT hr;
@@ -302,7 +279,7 @@ void RenderContext_DX12::onBeginRender() {
 	_test_WaitForPreviousFrame();
 }
 
-void RenderContext_DX12::_test_PopulateCommandList() {
+void Context_DX12::_test_PopulateCommandList() {
 	::HRESULT hr;
 	auto*	  d3dDevice = _d3dDevice();
 
@@ -357,7 +334,7 @@ void RenderContext_DX12::_test_PopulateCommandList() {
 	AXE_DX12_THROWIF_HRESULT_ERROR(hr, d3dDevice);
 }
 
-void RenderContext_DX12::_test_WaitForPreviousFrame() {
+void Context_DX12::_test_WaitForPreviousFrame() {
 	::HRESULT hr;
 	auto*	  d3dDevice = _d3dDevice();
 
@@ -383,7 +360,27 @@ void RenderContext_DX12::_test_WaitForPreviousFrame() {
 	m_frameIndex = m_swapChain->GetCurrentBackBufferIndex();
 }
 
-void RenderContext_DX12::onEndRender() {
+void Context_DX12::onCommit(RenderCommandBuffer& cmdBuf) {
+	_dispatch(this, cmdBuf);
+}
+
+void Context_DX12::onCmd_ClearFrameBuffers(RenderCommand_ClearFrameBuffers& cmd) {
+	#if 0 // TODO
+	auto* ctx = _renderer->d3dDeviceContext();
+
+	// clear back buffer(color buffer)
+	if (_renderTargetView && cmd.color.has_value()) {
+		ctx->ClearRenderTargetView(_renderTargetView, cmd.color->data);
+	}
+
+	// clear depth&stencil buffer
+	if (_depthStencilView && (cmd.depth.has_value() || cmd.stencil.has_value())) {
+		ctx->ClearDepthStencilView(_depthStencilView, D3D11_CLEAR_DEPTH, *cmd.depth, static_cast<UINT8>(*cmd.stencil));
+	}
+	#endif
+}
+
+void Context_DX12::onEndRender() {
 }
 
 } // namespace axe

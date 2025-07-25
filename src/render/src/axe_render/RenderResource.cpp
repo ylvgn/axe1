@@ -1,10 +1,17 @@
 #include "RenderResource.h"
+#include "Renderer.h"
 
 namespace axe {
 
-RenderResource::RenderResource(CreateDesc& desc) noexcept
-	: Base(desc)
-{
+const TypeInfo* RenderResource::s_getType() {
+	class TI : public TI_Base {
+	public:
+		TI() {
+			AXE_TODO("");
+		}
+	};
+	static TI ti;
+	return &ti;
 }
 
 } // namespace axe

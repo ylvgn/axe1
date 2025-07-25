@@ -1,11 +1,11 @@
 #if AXE_RENDER_HAS_DX12
 
-#include "RenderFence_DX12.h"
-#include "RenderDevice_DX12.h"
+#include "Fence_DX12.h"
+#include "Device_DX12.h"
 
 namespace axe  {
 
-RenderFence_DX12::RenderFence_DX12(CreateDesc& desc)
+Fence_DX12::Fence_DX12(CreateDesc& desc)
 	: Base(desc)
 	, _lastCompletedValue(desc.initialFenceValue)
 	, _curSignal(desc.initialFenceValue + 1)
@@ -15,7 +15,7 @@ RenderFence_DX12::RenderFence_DX12(CreateDesc& desc)
 
 	::HRESULT hr;
 
-	auto* device	= static_cast<RenderDevice_DX12*>(desc.device);
+	auto* device	= static_cast<Device_DX12*>(desc.device);
 	auto* d3dDevice = device->d3dDevice();
 
 	hr = d3dDevice->CreateFence(desc.initialFenceValue, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(_d3dFence.ptrForInit()));
@@ -24,19 +24,21 @@ RenderFence_DX12::RenderFence_DX12(CreateDesc& desc)
 	Util::setDebugName(_d3dFence.ptr(), desc.debugName);
 
 	_onGpuCompletedEvent = CreateEvent(nullptr, false, false, L"DX12 Fence Event");
-	if (!_onGpuCompletedEvent) AXE_THROW();
+
+	if (!_onGpuCompletedEvent)
+		AXE_THROW();
 }
 
-RenderFence_DX12::~RenderFence_DX12() {
+Fence_DX12::~Fence_DX12() {
 	if (_onGpuCompletedEvent) CloseHandle(_onGpuCompletedEvent);
 }
 
-bool RenderFence_DX12::onCheckCompleted() {
+bool Fence_DX12::onCheckCompleted() {
 	if (!_d3dFence) AXE_THROW();
 	return _d3dFence->GetCompletedValue() >= _lastSignaled; // true means gpu is done, false means cpu may keep waiting gpu.
 }
 
-void RenderFence_DX12::cpuWait(UINT64 expectGpuCompletedValue) {
+void Fence_DX12::cpuWait(UINT64 expectGpuCompletedValue) {
 	if (onCheckCompleted()) {
 		// lock-free checking
 		return;
@@ -61,16 +63,16 @@ void RenderFence_DX12::cpuWait(UINT64 expectGpuCompletedValue) {
 	}
 }
 
-void RenderFence_DX12::cpuWait() {
+void Fence_DX12::cpuWait() {
 	cpuWait(_lastSignaled);
 }
 
-void RenderFence_DX12::_gpuWait(::ID3D12CommandQueue* d3dCmdQueue) {
+void Fence_DX12::_gpuWait(::ID3D12CommandQueue* d3dCmdQueue) {
 	::HRESULT hr = d3dCmdQueue->Wait(_d3dFence, _curSignal);
 	AXE_DX12_THROWIF_HRESULT_ERROR(hr);
 }
 
-UINT64 RenderFence_DX12::_gpuSignal(::ID3D12CommandQueue* d3dCmdQueue) {
+UINT64 Fence_DX12::_gpuSignal(::ID3D12CommandQueue* d3dCmdQueue) {
 	::HRESULT hr = d3dCmdQueue->Signal(_d3dFence, _curSignal);
 	AXE_DX12_THROWIF_HRESULT_ERROR(hr);
 	_lastSignaled = _curSignal;

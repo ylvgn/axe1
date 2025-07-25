@@ -3,11 +3,29 @@
 
 namespace axe {
 
-RenderDeviceObject::RenderDeviceObject(CreateDesc& desc) noexcept
-	: Base(desc)
-	, _device(desc.device)
+const TypeInfo* RenderDeviceObject::s_getType() {
+	class TI : public TI_Base {
+	public:
+		TI() {
+			name = "RenderDeviceObject";
+			AXE_TODO("");
+		}
+	};
+	static TI ti;
+	return &ti;
+}
+
+RenderDeviceObject::RenderDeviceObject(RenderDevice* device) noexcept
+	: _device(device)
 {
-	AXE_ASSERT(desc.device != nullptr);
+}
+
+void RenderDeviceObject::_internalSetDevice(RenderDevice* device){
+	_device = device;
+}
+
+RenderDevice* RenderDeviceObject::device() const {
+	return _device;
 }
 
 } // namespace axe

@@ -1,12 +1,13 @@
 #include "Renderer.h"
 #include "RenderDevice.h"
 #include "RenderContext.h"
-#include "RenderFence.h"
+#include "buffer/RenderGpuBuffer.h"
+//#include "synchronized/RenderFence.h" TODO
 
 namespace axe {
 
 RenderDevice_CreateDesc::RenderDevice_CreateDesc() noexcept
-	: vsync(true)
+	: VSync(true)
 	, useWarpDeviceFallback(false)
 	, adapterInfo(nullptr)
 {
@@ -27,9 +28,16 @@ RenderDevice_CreateDesc::RenderDevice_CreateDesc(const RenderAdapterInfo* info) 
 	adapterInfo = info;
 }
 
-SPtr<RenderContext> RenderDevice::createContext(RenderContext_CreateDesc& desc) {
-	if (!desc.device) desc.device = this;
-	return onCreateContext(desc);
+const TypeInfo* RenderDevice::s_getType() {
+	class TI : public TI_Base {
+	public:
+		TI() {
+			name = "RenderDevice";
+			AXE_TODO("");
+		}
+	};
+	static TI ti;
+	return &ti;
 }
 
 RenderDevice::~RenderDevice() {
@@ -37,10 +45,17 @@ RenderDevice::~RenderDevice() {
 	renderer->onRenderDeviceDestory(this);
 }
 
+SPtr<RenderContext> RenderDevice::createContext(RenderContext_CreateDesc& desc) {
+	return onCreateContext(this, desc);
+}
+
+SPtr<RenderGpuBuffer> RenderDevice::createGpuBuffer(RenderGpuBuffer_CreateDesc& desc) {
+	return onCreateGpuBuffer(this, desc);
+}
+
 RenderDevice::RenderDevice(CreateDesc& desc) noexcept
-	: Base(desc)
-	, _api(desc.api)
-	, _vsync(desc.vsync)
+	: _api(desc.api)
+	, _VSync(desc.VSync)
 {
 }
 

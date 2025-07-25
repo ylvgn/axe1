@@ -5,16 +5,13 @@
 
 namespace axe {
 
-class Object;
-template<> const TypeInfo* TypeOf<Object>();
-
-class Object : public RefCountBase {
+class Object : public RefCountBase, public TypeInfo {
+	AXE_CLASS_TYPE(Object, TypeInfo)
 public:
 	virtual ~Object() = default;
-	virtual const TypeInfo* getType() const { return TypeOf<Object>(); }
 
-	void		setDebugName(StrView name)	{ _debugName.assign(name); }
-	StrView		debugName	() const		{ return _debugName; }
+	void		setDebugName(StrView debugName)	{ _debugName.assign(debugName); }
+	StrView		debugName	() const			{ return _debugName; }
 
 private:
 	TempString _debugName;

@@ -3,16 +3,16 @@
 #if AXE_RENDER_HAS_DX12
 
 #include <axe_render/RenderContext.h>
-#include "Render_DX12_Common.h"
+#include "Common_DX12.h"
 
 namespace axe {
 
-class RenderContext_DX12 : public RenderContext {
-	using This = RenderContext_DX12;
+class Context_DX12 : public RenderContext {
+	using This = Context_DX12;
 	using Base = RenderContext;
 	using Util = DX12Util;
 public:
-	RenderContext_DX12(CreateDesc& desc);
+	Context_DX12(RenderDevice* device, CreateDesc& desc);
 
 	static const UINT FrameCount = 2;
 
@@ -44,19 +44,24 @@ public:
 	virtual void onBeginRender() override;
 	virtual void onEndRender() override;
 
+	AXE_INLINE Device_DX12*		  renderDevice();
+	AXE_INLINE DX12_ID3D12Device* _d3dDevice();
+
+	virtual void onCommit(RenderCommandBuffer& cmdBuf) final;
+
+	void onCmd_ClearFrameBuffers(RenderCommand_ClearFrameBuffers& cmd);
+//	void onCmd_SwapBuffers(RenderCommand_SwapBuffers& cmd);
+//	void onCmd_DrawCall(RenderCommand_DrawCall& cmd);
+//	void onCmd_SetScissorRect(RenderCommand_SetScissorRect& cmd);
+
 private:
 	void _test_LoadAssets();
 	void _test_PopulateCommandList();
 	void _test_WaitForPreviousFrame();
 
-	AXE_INLINE DX12_ID3D12Device* _d3dDevice();
-
 	void _createRenderTargetView();
 	void _releaseRenderTargetView();
-
-	RenderDevice_DX12* _device = nullptr;
-
-}; // RenderContext_DX12
+}; // Context_DX12
 
 } // namespace axe
 

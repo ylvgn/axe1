@@ -5,32 +5,27 @@
 
 #define AXE_DOWNCAST_GET_INSTANCE() \
 	AXE_INLINE static This* s_instance() { return static_cast<This*>(Base::s_instance()); }
-//---------
+//----
+
+#define AXE_RTTI_CLASS_COMMON(T, BASE) \
+private:\
+	using This = T; \
+	using Base = BASE; \
+public: \
+	static const TypeInfo* s_getType(); \
+	inline virtual const TypeInfo* getType() const override { return s_getType(); } \
+//----
 
 #define AXE_STRUCT_TYPE(T, BASE) \
-private: \
-	using This = T; \
-	using Base = BASE; \
+	AXE_RTTI_CLASS_COMMON(T, Base) \
 	class TI_Base : public TypeInfoInit<T, BASE> { \
 	public: \
 		TI_Base() : TypeInfoInit<T, BASE>(#T, nullptr) {} \
 	}; \
-public: \
-	static const TypeInfo* s_getType(); \
-	virtual const TypeInfo* getType() const override { return s_getType(); } \
 //----
 
-#define AXE_ABSTRACT_OBJECT_TYPE_BASE(T, BASE) \
-private: \
-	using This = T; \
-	using Base = BASE; \
-public: \
-	static const TypeInfo* s_getType(); \
-	virtual const TypeInfo* getType() const override { return s_getType(); } \
-//----
-
-#define AXE_ABSTRACT_OBJECT_TYPE(T, BASE) \
-	AXE_ABSTRACT_OBJECT_TYPE_BASE(T, BASE) \
+#define AXE_ABSTRACT_CLASS_TYPE(T, BASE) \
+	AXE_RTTI_CLASS_COMMON(T, BASE) \
 	class TI_Base : public TypeInfoInit<T, BASE> { \
 	public: \
 		TI_Base() : TypeInfoInit<T, BASE>(#T, nullptr) {} \
@@ -38,8 +33,8 @@ public: \
 private: \
 //----
 
-#define AXE_OBJECT_TYPE(T, BASE) \
-	AXE_ABSTRACT_OBJECT_TYPE_BASE(T, BASE) \
+#define AXE_CLASS_TYPE(T, BASE) \
+	AXE_RTTI_CLASS_COMMON(T, BASE) \
 	class TI_Base : public TypeInfoInit<T, BASE> { \
 	public: \
 		TI_Base() : TypeInfoInit<T, BASE>(#T, &TypeCreator<T>) {} \
@@ -103,8 +98,9 @@ public:
 	intptr_t offset				= 0;
 	Getter getter				= nullptr;
 	Setter setter				= nullptr;
-};
+}; // FieldInfo
 AXE_FORMATTER(FieldInfo)
+
 
 class TypeInfo {
 public:
@@ -134,6 +130,9 @@ public:
 
 	void onFormat(fmt::format_context& ctx) const;
 
+	static const TypeInfo* s_getType();
+	AXE_INLINE virtual const TypeInfo* getType() const { return s_getType(); }
+
 	const char*		name = "";
 	const TypeInfo* base = nullptr;
 	const TypeInfo* elementType = nullptr;
@@ -143,8 +142,9 @@ public:
 
 protected:
 	Span<const FieldInfo> _fields;
-};
+}; // TypeInfo
 AXE_FORMATTER(TypeInfo)
+
 
 template<class T>
 class TypeInfoInitNoBase : public TypeInfo {
@@ -158,12 +158,7 @@ public:
 	void setFields(const FieldInfo(&fi)[N]) {
 		_fields = fi;
 	}
-};
-
-template<class T> inline
-static Object* TypeCreator() {
-	return new T();
-}
+}; // TypeInfoInitNoBase
 
 template<class T, class BASE>
 class TypeInfoInit : public TypeInfoInitNoBase<T> {
@@ -173,9 +168,14 @@ public:
 		base = TypeOf<BASE>();
 		this->creator = creator_;
 	}
-};
+}; // TypeInfoInit
 
-template<class DST> inline
+template <class T> inline
+static Object* TypeCreator() {
+	return new T();
+}
+
+template <class DST> inline
 DST* axe_cast(Object* obj) {
 	if (!obj) return nullptr;
 	const auto* ti = TypeOf<DST>();
@@ -184,34 +184,37 @@ DST* axe_cast(Object* obj) {
 	return static_cast<DST*>(obj);
 };
 
-#define AXE_TYPEOF_SIMPLE(T) \
+
+#define AXE_TYPEOF_PRIMITIVE(T) \
 	template<> const TypeInfo* TypeOf<T>();
 //----
+	AXE_TYPEOF_PRIMITIVE(bool)
 
-#define AXE_TYPEOF_SIMPLE_IMP(T, NAME) \
+	AXE_TYPEOF_PRIMITIVE(i8 )
+	AXE_TYPEOF_PRIMITIVE(i16)
+	AXE_TYPEOF_PRIMITIVE(i32)
+	AXE_TYPEOF_PRIMITIVE(i64)
+
+	AXE_TYPEOF_PRIMITIVE(u8 )
+	AXE_TYPEOF_PRIMITIVE(u16)
+	AXE_TYPEOF_PRIMITIVE(u32)
+	AXE_TYPEOF_PRIMITIVE(u64)
+
+	AXE_TYPEOF_PRIMITIVE(f32 )
+	AXE_TYPEOF_PRIMITIVE(f64 )
+	AXE_TYPEOF_PRIMITIVE(f128)
+
+	AXE_TYPEOF_PRIMITIVE(Char8 )
+	AXE_TYPEOF_PRIMITIVE(Char16)
+	AXE_TYPEOF_PRIMITIVE(Char32)
+	AXE_TYPEOF_PRIMITIVE(CharW )
+//----
+
+#define AXE_TYPEOF_PRIMITIVE_IMP(T, NAME) \
 	template<> const TypeInfo* TypeOf<T>() { \
 		static TypeInfoInitNoBase<T> ti(NAME); \
 		return &ti; \
 	} \
 //----
-
-AXE_TYPEOF_SIMPLE(f32)
-AXE_TYPEOF_SIMPLE(f64)
-AXE_TYPEOF_SIMPLE(f128)
-
-AXE_TYPEOF_SIMPLE(i8 )
-AXE_TYPEOF_SIMPLE(i16)
-AXE_TYPEOF_SIMPLE(i32)
-AXE_TYPEOF_SIMPLE(i64)
-
-AXE_TYPEOF_SIMPLE(u8)
-AXE_TYPEOF_SIMPLE(u16)
-AXE_TYPEOF_SIMPLE(u32)
-AXE_TYPEOF_SIMPLE(u64)
-
-AXE_TYPEOF_SIMPLE(Char8)
-AXE_TYPEOF_SIMPLE(Char16)
-AXE_TYPEOF_SIMPLE(Char32)
-AXE_TYPEOF_SIMPLE(CharW)
 
 } // namespace axe

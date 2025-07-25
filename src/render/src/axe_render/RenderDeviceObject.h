@@ -1,25 +1,19 @@
 #pragma once
 
-#include "RenderObject.h"
+#include "RenderCommonBase.h"
 
 namespace axe {
 
-class RenderDeviceObject_CreateDesc : public RenderObject_CreateDesc {
+class RenderDeviceObject : public Object, public RenderCommonBase {
+	AXE_ABSTRACT_CLASS_TYPE(RenderDeviceObject, Object)
 public:
-	RenderDevice* device = nullptr;
-}; // RenderDeviceObject_CreateDesc
+	void _internalSetDevice(RenderDevice* device);
 
-
-class RenderDeviceObject : public RenderObject {
-	using This = RenderDeviceObject;
-	using Base = RenderObject;
-public:
-	using CreateDesc = RenderDeviceObject_CreateDesc;
-
-	RenderDevice* device() const { return _device; }
+	RenderDevice* device() const;
 
 protected:
-	RenderDeviceObject(CreateDesc& desc) noexcept;
+	RenderDeviceObject() = default;
+	RenderDeviceObject(RenderDevice* device) noexcept;
 
 	RenderDevice* _device = nullptr;
 }; // RenderDeviceObject

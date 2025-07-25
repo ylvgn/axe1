@@ -17,7 +17,7 @@ public:
 		VertexLayout* layout = _createLayout(VERTEX::kType);
 		layout->type = VERTEX::kType;
 
-		AXE_TODO("ImGui_AXE not support now, but how ???");
+		_s_tempTODO();
 #if 0 // ImGui_AXE not support now, but how ???
 		layout->stride = Math::nextPow16(sizeof(VERTEX));
 		AXE_ASSERT(layout->stride % 16 == 0);
@@ -28,6 +28,11 @@ public:
 	}
 
 private:
+
+	static void _s_tempTODO() {
+		AXE_TODO("ImGui_AXE not support now, but how ???");
+	}
+
 	VertexLayout* _createLayout(VertexType type);
 	Map<VertexType, VertexLayout> _table;
 }; // VertexLayoutManager

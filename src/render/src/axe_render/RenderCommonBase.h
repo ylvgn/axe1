@@ -4,63 +4,68 @@
 
 namespace axe {
 
-class RenderDataTypeUtil;
+class EditMesh;
 
 class Material;
+class Material_CreateDesc;
 class MaterialPass;
 
+class Renderer;
+class Renderer_CreateDesc;
+class RenderAdapterInfo;
+class RenderBuiltInAssets;
+class RenderCapabilities_Info;
+class RenderCapabilities;
+class RenderCommandBuffer;
+class RenderCommand_ClearFrameBuffers;
+class RenderCommand_DrawCall;
+class RenderCommand_SetViewport;
+class RenderCommand_SetScissorRect;
+class RenderCommand_SwapBuffers;
+class RenderContext;
+class RenderContext_CreateDesc;
+class RenderDataTypeUtil;
+class RenderDeviceObject;
+class RenderDevice;
+class RenderDevice_CreateDesc;
+class RenderFence;
+class RenderFence_CreateDesc;
+class RenderGpuBuffer;
+class RenderGpuBuffer_CreateDesc;
+class RenderGpuQuery;
+class RenderGpuQuery_CreateDesc;
+class RenderGpuStorageBuffer;
+class RenderGpuStorageBuffer_CreateDesc;
+class RenderIndexArray;
+class RenderMesh;
+class RenderMultiGpuBuffer;
+class RenderRequest;
+class RenderStageBuffer;
+class RenderStageBuffer_CreateDesc;
+class RenderStorageBuffer;
+class RenderStorageBuffer_CreateDesc;
+class RenderState;
+class RenderSubMesh;
+class RenderSwapChain;
+class RenderSwapChain_CreateDesc;
+class RenderVertexArray;
+class RenderVertexDesc;
+
+enum class RenderState_BlendFactor : u8;
+enum class RenderState_BlendOp : u8;
+enum class RenderState_DepthTestOp : u8;
+
+class SamplerState;
 class Shader;
+class Shader_CreateDesc;
 class ShaderPass;
 
+class VertexLayout;
 class Texture;
 class Texture1D;
 class Texture2D;
 class Texture3D;
 class TextureCube;
-class SamplerState;
-
-class Renderer;
-class Renderer_CreateDesc;
-class RenderDeviceObject;
-class RenderDeviceObject_CreateDesc;
-class RenderDevice;
-class RenderDevice_CreateDesc;
-class RenderCapabilities;
-class RenderContext;
-class RenderContext_CreateDesc;
-class RenderSwapChain;
-class RenderSwapChain_CreateDesc;
-class RenderBuiltInAssets;
-
-class RenderFence;
-class RenderFence_CreateDesc;
-
-class RenderGpuQuery;
-class RenderGpuQuery_CreateDesc;
-class RenderGpuBuffer;
-class RenderGpuBuffer_CreateDesc;
-class RenderGpuStorageBuffer;
-class RenderGpuStorageBuffer_CreateDesc;
-class RenderMesh;
-class RenderMultiGpuBuffer;
-class RenderRequest;
-
-class RenderStageBuffer;
-class RenderStageBuffer_CreateDesc;
-class RenderStorageBuffer;
-class RenderStorageBuffer_CreateDesc;
-
-class RenderState;
-class RenderSubMesh;
-
-class RenderVertexArray;
-class RenderVertexDesc;
-class RenderIndexArray;
-
-class RenderState_BlendOp;
-class RenderState_BlendFactor;
-class RenderState_DepthTestOp;
-class RenderAdapterInfo;
 
 class RenderCommonBase {
 public:
@@ -69,8 +74,6 @@ public:
 	using BlendOp			= RenderState_BlendOp;
 	using BlendFactor		= RenderState_BlendFactor;
 	using BuiltInAssets		= RenderBuiltInAssets;
-
-	using ColorType			= ColorType;
 
 	using DataType			= RenderDataType;
 	using DataTypeUtil		= RenderDataTypeUtil;
@@ -113,8 +116,8 @@ AXE_STATIC_ASSERT_NO_MEMBER_CLASS(RenderCommonBase);
 class RenderAdapterInfo {
 public:
 	String	adapterName;
-	i64		memorySize	 = 0;
-	int	    adapterIndex = 0;
+	i64		memorySize	= 0;
+	i64		LUID		= 0;
 }; // RenderAdapterInfo
 
 } // namespace axe

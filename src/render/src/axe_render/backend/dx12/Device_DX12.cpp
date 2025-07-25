@@ -1,15 +1,16 @@
 #if AXE_RENDER_HAS_DX12
 
-#include "RenderDevice_DX12.h"
-#include "RenderContext_DX12.h"
+#include "Device_DX12.h"
+#include "Context_DX12.h"
 #include "Renderer_DX12.h"
-#include "RenderCapabilities_DX12.h"
+#include "Capabilities_DX12.h"
+#include "GpuBuffer_DX12.h"
 
 namespace axe {
 
 axeRenderDevice_InterfaceFunctions_Impl(DX12)
 
-RenderDevice_DX12::RenderDevice_DX12(CreateDesc& desc)
+Device_DX12::Device_DX12(CreateDesc& desc)
 	: Base(desc)
 {
 	::HRESULT hr;
@@ -18,16 +19,41 @@ RenderDevice_DX12::RenderDevice_DX12(CreateDesc& desc)
 	auto* dxgiFactory = renderer->dxgiFactory();
 
 	if (desc.adapterInfo) {
-		hr = dxgiFactory->EnumAdapterByGpuPreference(desc.adapterInfo->adapterIndex, DXGI_GPU_PREFERENCE_UNSPECIFIED, IID_PPV_ARGS(_dxgiAdapter.ptrForInit()));
+		::LUID targetAdapterLuid;
+		Util::convert(targetAdapterLuid, desc.adapterInfo->LUID);
+		Renderer_DX12::Helper::forEachDXGIAdapter([this, targetAdapterLuid](IDXGIAdapter* dxgiAdapter) {
+			::HRESULT hr;
+			
+			ComPtr<DX12_IDXGIAdapter> adapter;
+			hr = dxgiAdapter->QueryInterface(IID_PPV_ARGS(adapter.ptrForInit()));
+			if (!Util::isValid(hr))
+				return false;
+
+			::DXGI_ADAPTER_DESC3 desc;
+			adapter->GetDesc3(&desc);
+
+			if (desc.Flags & DXGI_ADAPTER_FLAG_SOFTWARE) {
+				return false;
+			}
+
+			if (desc.AdapterLuid != targetAdapterLuid) {
+				return false;
+			}
+
+			_dxgiAdapter = AXE_MOVE(adapter);
+			return true;
+		});
 	} else {
 		hr = dxgiFactory->EnumAdapterByGpuPreference(0, DXGI_GPU_PREFERENCE_HIGH_PERFORMANCE, IID_PPV_ARGS(_dxgiAdapter.ptrForInit()));
+		AXE_DX12_THROWIF_HRESULT_ERROR(hr);
 	}
-	AXE_DX12_THROWIF_HRESULT_ERROR(hr);
+	AXE_ASSERT(_dxgiAdapter != nullptr);
 
-	hr = D3D12CreateDevice(_dxgiAdapter, D3D_FEATURE_LEVEL_12_1, IID_PPV_ARGS(_d3dDevice.ptrForInit()));
+	hr = ::D3D12CreateDevice(_dxgiAdapter, D3D_FEATURE_LEVEL_12_1, IID_PPV_ARGS(_d3dDevice.ptrForInit()));
 	if (!Util::isValid(hr) && desc.useWarpDeviceFallback)
 	{
 		AXE_LOG_WARN("No D3D12 Adapter selected. Falling back to WARP (software) adapter");
+
 		_dxgiAdapter.reset(nullptr);
 		hr = dxgiFactory->EnumWarpAdapter(IID_PPV_ARGS(_dxgiAdapter.ptrForInit()));
 		AXE_DX12_THROWIF_HRESULT_ERROR(hr);
@@ -62,7 +88,7 @@ RenderDevice_DX12::RenderDevice_DX12(CreateDesc& desc)
 	}
 #endif
 
-	_capabilities = new RenderCapabilities_DX12(this);
+	_capabilities = new Capabilities_DX12(this);
 }
 
 } // namespace axe

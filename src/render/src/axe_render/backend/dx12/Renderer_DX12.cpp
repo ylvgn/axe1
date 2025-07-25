@@ -1,7 +1,7 @@
 #if AXE_RENDER_HAS_DX12
 
 #include "Renderer_DX12.h"
-#include "RenderDevice_DX12.h"
+#include "Device_DX12.h"
 
 namespace axe {
 
@@ -17,7 +17,7 @@ Renderer_DX12::Renderer_DX12(CreateDesc& desc)
 
 #if defined(_DEBUG)
 	ComPtr<ID3D12Debug1> _d3dDebug;
-	hr = D3D12GetDebugInterface(IID_PPV_ARGS(_d3dDebug.ptrForInit()));
+	hr = ::D3D12GetDebugInterface(IID_PPV_ARGS(_d3dDebug.ptrForInit()));
 	AXE_DX12_THROWIF_HRESULT_ERROR(hr);
 
 	// Enable the debug layer (requires the Graphics Tools "optional feature" from Windows Settings > System > Optional features).
@@ -35,14 +35,14 @@ Renderer_DX12::Renderer_DX12(CreateDesc& desc)
 	}
 #endif
 
-	hr = CreateDXGIFactory2(dxgiFactoryFlags, IID_PPV_ARGS(_dxgiFactory.ptrForInit()));
+	hr = ::CreateDXGIFactory2(dxgiFactoryFlags, IID_PPV_ARGS(_dxgiFactory.ptrForInit()));
 	AXE_DX12_THROWIF_HRESULT_ERROR(hr);
 
 	_getHardwareAdapterBasicInfo();
 }
 
-RenderDevice_DX12* Renderer_DX12::findDevice(int i) const {
-	return static_cast<RenderDevice_DX12*>(Base::findDevice(i));
+Device_DX12* Renderer_DX12::findDevice(int i) const {
+	return static_cast<Device_DX12*>(Base::findDevice(i));
 }
 
 DX12_ID3D12Device* Renderer_DX12::d3dDevice(int i) {
@@ -51,28 +51,18 @@ DX12_ID3D12Device* Renderer_DX12::d3dDevice(int i) {
 }
 
 RenderDevice* Renderer_DX12::onCreateRenderDevice(RenderDevice_CreateDesc& desc) {
-	return new RenderDevice_DX12(desc);
+	return new Device_DX12(desc);
 }
 
 void Renderer_DX12::_getHardwareAdapterBasicInfo() {
-	AXE_ASSERT(_dxgiFactory != nullptr);
-
-	::HRESULT hr;
-	::DXGI_GPU_PREFERENCE gpuPreference = DXGI_GPU_PREFERENCE_UNSPECIFIED;
-
-	static const auto kToMegaByte = 1.0f / Math::MSizeInBytes<SIZE_T>();
-
-	for (UINT adapterIndex = 0;; ++adapterIndex) {
-		ComPtr<IDXGIAdapter> dxgiAdapter;
-		hr = _dxgiFactory->EnumAdapterByGpuPreference(adapterIndex, gpuPreference, IID_PPV_ARGS(dxgiAdapter.ptrForInit()));
-
-		if (DXGI_ERROR_NOT_FOUND == hr)
-			break;
+	Helper::forEachDXGIAdapter([this](IDXGIAdapter* dxgiAdapter) {
+		::HRESULT hr;
+		static const auto kToMegaByte = 1.0f / Math::MSizeInBytes<SIZE_T>();
 
 		ComPtr<DX12_IDXGIAdapter> adapter;
-		hr = dxgiAdapter.As(&adapter);
+		hr = dxgiAdapter->QueryInterface(IID_PPV_ARGS(adapter.ptrForInit()));
 		if (!Util::isValid(hr))
-			continue;
+			return false;
 
 		::DXGI_ADAPTER_DESC3 desc;
 		adapter->GetDesc3(&desc);
@@ -83,16 +73,16 @@ void Renderer_DX12::_getHardwareAdapterBasicInfo() {
 			// Skip software adapters
 			// Don't select the Basic Render Driver adapter.
 			// If you want a software adapter, pass in "/warp" on the command line.
-			continue;
+			return false;
 		}
 
 		// Check to see if the adapter supports Direct3D 12.0, but don't create the actual device yet.
 		hr = D3D12CreateDevice(adapter, D3D_FEATURE_LEVEL_12_0, _uuidof(decltype(adapter)), nullptr);
 		if (!Util::isValid(hr))
-			continue;
+			return false;
 
 		auto& adapterInfo = _adapterInfos.emplace_back();
-		adapterInfo.adapterIndex = adapterIndex;
+		Util::convert(adapterInfo.LUID, desc.AdapterLuid);
 		UtfUtil::convert(adapterInfo.adapterName, desc.Description);
 		adapterInfo.memorySize = desc.DedicatedVideoMemory;
 
@@ -147,7 +137,9 @@ void Renderer_DX12::_getHardwareAdapterBasicInfo() {
 			  , outputDesc.MaxLuminance
 			  , outputDesc.MaxFullFrameLuminance);
 		}
-	}
+
+		return false;
+	});
 }
 
 Renderer_DX12::LiveObjectReporter::~LiveObjectReporter() {
@@ -159,6 +151,38 @@ Renderer_DX12::LiveObjectReporter::~LiveObjectReporter() {
 			pInfoQueue->ClearStoredMessages(DXGI_DEBUG_ALL);
 			dxgiDebug->ReportLiveObjects(DXGI_DEBUG_ALL, DXGI_DEBUG_RLO_FLAGS(DXGI_DEBUG_RLO_IGNORE_INTERNAL | DXGI_DEBUG_RLO_DETAIL));
 			AXE_ASSERT(pInfoQueue->GetNumStoredMessages(DXGI_DEBUG_ALL) == 0);
+		}
+	}
+}
+
+void Renderer_DX12::Helper::forEachDXGIAdapter(ForEachDXGIAdapterHandler func) {
+	if (!func)
+		return;
+
+	auto* renderer = Renderer_DX12::s_instance();
+	auto* dxgiFactory = renderer->dxgiFactory();
+	AXE_ASSERT(dxgiFactory != nullptr);
+
+	::HRESULT			  hr;
+	::DXGI_GPU_PREFERENCE gpuPreference = DXGI_GPU_PREFERENCE_UNSPECIFIED;
+
+	for (UINT i = 0;; ++i)
+	{
+		ComPtr<IDXGIAdapter> dxgiAdapter;
+		hr = dxgiFactory->EnumAdapterByGpuPreference(i, gpuPreference, IID_PPV_ARGS(dxgiAdapter.ptrForInit()));
+
+		if (DXGI_ERROR_NOT_FOUND == hr)
+			break;
+
+		if (!Util::isValid(hr))
+		{
+			AXE_LOG_ERROR("[forEachDXGIAdapter] error: {}", DX12_HRESULT_String(hr, nullptr));
+			continue;
+		}
+
+		if ( func(dxgiAdapter) ) {
+			// return true will early exit
+			break;
 		}
 	}
 }

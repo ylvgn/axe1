@@ -2,9 +2,8 @@
 
 namespace axe {
 
-RenderFence::RenderFence(RenderFence_CreateDesc& desc) noexcept
-	: Base(desc)
-{
+void RenderFence::create(RenderFence_CreateDesc& desc) {
+	onCreate(desc);
 }
 
 bool RenderFence::isDone() {

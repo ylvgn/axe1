@@ -2,7 +2,7 @@
 
 namespace axe {
 
-template<> const TypeInfo* TypeOf<Object>() {
+const TypeInfo* Object::s_getType() {
 	class TI : public TypeInfo {
 	public:
 		TI() {

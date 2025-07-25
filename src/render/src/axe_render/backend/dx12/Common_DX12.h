@@ -2,7 +2,7 @@
 
 #if AXE_RENDER_HAS_DX12
 
-#include <axe_render/Render_Common.h>
+#include <axe_render/RenderCommonBase.h>
 
 #if AXE_OS_WINDOWS
 	#include <axe_core/native_ui/win32/NativeUI_Win32_Common.h>
@@ -34,17 +34,11 @@
 
 namespace axe {
 
-class Renderer_DX12;
-class RenderDevice_DX12;
-class RenderCapabilities_DX12;
-class RenderDeviceObject_DX12;
-
-// renderer ---------------
 using DX12_IDXGIFactory				 = IDXGIFactory7; // use IDXGIFactory4 or newer
-using DX12_IDXGIDevice				 = IDXGIDevice;
 using DX12_IDXGIAdapter				 = IDXGIAdapter4;
-using DX12_IDXGISwapChain			 = IDXGISwapChain4;
 using DX12_IDXGIOutput				 = IDXGIOutput6;
+using DX12_IDXGIDevice				 = IDXGIDevice;
+using DX12_IDXGISwapChain			 = IDXGISwapChain4;
 
 using DX12_ID3D12Device				 = ID3D12Device5;
 using DX12_ID3D12GraphicsCommandList = ID3D12GraphicsCommandList7; // ID3D12GraphicsCommandList10
@@ -58,7 +52,12 @@ using DX12_ID3D12Fence				 = ID3D12Fence1;
 
 using DX12_ID3D12DeviceRemovedExtendedDataSettings = ID3D12DeviceRemovedExtendedDataSettings1;
 
-// render context ---------------
+class Renderer_DX12;
+class Capabilities_DX12;
+class Context_DX12;
+class Device_DX12;
+class Fence_DX12;
+class GpuBuffer_DX12;
 
 
 #if 0
@@ -69,8 +68,10 @@ public:
 	static bool isValid		  (::HRESULT hr);
 	static void warningIfError(::HRESULT hr);
 
-	static Renderer_DX12*		renderer();
-	static RenderDevice_DX12*   renderDevice();
+	static Renderer_DX12*	renderer();
+	static Device_DX12*		device();
+
+	static DX12_IDXGIFactory*	dxgiFactory();
 	static DX12_ID3D12Device*	d3dDevice();
 
 	static void convert(Rect2f& o, const ::D3D12_RECT& i) {
@@ -89,6 +90,22 @@ public:
 		o.top	 = T(i.y);
 		o.right	 = T(i.xMax());
 		o.bottom = T(i.yMax());
+	}
+
+	static void convert(i64& o, const ::LUID& i) {
+		AXE_STATIC_ASSERT(sizeof(o) >= sizeof(i));
+
+		o = static_cast<i64>(i.HighPart) << 32 | i.LowPart;
+	}
+
+	static void convert(::LUID& o, const i64& i) {
+		AXE_STATIC_ASSERT(sizeof(o) >= sizeof(i));
+
+		using L = decltype(o.LowPart);
+		using H = decltype(o.HighPart);
+
+		o.LowPart  = static_cast<L>(i & 0xFFFFFFFF);
+		o.HighPart = static_cast<H>((i >> 32) & 0xFFFFFFFF);
 	}
 
 	static Rect2f		toRect2f (const ::D3D12_RECT& i)	{ Rect2f o;			convert(o, i);	return o; }
@@ -164,8 +181,18 @@ template<>
 struct fmt::formatter<::LUID> {
 	static auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
 	static auto format(const ::LUID& v, fmt::format_context& ctx) {
-		return fmt::format_to(ctx.out(), "{}{}", v.HighPart, v.LowPart);
+		::axe::i64 combine;
+		::axe::DX12Util::convert(combine, v);
+		return fmt::format_to(ctx.out(), "{}(HighPart: {}, LowPart: {})", combine, v.HighPart, v.LowPart);
 	}
 };
+
+
+constexpr bool operator==(const ::LUID& lhs, const ::LUID rhs) {
+	return lhs.LowPart == rhs.LowPart && lhs.HighPart == rhs.HighPart;
+}
+constexpr bool operator!=(const ::LUID& lhs, const ::LUID rhs) {
+	return !(operator==(lhs, rhs));
+}
 
 #endif // AXE_RENDER_HAS_DX12

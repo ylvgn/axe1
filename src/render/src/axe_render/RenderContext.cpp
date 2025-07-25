@@ -3,8 +3,8 @@
 
 namespace axe {
 
-RenderContext::RenderContext(CreateDesc& desc) noexcept
-	: Base(desc)
+RenderContext::RenderContext(RenderDevice* device, CreateDesc& desc) noexcept
+	: Base(device)
 {
 }
 

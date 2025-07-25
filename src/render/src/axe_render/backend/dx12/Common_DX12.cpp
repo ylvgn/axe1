@@ -1,11 +1,12 @@
 #if AXE_RENDER_HAS_DX12
 
-#include "Render_DX12_Common.h"
-#include "Renderer_DX12.h"
-#include "RenderDevice_DX12.h"
+#include <axe_render/RenderDeviceObject.h>
 
 #include <axe_core/native_ui/win32/NativeUI_Win32_Common.h>
-#include <axe_render/RenderDeviceObject.h>
+
+#include "Common_DX12.h"
+#include "Renderer_DX12.h"
+#include "Device_DX12.h"
 
 namespace axe {
 
@@ -60,12 +61,16 @@ Renderer_DX12* DX12Util::renderer() {
 	return static_cast<Renderer_DX12*>(Renderer::s_instance());
 }
 
-RenderDevice_DX12* DX12Util::renderDevice() {
-	return DX12Util::renderer()->findDevice();
+Device_DX12* DX12Util::device() {
+	return renderer()->findDevice();
+}
+
+DX12_IDXGIFactory* DX12Util::dxgiFactory() {
+	return renderer()->dxgiFactory();
 }
 
 DX12_ID3D12Device* DX12Util::d3dDevice() {
-	auto* p = DX12Util::renderDevice();
+	auto* p = device();
 	return p ? p->d3dDevice() : nullptr;
 }
 
