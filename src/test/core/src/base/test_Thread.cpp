@@ -528,6 +528,146 @@ public:
 		_test_primeNumber_conditionVariable();
 	}
 
+	class BankAccount {
+		#if 0
+			using Mutex = ::std::mutex;
+			using ScopedLock = ::std::unique_lock<Mutex>;
+		#else
+			using Mutex = ::axe::Mutex;
+			using ScopedLock = Mutex::ScopedLock;
+		#endif
+
+		void _sleep(int ms = 1000) { axe_sleep(ms); }
+	public:
+		void transfer(BankAccount& to, int amount) {
+			//doTransfer_DeadLock(to, amount);
+//			doTransfer_LockInOrder(to, amount);
+			doTransfer_TryLock(to, amount);
+		}
+
+		void doTransfer_DeadLock(BankAccount& to, int amount) {
+			ThreadUtil::Log("start transfer {:p} -> {:p}", fmt::ptr(this), fmt::ptr(&to));
+
+			ThreadUtil::Log("lock {:p}", fmt::ptr(this));
+			auto lockFrom = ScopedLock(_mutex);
+			ThreadUtil::Log("locked {:p}", fmt::ptr(this));
+
+			_sleep(2000);
+
+			ThreadUtil::Log("lock {:p}", fmt::ptr(&to));
+			auto lockTo = ScopedLock(to._mutex);
+			ThreadUtil::Log("locked {:p}", fmt::ptr(&to));
+
+			_sleep();
+			_balance -= amount;
+			to._balance += amount;
+
+			ThreadUtil::Log("end transfer {:p} -> {:p}", fmt::ptr(this), fmt::ptr(&to));
+		}
+
+		void doTransfer_LockInOrder(BankAccount& to, int amount) {
+
+			ThreadUtil::Log("start transfer {:p} -> {:p}", fmt::ptr(this), fmt::ptr(&to));
+
+			if (this < &to)
+			{
+				ThreadUtil::Log("lock {:p}", fmt::ptr(this));
+				auto lockFrom = ScopedLock(_mutex);
+				ThreadUtil::Log("locked {:p}", fmt::ptr(this));
+
+				_sleep(2000);
+
+				ThreadUtil::Log("lock {:p}", fmt::ptr(&to));
+				auto lockTo = ScopedLock(to._mutex);
+				ThreadUtil::Log("locked {:p}", fmt::ptr(&to));
+			}
+			else
+			{
+				ThreadUtil::Log("lock {:p}", fmt::ptr(&to));
+				auto lockTo = ScopedLock(to._mutex);
+				ThreadUtil::Log("locked {:p}", fmt::ptr(&to));
+
+				_sleep(2000);
+
+				ThreadUtil::Log("lock {:p}", fmt::ptr(this));
+				auto lockFrom = ScopedLock(_mutex);
+				ThreadUtil::Log("locked {:p}", fmt::ptr(this));
+			}
+
+			_sleep();
+			_balance    -= amount;
+			to._balance += amount;
+
+			ThreadUtil::Log("end transfer {:p} -> {:p}", fmt::ptr(this), fmt::ptr(&to));
+		}
+		
+		void doTransfer_TryLock(BankAccount& to, int amount) {
+			ThreadUtil::Log("start transfer {:p} -> {:p}", fmt::ptr(this), fmt::ptr(&to));
+
+			auto myTryLock = ScopedLock::TryLock();
+			for (;;)
+			{
+				ThreadUtil::Log("lock {:p}", fmt::ptr(this));
+				auto lockFrom = ScopedLock(_mutex);
+				ThreadUtil::Log("locked {:p}", fmt::ptr(this));
+
+				_sleep(2000);
+
+				ThreadUtil::Log("try lock {:p}", fmt::ptr(&to));
+				auto lockTo = ScopedLock(myTryLock, to._mutex); // auto lockTo = ScopedLock(to._mutex, ::std::try_to_lock);
+
+				if (!lockTo.isLocked()) // if (!lockTo.owns_lock())
+				{
+					lockFrom.unlock(); // <--- unlock 'lockFrom' before sleep
+					ThreadUtil::Log("unlocked {:p}", fmt::ptr(this));
+					_sleep();
+					continue;
+				}
+
+				ThreadUtil::Log("locked {:p}", fmt::ptr(&to));
+
+				_sleep();
+				_balance -= amount;
+				to._balance += amount;
+
+				ThreadUtil::Log("end transfer {:p} -> {:p}", fmt::ptr(this), fmt::ptr(&to));
+				break;
+			}
+		}
+
+		int balance()
+		{
+			ScopedLock scoped(_mutex);
+			return _balance;
+		}
+
+	private:
+		Mutex _mutex;
+		int	  _balance = 1000;
+	};
+
+	void test_deadLock() {
+		{
+			Thread thread0;
+			Thread_CreateDesc thread0Desc;
+			thread0Desc.entry = ([this]() {
+				ThreadUtil::Log("thread0 start");
+				accountA.transfer(accountB, 10);
+			});
+			thread0.start(thread0Desc);
+
+
+			ThreadUtil::Log("MainThread start");
+			accountB.transfer(accountA, 1);
+		}
+
+		AXE_TEST_CHECK(accountA.balance() == 1000 - 10 + 1);
+		AXE_TEST_CHECK(accountB.balance() == 1000 + 10 - 1);
+	}
+
+	BankAccount accountA;
+	BankAccount accountB;
+
 	MyStopWatch _stopWatch;
 
 }; // Test_Thread
@@ -543,4 +683,5 @@ void test_Thread() {
 	AXE_TEST_CASE(Test_Thread, test_raceCondition());
 	AXE_TEST_CASE(Test_Thread, test_scopedLock());
 	AXE_TEST_CASE(Test_Thread, test_primeNumber());
+	AXE_TEST_CASE(Test_Thread, test_deadLock());
 }

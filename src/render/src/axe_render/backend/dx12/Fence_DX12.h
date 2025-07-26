@@ -15,16 +15,20 @@ public:
 
 	~Fence_DX12();
 
-	DX12_ID3D12Fence* d3dFence() { return _d3dFence; }
-
 	virtual bool onCheckCompleted() final;
 
 	void cpuWait(::UINT64 expectGpuCompletedValue);
 	void cpuWait();
 
+	::UINT64 signal(::UINT64 fenceValue);
+
+	DX12_ID3D12Fence* d3dFence() { return _d3dFence; }
+
 private:
-	void	_gpuWait(::ID3D12CommandQueue* d3dCmdQueue);
+	void		_gpuWait(::ID3D12CommandQueue* d3dCmdQueue);
 	::UINT64	_gpuSignal(::ID3D12CommandQueue* d3dCmdQueue);
+
+	bool _isCompleted(::UINT64 expectGpuCompletedValue);
 
 	ComPtr<DX12_ID3D12Fence> _d3dFence;
 
@@ -35,7 +39,7 @@ private:
 
 	::HANDLE _onGpuCompletedEvent;
 
-	Mutex _fenceWaitCS;
+	Mutex	 _fenceWaitCS;
 }; // Fence_DX12
 
 } // namespace axe

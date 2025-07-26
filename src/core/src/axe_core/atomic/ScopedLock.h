@@ -11,9 +11,9 @@ public:
 	using LockedAlready = ScopedLock_LockedAlready;
 	using TryLock		= ScopedLock_TryLock;
 
-	explicit ScopedLock(MUTEXES&... mtxes)					noexcept : _mtxes(&mtxes...), _isLock(true)  { ::std::lock(mtxes...); }
-	explicit ScopedLock(LockedAlready&, MUTEXES&... locked) noexcept : _mtxes(&locked...), _isLock(true) { /*do nothing, auto unlock by RAII*/ }
-	explicit ScopedLock(TryLock&, MUTEXES&... mtxes)		noexcept : _mtxes(&mtxes...), _isLock(false) { tryLock(); }
+	explicit ScopedLock(MUTEXES&... mtxes)					noexcept : _mtxes(&mtxes...), _isLocked(true)  { ::std::lock(mtxes...); }
+	explicit ScopedLock(LockedAlready&, MUTEXES&... locked) noexcept : _mtxes(&locked...), _isLocked(true) { /*do nothing, auto unlock by RAII*/ }
+	explicit ScopedLock(TryLock&, MUTEXES&... mtxes)		noexcept : _mtxes(&mtxes...), _isLocked(false) { tryLock(); }
 
 	~ScopedLock() noexcept { unlock(); }
 
@@ -24,7 +24,7 @@ public:
 		::eastl::apply([](auto&... mtxes) {
 			(..., mtxes->unlock() ); // fold expression, equivalent to "(m1.unlock(), (m2.unlock(), (m3.unlock())))"
 		}, _mtxes);
-		_isLock = false;
+		_isLocked = false;
 	}
 #else
 	void unlock() noexcept {
@@ -33,17 +33,17 @@ public:
 		_mtxes.forEachReverse([](auto index, const auto& pMtx) {
 			pMtx->unlock();
 		});
-		_isLock = false;
+		_isLocked = false;
 	}
 #endif
 
 #if AXE_CPLUSPLUS_17
 	bool tryLock() {
 		unlock();
-		_isLock = ::eastl::apply([](auto&... mtxes) {
+		_isLocked = ::eastl::apply([](auto&... mtxes) {
 			return ::std::try_lock(*mtxes...);
 		}, _mtxes) == -1;
-		return _isLock;
+		return _isLocked;
 	}
 #else
 	struct _interalTryLockHelper : public StaticAbstructClass {
@@ -64,18 +64,18 @@ public:
 	{
 		using H = _interalTryLockHelper;
 		unlock();
-		_isLock = H::std_try_lock(_mtxes) == -1;
-		return _isLock;
+		_isLocked = H::std_try_lock(_mtxes) == -1;
+		return _isLocked;
 	}
 #endif
 
 	explicit operator bool() const { return isLocked(); }
 
-	bool	 isLocked()		 const { return _isLock; }
+	bool	 isLocked()		 const { return _isLocked; }
 
 private:
 	Tuple<MUTEXES* ...> _mtxes;
-	bool			    _isLock : 1;
+	bool			    _isLocked : 1;
 }; // ScopedLock<ARGS...>
 
 template <class MUTEX>
@@ -104,7 +104,7 @@ public:
 
 	bool tryLock(MUTEX& mutex) { return _tryLock(mutex); }
 
-	void unlock() {
+	void unlock() noexcept {
 		if (_mutex) {
 			_mutex->unlock();
 			_mutex = nullptr;
@@ -119,15 +119,15 @@ public:
 
 	MUTEX* mutex() noexcept { return _mutex; }
 
-	bool isLocked() const { return _mutex; }
 	explicit operator bool() const { return isLocked(); }
+
+	bool isLocked() const { return _mutex; }
 
 protected:
 	bool _tryLock(MUTEX& mutex) {
 		unlock();
 		if (mutex.tryLock()) {
 			_mutex = &mutex;
-			_mutex->lock();
 			return true;
 		}
 		return false;
