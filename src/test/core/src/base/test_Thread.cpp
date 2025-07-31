@@ -542,6 +542,7 @@ public:
 		void transfer(BankAccount& to, int amount) {
 			//doTransfer_DeadLock(to, amount);
 //			doTransfer_LockInOrder(to, amount);
+//			doTransfer_LockInOrder2(to, amount);
 			doTransfer_TryLock(to, amount);
 		}
 
@@ -566,7 +567,6 @@ public:
 		}
 
 		void doTransfer_LockInOrder(BankAccount& to, int amount) {
-
 			ThreadUtil::Log("start transfer {:p} -> {:p}", fmt::ptr(this), fmt::ptr(&to));
 
 			if (this < &to)
@@ -596,6 +596,20 @@ public:
 
 			_sleep();
 			_balance    -= amount;
+			to._balance += amount;
+
+			ThreadUtil::Log("end transfer {:p} -> {:p}", fmt::ptr(this), fmt::ptr(&to));
+		}
+
+		void doTransfer_LockInOrder2(BankAccount& to, int amount) {
+			ThreadUtil::Log("start transfer {:p} -> {:p}", fmt::ptr(this), fmt::ptr(&to));
+
+			ThreadUtil::Log("lock {:p} {:p}", fmt::ptr(this), fmt::ptr(&to));
+			auto scoped = ScopedLock_make(_mutex, to._mutex);
+			ThreadUtil::Log("locked {:p} {:p}", fmt::ptr(this), fmt::ptr(&to));
+
+			_sleep();
+			_balance -= amount;
 			to._balance += amount;
 
 			ThreadUtil::Log("end transfer {:p} -> {:p}", fmt::ptr(this), fmt::ptr(&to));

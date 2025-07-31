@@ -78,6 +78,7 @@ private:
 	bool			    _isLocked : 1;
 }; // ScopedLock<ARGS...>
 
+
 template <class MUTEX>
 class AXE_NODISCARD ScopedLock<MUTEX> : public NonCopyable {
 public:
@@ -87,14 +88,14 @@ public:
 	using TryLock		= ScopedLock_TryLock;
 
 	ScopedLock() = default;
-	explicit ScopedLock(ScopedLock&& r)						noexcept : _mutex(r._mutex)		{ r._mutex = nullptr; }
+	explicit ScopedLock(ScopedLock && r)					noexcept : _mutex(r._mutex)		{ r._mutex = nullptr; }
     explicit ScopedLock(MUTEX& mutex)						noexcept : _mutex(&mutex)		{ mutex.lock(); }
     explicit ScopedLock(LockedAlready&, MUTEX& lockedMutex) noexcept : _mutex(&lockedMutex) { /* do nothing, auto unlock by RAII*/ }
-	explicit ScopedLock(const TryLock&, MUTEX& mutex) { tryLock(mutex); }
+	explicit ScopedLock(const TryLock&, MUTEX& mutex)		noexcept { tryLock(mutex); }
 
     ~ScopedLock() noexcept { unlock(); }
 
-	void lock(MUTEX& mutex) {
+	void lock(MUTEX& mutex) noexcept {
 		if (_mutex != &mutex) {
 			unlock();
 			mutex.lock();
@@ -102,7 +103,7 @@ public:
 		}
 	}
 
-	bool tryLock(MUTEX& mutex) { return _tryLock(mutex); }
+	bool tryLock(MUTEX& mutex) noexcept { return _tryLock(mutex); }
 
 	void unlock() noexcept {
 		if (_mutex) {
@@ -124,7 +125,7 @@ public:
 	bool isLocked() const { return _mutex; }
 
 protected:
-	bool _tryLock(MUTEX& mutex) {
+	bool _tryLock(MUTEX& mutex) noexcept {
 		unlock();
 		if (mutex.tryLock()) {
 			_mutex = &mutex;
@@ -136,6 +137,7 @@ protected:
 	MUTEX* _mutex = nullptr;
 }; // ScopedLock<T>
 
+
 template <>
 class AXE_NODISCARD ScopedLock<> : public NonCopyable {
 public:
@@ -145,6 +147,50 @@ public:
 	explicit ScopedLock(LockedAlready&) noexcept {}
 }; // ScopedLock<>
 
+
+template <class T0, class T1>
+class ScopedLock2 : public NonCopyable {
+public:
+	using TryLock = ScopedLock_TryLock;
+
+	ScopedLock2(ScopedLock2 && r) noexcept
+		: _m0(AXE_MOVE(r._m0)), _m1(AXE_MOVE(r._m1)) {}
+
+	explicit ScopedLock2(T0& t0, T1& t1) noexcept {
+		if (&t0 < &t1) { //using address to decide the order
+			_m0.lock(t0);
+			_m1.lock(t1);
+		}else{
+			_m1.lock(t1);
+			_m0.lock(t0);
+		}
+	}
+
+	explicit ScopedLock2(const TryLock&, T0& t0, T1& t1) noexcept {
+		if (&t0 < &t1) { //using address to decide the order
+			_m0.tryLock(t0);
+			_m1.tryLock(t1);
+		}else{
+			_m1.tryLock(t1);
+			_m0.tryLock(t0);
+		}
+	}
+
+	explicit operator bool() const { return isLocked(); }
+
+	bool isLocked() const { return _m0.isLocked() && _m1.isLocked(); }
+
+private:
+	ScopedLock<T0> _m0;
+	ScopedLock<T1> _m1;
+}; // ScopedLock2<T>
+
+
+template<class MUTEX> AXE_NODISCARD
+inline ScopedLock<MUTEX> ScopedLock_make(MUTEX& m) { return ScopedLock<MUTEX>(m); }
+
+template<class T0, class T1> AXE_NODISCARD
+inline ScopedLock2<T0, T1> ScopedLock_make(T0& t0, T1& t1) { return ScopedLock2<T0, T1>(t0, t1); }
 
 template <class... MUTEXES> AXE_NODISCARD
 inline ScopedLock<MUTEXES...> ScopedLock_make(MUTEXES&... mtxes) { return ScopedLock<MUTEXES...>(AXE_FORWARD(mtxes)...); }
