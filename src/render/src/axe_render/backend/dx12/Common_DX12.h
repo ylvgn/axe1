@@ -45,9 +45,10 @@ using DX12_ID3D12GraphicsCommandList = ID3D12GraphicsCommandList7; // ID3D12Grap
 using DX12_ID3D12Resource			 = ID3D12Resource2;
 using DX12_ID3D12Fence				 = ID3D12Fence1;
 
-#if _DEBUG
+#if defined(_DEBUG)
 	using DX12_IDXGIDebug			 = IDXGIDebug1;
-	using DX12_ID3D12Debug			 = ID3D12Debug6;
+	using DX12_ID3D12Debug			 = ID3D12Debug1; // ID3D12Debug6
+	using DX12_ID3D12InfoQueue		 = ID3D12InfoQueue;
 #endif
 
 using DX12_ID3D12DeviceRemovedExtendedDataSettings = ID3D12DeviceRemovedExtendedDataSettings1;

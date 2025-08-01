@@ -15,25 +15,22 @@ Renderer_DX12::Renderer_DX12(CreateDesc& desc)
 	dxgiFactoryFlags |= DXGI_CREATE_FACTORY_DEBUG;
 #endif
 
+	{
 #if defined(_DEBUG)
-	ComPtr<ID3D12Debug1> _d3dDebug;
-	hr = ::D3D12GetDebugInterface(IID_PPV_ARGS(_d3dDebug.ptrForInit()));
-	AXE_DX12_THROWIF_HRESULT_ERROR(hr);
+		ComPtr<ID3D12Debug> d3dDebug;
+		hr = ::D3D12GetDebugInterface(IID_PPV_ARGS(d3dDebug.ptrForInit()));
+		AXE_DX12_THROWIF_HRESULT_ERROR(hr);
 
-	// Enable the debug layer (requires the Graphics Tools "optional feature" from Windows Settings > System > Optional features).
-	// NOTE: Enabling the debug layer after device creation will invalidate the active device.
-	_d3dDebug->EnableDebugLayer();
-
-	// Optional: Enable GPU-Based Validation (GBV)
-	ComPtr<DX12_ID3D12Debug> modernD3dDebug;
-	hr = _d3dDebug.As(&modernD3dDebug);
-	if (Util::isValid(hr)) {
-		modernD3dDebug->SetEnableGPUBasedValidation(true);
-	}
-	else {
-		_d3dDebug->SetEnableGPUBasedValidation(true);
-	}
+		hr = d3dDebug->QueryInterface(IID_PPV_ARGS(_d3dDebug.ptrForInit()));
+		AXE_DX12_THROWIF_HRESULT_ERROR(hr);
 #endif
+		// Optional: Enable Debug Layer
+		setDebugLayer(true);
+		// Optional: Enable GPU-Based Validation (GBV)
+		setGpuBasedValidation(true);
+		// Optional: Enable detect synchronization issues between multiple command queues.
+		setSyncCommandQueueValidation(true);
+	}
 
 	hr = ::CreateDXGIFactory2(dxgiFactoryFlags, IID_PPV_ARGS(_dxgiFactory.ptrForInit()));
 	AXE_DX12_THROWIF_HRESULT_ERROR(hr);
@@ -48,6 +45,43 @@ Device_DX12* Renderer_DX12::findDevice(int i) const {
 DX12_ID3D12Device* Renderer_DX12::d3dDevice(int i) {
 	auto* p = findDevice(i);
 	return p ? p->d3dDevice() : nullptr;
+}
+
+void Renderer_DX12::setDebugLayer(bool isEnable) {
+#if defined(_DEBUG)
+	// Enable the debug layer (requires the Graphics Tools "optional feature" from Windows Settings > System > Optional features).
+	// NOTE: Enabling the debug layer after device creation will invalidate the active device.
+	if (isEnable) {
+		_d3dDebug->EnableDebugLayer();
+	} else {
+		ComPtr<ID3D12Debug4> d3dDebug4;
+		if (SUCCEEDED(_d3dDebug->QueryInterface(IID_PPV_ARGS(d3dDebug4.ptrForInit())))) {
+			d3dDebug4->DisableDebugLayer(); // require ID3D12Debug4
+		}
+	}
+#endif
+}
+
+void Renderer_DX12::setGpuBasedValidation(bool isEnable, ::D3D12_GPU_BASED_VALIDATION_FLAGS flags) {
+#if defined(_DEBUG)
+	AXE_ASSERT(_d3dDebug != nullptr);
+
+	_d3dDebug->SetEnableGPUBasedValidation(isEnable); // require ID3D12Debug1
+	
+
+	{ // set flags
+		ComPtr<ID3D12Debug3> d3dDebug3;
+		if (SUCCEEDED(_d3dDebug->QueryInterface(IID_PPV_ARGS(d3dDebug3.ptrForInit())))) {
+			d3dDebug3->SetGPUBasedValidationFlags(flags); // require ID3D12Debug3
+		}
+	}
+#endif
+}
+
+void Renderer_DX12::setSyncCommandQueueValidation(bool isEnable) {
+#if defined(_DEBUG)
+	_d3dDebug->SetEnableSynchronizedCommandQueueValidation(isEnable);
+#endif
 }
 
 RenderDevice* Renderer_DX12::onCreateRenderDevice(RenderDevice_CreateDesc& desc) {
@@ -114,8 +148,7 @@ void Renderer_DX12::_getHardwareAdapterBasicInfo() {
 		while (adapter->EnumOutputs(outputIndex++, dxgiOutput.ptrForInit()) == S_OK)
 		{
 			ComPtr<DX12_IDXGIOutput> output;
-			hr = dxgiOutput.As(&output);
-			if (!Util::isValid(hr))
+			if (!dxgiOutput.As(&output))
 				continue;
 
 			::DXGI_OUTPUT_DESC1 outputDesc;
@@ -149,7 +182,7 @@ Renderer_DX12::LiveObjectReporter::~LiveObjectReporter() {
 		ComPtr<IDXGIInfoQueue> pInfoQueue;
 		if (SUCCEEDED(DXGIGetDebugInterface1(0, IID_PPV_ARGS(pInfoQueue.ptrForInit())))) {
 			pInfoQueue->ClearStoredMessages(DXGI_DEBUG_ALL);
-			dxgiDebug->ReportLiveObjects(DXGI_DEBUG_ALL, DXGI_DEBUG_RLO_FLAGS(DXGI_DEBUG_RLO_IGNORE_INTERNAL | DXGI_DEBUG_RLO_DETAIL));
+			dxgiDebug->ReportLiveObjects(DXGI_DEBUG_ALL, DXGI_DEBUG_RLO_ALL);
 			AXE_ASSERT(pInfoQueue->GetNumStoredMessages(DXGI_DEBUG_ALL) == 0);
 		}
 	}
@@ -181,7 +214,7 @@ void Renderer_DX12::Helper::forEachDXGIAdapter(ForEachDXGIAdapterHandler func) {
 		}
 
 		if ( func(dxgiAdapter) ) {
-			// return true will early exit
+			// return true will early rejection
 			break;
 		}
 	}

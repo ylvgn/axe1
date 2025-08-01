@@ -41,7 +41,7 @@ Context_DX12::Context_DX12(RenderDevice* device, CreateDesc& desc)
 		dxgiFactory->CreateSwapChainForHwnd(m_commandQueue.Get(), _hwnd, &swapChainDesc, nullptr, nullptr, swapChain.ptrForInit());
 		AXE_DX12_THROWIF_HRESULT_ERROR(hr, d3dDevice);
 
-		hr = swapChain.As(&m_swapChain);
+		hr = swapChain->QueryInterface(IID_PPV_ARGS(m_swapChain.ptrForInit()));
 		AXE_DX12_THROWIF_HRESULT_ERROR(hr, d3dDevice);
 	}
 

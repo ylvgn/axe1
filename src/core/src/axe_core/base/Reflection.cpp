@@ -2,6 +2,7 @@
 
 namespace axe {
 
+AXE_TYPEOF_PRIMITIVE_IMP(void,	  "void")
 AXE_TYPEOF_PRIMITIVE_IMP(bool,	  "bool")
 
 AXE_TYPEOF_PRIMITIVE_IMP(int8_t,  "i8")

@@ -39,7 +39,7 @@ public:
 	SPtr() = default;
 	SPtr(Null)			noexcept {}
 	SPtr(T* p)			noexcept { reset(p); }
-	SPtr(SPtr&& r)		noexcept { _p = r.detach(); }
+	SPtr(SPtr && r)		noexcept { _p = r.detach(); }
 	SPtr(const SPtr& r)	noexcept { reset(r._p); }
 
 	~SPtr()				noexcept { reset(nullptr); }
@@ -48,13 +48,11 @@ public:
 
 	void operator=(Null)			noexcept { reset(nullptr); }
 	void operator=(T* p)			noexcept { reset(p); }
-	void operator=(SPtr&& r)		noexcept { reset(nullptr); _p = r.detach(); }
 	void operator=(const SPtr& r)	noexcept { reset(r._p); }
+	void operator=(SPtr && r)		noexcept { reset(nullptr); _p = r.detach(); }
 
 		  T* operator->()			noexcept { return _p; }
 	const T* operator->()	const	noexcept { return _p; }
-
-	bool operator!() const	noexcept { return _p == nullptr; }
 
 	operator T* () & { return _p; }
 	operator T* () && = delete;

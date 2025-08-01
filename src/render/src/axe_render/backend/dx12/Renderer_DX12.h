@@ -29,6 +29,14 @@ public:
 		static void forEachDXGIAdapter(ForEachDXGIAdapterHandler func);
 	}; // Helper
 
+	void setDebugLayer(bool isEnable);
+	void setGpuBasedValidation(bool isEnable, ::D3D12_GPU_BASED_VALIDATION_FLAGS flags = D3D12_GPU_BASED_VALIDATION_FLAGS_NONE);
+	void setSyncCommandQueueValidation(bool isEnable);
+
+#if defined(_DEBUG)
+	DX12_ID3D12Debug*  d3dDebug() { return _d3dDebug; }
+#endif
+
 private:
 	struct LiveObjectReporter
 	{
@@ -39,6 +47,9 @@ private:
 	void _getHardwareAdapterBasicInfo();
 
 	ComPtr<DX12_IDXGIFactory> _dxgiFactory;
+#if defined(_DEBUG)
+	ComPtr<DX12_ID3D12Debug>  _d3dDebug;
+#endif
 }; // Renderer_DX12
 
 } // namespace axe

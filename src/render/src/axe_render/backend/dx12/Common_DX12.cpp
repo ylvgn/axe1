@@ -13,6 +13,7 @@ namespace axe {
 DX12_HRESULT_String::DX12_HRESULT_String(::HRESULT errorCode, ID3D12Device* pDevice) {
 	::HRESULT hr;
 	::LPWSTR tmp;
+
 	if (0 != FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM,
 						   NULL,
 						   errorCode,
@@ -30,19 +31,20 @@ DX12_HRESULT_String::DX12_HRESULT_String(::HRESULT errorCode, ID3D12Device* pDev
 
 	if (errorCode == DXGI_ERROR_DEVICE_REMOVED && pDevice)
 	{
-		ComPtr<::ID3D12InfoQueue> pInfo;
+		ComPtr<DX12_ID3D12InfoQueue> pInfo;
 		hr = pDevice->QueryInterface(pInfo.ptrForInit());
 		if (Util::isValid(hr) && pInfo) {
 			_str += "Validation Layer: \n";
-			for (UINT64 i = 0; i < pInfo->GetNumStoredMessages(); ++i)
+			for (::UINT64 i = 0; i < pInfo->GetNumStoredMessages(); ++i)
 			{
 				size_t messageLength = 0;
-				pInfo->GetMessage(0, nullptr, &messageLength);
+				pInfo->GetMessage(i, nullptr, &messageLength);
 				::D3D12_MESSAGE* pMessage = (::D3D12_MESSAGE*)malloc(messageLength);
-				pInfo->GetMessage(0, pMessage, &messageLength);
-				_str += StrView(pMessage->pDescription);
+				pInfo->GetMessage(i, pMessage, &messageLength);
+				if (pMessage->pDescription)
+					_str += StrView(pMessage->pDescription);
 				_str += "\n";
-				free(pMessage);
+				::free(pMessage);
 			}
 		}
 

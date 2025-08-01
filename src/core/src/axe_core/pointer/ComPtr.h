@@ -9,10 +9,10 @@ public:
 	ComPtr(const ComPtr& r)	noexcept { reset(r._p); }
 	ComPtr(ComPtr && r)		noexcept { _p = r.detach(); }
 
-	~ComPtr() noexcept { reset(nullptr); }
+	~ComPtr()				noexcept { reset(nullptr); }
 
-	void operator=(const ComPtr& r) noexcept { reset(r._p); }
-	void operator=(ComPtr&& r)		noexcept { reset(nullptr); _p = r.detach(); }
+	void operator= (const ComPtr& r) noexcept { reset(r._p); }
+	void operator= (ComPtr && r)	 noexcept { reset(nullptr); _p = r.detach(); }
 
 		  T* operator->()			noexcept	{ return _p; }
 	const T* operator->()	const	noexcept	{ return _p; }
@@ -38,12 +38,14 @@ public:
 
 	AXE_NODISCARD T*  detach()		noexcept { T* o = _p; _p = nullptr; return o; }
 
+	explicit operator bool() const { return _p != nullptr; }
+
 #if AXE_OS_WINDOWS
 	template <typename R>
-	::HRESULT As(ComPtr<R>* dst) {
+	bool As(ComPtr<R>* dst) {
 		AXE_STATIC_ASSERT(is_base_of_v<IUnknown, R> && is_base_of_v<IUnknown, T>);
 		dst->reset(nullptr);
-		return _p->QueryInterface(IID_PPV_ARGS(dst->ptrForInit()));
+		return _p ? SUCCEEDED(_p->QueryInterface(IID_PPV_ARGS(dst->ptrForInit()))) : false;
 	}
 
 	AXE_NODISCARD T*	   Get() noexcept		{ return ptr(); }
