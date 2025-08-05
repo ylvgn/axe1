@@ -2,6 +2,16 @@
 
 namespace axe {
 
+// explicit specialization to force VisualC check syntax in function body
+
+#ifndef AXE_MATH_USE_SSE
+	#error
+#else
+	template Quat4<float>;
+	template Quat4<double>;
+#endif
+
+
 template<> const TypeInfo* TypeOf<Quat4f>() {
 	using This = Quat4f;
 	using TI_Base = TypeInfoInitNoBase<This>;
@@ -22,5 +32,4 @@ template<> const TypeInfo* TypeOf<Quat4f>() {
 	return &ti;
 }
 
-
-}
+} // namespace axe

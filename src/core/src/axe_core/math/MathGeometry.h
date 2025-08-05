@@ -9,14 +9,13 @@ namespace axe { namespace Math {
 #pragma mark ========= Sphere3 ============
 #endif
 template<class T>
-struct Sphere3 {
-	using Vec3 = Vec3<T>;
+class Sphere3 {
+	using This = typename Sphere3<T>;
 public:
-	Sphere3() = default;
-	Sphere3(const Vec3& center_, T radius_)
-		: center(center_)
-		, radius(radius_)
-	{}
+	using Vec3 = Vec3<T>;
+
+	constexpr explicit	Sphere3() = default;
+	constexpr			Sphere3(const Vec3& center_, T radius_) noexcept : center(center_) , radius(radius_) {}
 
 	void onFormat(fmt::format_context& ctx) const {
 		fmt::format_to(ctx.out(), "Sphere3(c={}, r={})", center, radius);
@@ -31,15 +30,13 @@ public:
 #pragma mark ========= Triangle3 ============
 #endif
 template<class T>
-struct Triangle3 {
-	using Vec3 = Vec3<T>;
+class Triangle3 {
+	using This = typename Triangle3<T>;
 public:
-	Triangle3() = default;
-	Triangle3(const Vec3& v0_, const Vec3& v1_, const Vec3& v2_)
-		: v0(v0_)
-		, v1(v1_)
-		, v2(v2_)
-	{}
+	using Vec3 = Vec3<T>;
+
+	constexpr explicit	Triangle3() = default;
+	constexpr			Triangle3(const Vec3& v0_, const Vec3& v1_, const Vec3& v2_) noexcept : v0(v0_), v1(v1_), v2(v2_) {}
 
 	void onFormat(fmt::format_context& ctx) const {
 		fmt::format_to(ctx.out(), "Triangle3(v0={}, v1={}, v2={})", v0, v1, v2);
@@ -53,40 +50,34 @@ public:
 #pragma mark ========= Plane3 ============
 #endif
 template<class T>
-struct Plane3 {
-	using Vec3 = Vec3<T>;
+class Plane3 {
+	using This = typename Plane3<T>;
 public:
-	Plane3() = default;
-	Plane3(const Vec3& normal_, T distance_)
-		: normal(normal_)
-		, distance(distance_) 
-	{}
+	using Vec3 = Vec3<T>;
 
-	Plane3(const Vec3& normal_, const Vec3& point_)
-		: normal(normal_)
-		, distance(normal_.dot(point_))
-	{}
+	constexpr explicit	Plane3() = default;
+	constexpr			Plane3(const Vec3& normal_, T distance_)		noexcept : normal(normal_), distance(distance_) {}
+	constexpr			Plane3(const Vec3& normal_, const Vec3& point_) noexcept : normal(normal_) , distance(normal_.dot(point_)) {}
+						Plane3(const Triangle3<T>& tri)					noexcept { setByTriangle(tri); }
 
-	Plane3(const Triangle3<T>& tri) { setByTriangle(tri); }
-
-	void set(const Vec3& normal_, T distance_) {
+	void set(const Vec3& normal_, T distance_) noexcept {
 		normal = normal_;
 		distance = distance_;
 	}
 
-	void setByTriangle(const Vec3& v0, const Vec3& v1, const Vec3& v2) {
+	void setByTriangle(const Vec3& v0, const Vec3& v1, const Vec3& v2) noexcept {
 		normal = (v1 - v0).cross(v2 - v0).normal();
 		distance = normal.dot(v0);
 	}
 
-	void setByTriangle(const Triangle3<T>& tri) {
+	void setByTriangle(const Triangle3<T>& tri) noexcept {
 		setByTriangle(tri.v0, tri.v1, tri.v2);
 	}
 
-	T dot(const Vec3& point) const { return normal.dot(point) - distance; }
+	T dot(const Vec3& point) const noexcept { return normal.dot(point) - distance; }
 
 	void onFormat(fmt::format_context& ctx) const {
-		fmt::format_to(ctx.out(), "Plane3(nl={}, dist={})", normal, distance);
+		fmt::format_to(ctx.out(), "Plane3(nl={}, distance={})", normal, distance);
 	}
 
 	Vec3	normal;
@@ -98,23 +89,21 @@ public:
 #pragma mark ========= Cylinder3 ============
 #endif
 template<class T>
-struct Cylinder3 {
-	using Vec3 = Vec3<T>;
+class Cylinder3 {
+	using This = typename Cylinder3<T>;
 public:
-	Cylinder3() = default;
-	Cylinder3(const Vec3& start_, const Vec3& end_, const T& radius_)
-		: start(start_)
-		, end(end_)
-		, radius(radius_)
-	{}
+	using Vec3 = Vec3<T>;
+
+	constexpr explicit	Cylinder3() = default;
+	constexpr			Cylinder3(const Vec3& start_, const Vec3& end_, const T& radius_) noexcept : start(start_), end(end_), radius(radius_) {}
 
 	void onFormat(fmt::format_context& ctx) const {
 		fmt::format_to(ctx.out(), "Cylinder3(st={}, ed={}, r={})", start, end, radius);
 	}
 
-	Vec3	start;
-	Vec3	end;
-	T		radius;
+	Vec3 start;
+	Vec3 end;
+	T	 radius;
 }; // Cylinder3
 
 
@@ -122,23 +111,21 @@ public:
 #pragma mark ========= Capsule3 ============
 #endif
 template<class T>
-struct Capsule3 {
-	using Vec3 = Vec3<T>;
+class Capsule3 {
+	using This = typename Capsule3<T>;
 public:
-	Capsule3() = default;
-	Capsule3(const Vec3& start_, const Vec3& end_, const T& radius_)
-		: start(start_)
-		, end(end_)
-		, radius(radius_)
-	{}
+	using Vec3 = Vec3<T>;
+
+	constexpr explicit	Capsule3() = default;
+	constexpr			Capsule3(const Vec3& start_, const Vec3& end_, const T& radius_) noexcept : start(start_), end(end_), radius(radius_) {}
 
 	void onFormat(fmt::format_context& ctx) const {
 		fmt::format_to(ctx.out(), "Capsule3(st={}, ed={}, r={})", start, end, radius);
 	}
 
-	Vec3	start;
-	Vec3	end;
-	T		radius;
+	Vec3 start;
+	Vec3 end;
+	T	 radius;
 }; // Capsule3
 
 
@@ -146,15 +133,14 @@ public:
 #pragma mark ========= Line2 ============
 #endif
 template<class T>
-struct Line2 {
+class Line2 {
+	using This = typename Line2<T>;
+public:
 	using Vec2 = Vec2<T>;
 	using Vec3 = Vec3<T>;
-public:
-	Line2() = default;
-	Line2(const Vec2& start_, const Vec2& end_)
-		: start(start_)
-		, end(end_)
-	{}
+
+	constexpr explicit	Line2() = default;
+	constexpr			Line2(const Vec2& start_, const Vec2& end_) noexcept : start(start_), end(end_) {}
 
 	bool getClosestPoint(Vec2& outPoint, const Vec2& inPoint) const;
 	T	 distanceToPoint(const Vec2& pt) const;
@@ -163,8 +149,8 @@ public:
 		fmt::format_to(ctx.out(), "Line2(st={}, ed={})", start, end);
 	}
 
-	Vec2	start;
-	Vec2	end;
+	Vec2 start;
+	Vec2 end;
 }; // Line2
 
 
@@ -172,14 +158,13 @@ public:
 #pragma mark ========= Line3 ============
 #endif
 template<class T>
-struct Line3 {
-	using Vec3 = Vec3<T>;
+class Line3 {
+	using This = typename Line2<T>;
 public:
-	Line3() = default;
-	Line3(const Vec3& start_, const Vec3& end_)
-		: start(start_)
-		, end(end_)
-	{}
+	using Vec3 = Vec3<T>;
+
+	constexpr explicit	Line3() = default;
+	constexpr			Line3(const Vec3& start_, const Vec3& end_) noexcept : start(start_), end(end_) {}
 
 	bool getClosestPoint(Vec3& outPoint, const Vec3& inPoint) const;
 	T	 distanceToPoint(const Vec3& pt) const;
@@ -188,12 +173,12 @@ public:
 		fmt::format_to(ctx.out(), "Line3(st={}, ed={})", start, end);
 	}
 
-	Vec3	start;
-	Vec3	end;
+	Vec3 start;
+	Vec3 end;
 }; // Line3
 
 
-//------
+//----
 using Sphere3f		= Sphere3<float>;
 using Sphere3d		= Sphere3<double>;
 
@@ -215,6 +200,7 @@ using Line3d		= Line3<double>;
 
 
 namespace axe {
+
 AXE_FORMATTER(Math::Sphere3f)
 AXE_FORMATTER(Math::Sphere3d)
 
@@ -232,4 +218,5 @@ AXE_FORMATTER(Math::Line2d)
 
 AXE_FORMATTER(Math::Line3f)
 AXE_FORMATTER(Math::Line3d)
+
 } // namespace axe

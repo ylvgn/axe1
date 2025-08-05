@@ -1,7 +1,6 @@
 #include "MathCamera3.h"
 
-namespace axe {
-namespace Math {
+namespace axe { namespace Math {
 
 template<class T>
 void Camera3<T>::pan(T x, T y) {
@@ -9,9 +8,9 @@ void Camera3<T>::pan(T x, T y) {
 	auto right = _up.cross(v).normal();
 
 	auto q = Quat4::s_eulerY(x) * Quat4::s_angleAxis(y, right);
-	v    = q * v;
-	_up  = q * _up;
-	_aim = _pos + v;
+	v      = q * v;
+	_up    = q * _up;
+	_aim   = _pos + v;
 }
 
 template<class T>
@@ -20,9 +19,9 @@ void Camera3<T>::orbit(T x, T y) {
 	auto right	= _up.cross(v).normal();
 
 	auto q = Quat4::s_angleAxis(y, right) * Quat4::s_eulerY(x);
-	v    = q * v;
-	_up  = q * _up;
-	_pos = _aim + v;
+	v      = q * v;
+	_up    = q * _up;
+	_pos   = _aim + v;
 }
 
 template<class T>
@@ -79,12 +78,13 @@ Mat4<T> Camera3<T>::projMatrix() const {
 		}
 	}
 
-	AXE_ASSERT(false); // nerver happen
+	AXE_ASSERT(false); // never happen
 	return Mat4::s_identity();
 }
 
-template struct Camera3<float>;
-template struct Camera3<double>;
 
-} // namespace Math
-} // namespace axe
+// explicit specialization to force VisualC check syntax in function body
+template class Camera3<float>;
+template class Camera3<double>;
+
+}} // namespace axe/Math

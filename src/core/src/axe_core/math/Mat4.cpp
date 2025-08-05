@@ -9,12 +9,9 @@ namespace axe {
 #elif AXE_MATH_USE_SSE
 	template Mat4_SSE<float>;
 	template Mat4_SSE<double>;
-
 #else
 	template Mat4_Basic<float>;
 	template Mat4_Basic<double>;
 #endif
 
-
-
-}
+} // namespace axe

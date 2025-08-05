@@ -20,12 +20,16 @@
 #include <axe_core/math/Tuple3.h>
 #include <axe_core/math/Tuple4.h>
 #include <axe_core/math/Vec2.h>
+#include <axe_core/math/Margin2.h>
 #include <axe_core/math/Rect2.h>
 #include <axe_core/math/Vec3.h>
 #include <axe_core/math/Vec4.h>
-#include <axe_core/math/Mat4.h>
 #include <axe_core/math/Quat4.h>
+#include <axe_core/math/Mat4.h>
 #include <axe_core/math/BBox3.h>
+#include <axe_core/math/MathGeometry.h>
+#include <axe_core/math/Ray3.h>
+#include <axe_core/math/Frustum3.h>
 #include <axe_core/math/MathCamera3.h>
 
 #include <axe_core/file/MemMapFile.h>

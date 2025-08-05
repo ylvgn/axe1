@@ -14,7 +14,7 @@ Ray3<T> Ray3<T>::s_unprojectFromInvMatrix(const Vec2& screenPos, const Mat4& inv
 
 	Ray3 o;
 	o.origin = v0;
-	o.dir = (v1 - v0).normal();
+	o.dir    = (v1 - v0).normal();
 	return o;
 }
 
@@ -42,8 +42,9 @@ bool Ray3<T>::getClosestPoint(Vec3& outPoint, const Line3& line, T minOnLine, T 
 	return true;
 }
 
-// explicit specialization to force VisualC check syntax in function body
-template struct Ray3<float>;
-template struct Ray3<double>;
 
-}
+// explicit specialization to force VisualC check syntax in function body
+template class Ray3<float>;
+template class Ray3<double>;
+
+} // namespace axe

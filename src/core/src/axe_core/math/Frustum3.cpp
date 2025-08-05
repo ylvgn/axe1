@@ -17,11 +17,11 @@ void Frustum3<T>::_updatePlanesFromPoints() {
 template<class T>
 bool Frustum3<T>::isOverlapped(const Frustum3& f) const {
 	for (size_t i = 0; i < 6; ++i) {
-		if (_outsideOfPlane(planes[i], f.points))
+		if (_s_outsideOfPlane(planes[i], f.points))
 			return false;
 	}
 	for (size_t i = 0; i < 6; ++i) {
-		if (_outsideOfPlane(f.planes[i], points))
+		if (_s_outsideOfPlane(f.planes[i], points))
 			return false;
 	}
 	return true;
@@ -49,7 +49,8 @@ void Frustum3<T>::setByInvViewProjMatrix(const Mat4& invMatrix) {
 }
 
 
-template struct Frustum3<float>;
-template struct Frustum3<double>;
+// explicit specialization to force VisualC check syntax in function body
+template class Frustum3<float>;
+template class Frustum3<double>;
 
 }} // namespace axe/Math

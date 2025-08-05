@@ -11,18 +11,19 @@ public:
 	using ElementType = T;
 	static const size_t kElementCount = 4;
 
-	using Vec3 = axe::Vec3<T>;
-	using Vec4 = axe::Vec4<T>;
+	using Vec3 = Vec3<T>;
+	using Vec4 = Vec4<T>;
 
 	union {
 		struct{T x, y, z, w;};
 		T data[kElementCount];
 	};
 
-	explicit constexpr Quat4() = default;
-	explicit constexpr Quat4(T x_, T y_, T z_, T w_) : x(x_), y(y_), z(z_), w(w_) {}
+	constexpr explicit Quat4() = default;
+	constexpr explicit Quat4(T x_, T y_, T z_, T w_) noexcept : x(x_), y(y_), z(z_), w(w_) {}
 
-	constexpr void set(T x_, T y_, T z_, T w_) { x=x_; y=y_; z=z_; w=w_; }
+	constexpr void set(T v)					   noexcept { x = v; y = v; z = v; w = v; }
+	constexpr void set(T x_, T y_, T z_, T w_) noexcept { x=x_; y=y_; z=z_; w=w_; }
 
 	static	Quat4	s_identity() { return Quat4(0,0,0,1); }
 	static	Quat4	s_angleAxis(T rad, const Vec3& axis);
@@ -35,43 +36,53 @@ public:
 	static	Quat4 s_eulerY(T rad)	{ T s, c; Math::sincos(rad * T(0.5), s, c); return Quat4(0,s,0,c); }
 	static	Quat4 s_eulerZ(T rad)	{ T s, c; Math::sincos(rad * T(0.5), s, c); return Quat4(0,0,s,c); }
 
-	static	Quat4 s_eulerDegX(T deg)	{ return s_eulerX(Math::radians(deg)); }
-	static	Quat4 s_eulerDegY(T deg)	{ return s_eulerY(Math::radians(deg)); }
-	static	Quat4 s_eulerDegZ(T deg)	{ return s_eulerZ(Math::radians(deg)); }
+	static	Quat4 s_eulerDegX(T deg) { return s_eulerX(Math::radians(deg)); }
+	static	Quat4 s_eulerDegY(T deg) { return s_eulerY(Math::radians(deg)); }
+	static	Quat4 s_eulerDegZ(T deg) { return s_eulerZ(Math::radians(deg)); }
 
-			void setEuler(const Vec3& r)	{ *this = s_euler(r); }
-			void setEulerX(T rad) { *this = s_eulerX(rad); }
-			void setEulerY(T rad) { *this = s_eulerY(rad); }
-			void setEulerZ(T rad) { *this = s_eulerZ(rad); }
+	void  setEuler(const Vec3& r)	{ *this = s_euler(r); }
+	void setEulerX(T rad)			{ *this = s_eulerX(rad); }
+	void setEulerY(T rad)			{ *this = s_eulerY(rad); }
+	void setEulerZ(T rad)			{ *this = s_eulerZ(rad); }
 
-			void setEulerDegX(T deg) { *this = s_eulerDegX(deg); }
-			void setEulerDegY(T deg) { *this = s_eulerDegY(deg); }
-			void setEulerDegZ(T deg) { *this = s_eulerDegZ(deg); }
+	void setEulerDegX(T deg) { *this = s_eulerDegX(deg); }
+	void setEulerDegY(T deg) { *this = s_eulerDegY(deg); }
+	void setEulerDegZ(T deg) { *this = s_eulerDegZ(deg); }
 
-			Vec3 euler() const	{ return Vec3(eulerX(), eulerY(), eulerZ()); }
-			T eulerX() const;
-			T eulerY() const;
-			T eulerZ() const;
+	Vec3 euler() const { return Vec3(eulerX(), eulerY(), eulerZ()); }
+	T	eulerX() const;
+	T	eulerY() const;
+	T	eulerZ() const;
 
 	Quat4 conjugate() const;
 	Quat4 inverse() const;
 
-			T dot(const Quat4& r) const { return (x * r.x + y * r.y) + (z * r.z + w * r.w); }
-
-	Quat4 operator*(const Quat4& r) const;
-	Vec3 operator*(const Vec3& v) const;
-
-	Quat4 operator+(const Quat4& r) const { return Quat4(x+r.x, y+r.y, z+r.z, w+r.w); }
-	Quat4 operator-(const Quat4& r) const { return Quat4(x-r.x, y-r.y, z-r.z, w-r.w); }
-
-	Quat4 operator*(const T&    v) const { return Quat4(x*v, y*v, z*v, w*v); }
-	Quat4 operator/(const T&    v) const { return Quat4(x/v, y/v, z/v, w/v); }
-
-	Quat4 operator-() const { return Quat4(-x, -y, -z, -w); }
+	T dot(const Quat4& r) const { return (x * r.x + y * r.y) + (z * r.z + w * r.w); }
 
 	AXE_INLINE bool operator==(const Quat4& r) const { return x == r.x && y == r.y && z == r.z && w == r.w; }
-	AXE_INLINE bool operator!=(const Quat4& r) const { return x != r.x || y != r.y || z != r.z || w != r.w; }
-};
+	AXE_INLINE bool operator!=(const Quat4& r) const { return !(this->operator==(r)); }
+
+	AXE_NODISCARD Quat4 operator-() const { return Quat4(-x, -y, -z, -w); }
+
+	AXE_NODISCARD Quat4 operator * (const Quat4& r) const;
+	AXE_NODISCARD Vec3  operator * (const Vec3&  v) const;
+
+	AXE_NODISCARD Quat4 operator + (const Quat4& r) const { return Quat4(x+r.x, y+r.y, z+r.z, w+r.w); }
+	AXE_NODISCARD Quat4 operator - (const Quat4& r) const { return Quat4(x-r.x, y-r.y, z-r.z, w-r.w); }
+
+	AXE_NODISCARD Quat4 operator * (const T&     v) const { return Quat4(x*v, y*v, z*v, w*v); }
+	AXE_NODISCARD Quat4 operator / (const T&     v) const { return Quat4(x/v, y/v, z/v, w/v); }
+
+	void onFormat(fmt::format_context& ctx) const {
+		fmt::format_to(ctx.out(), "({}, {}, {}, {})", x, y, z, w);
+	}
+}; // Quat4
+
+using Quat4f = Quat4<float>;
+using Quat4d = Quat4<double>;
+
+AXE_FORMATTER_T(class T, Quat4<T>)
+
 
 namespace Math {
 
@@ -168,7 +179,7 @@ Quat4<T> Quat4<T>::inverse() const {
 	return Quat4(-x/recip, -y/recip, -z/recip, w/recip);
 }
 
-template<class T> inline
+template<class T> AXE_NODISCARD inline
 Vec3<T> Quat4<T>::operator*(const Vec3& v) const {
 	Vec3 qv(x, y, z);
 	auto uv  = qv.cross(v);
@@ -176,7 +187,7 @@ Vec3<T> Quat4<T>::operator*(const Vec3& v) const {
 	return v + (uv * w + uuv) * T(2);
 }
 
-template<class T> inline
+template<class T> AXE_NODISCARD inline
 Quat4<T> Quat4<T>::operator*(const Quat4& r) const {
 	return Quat4(x * r.w +  w * r.x + z * r.y - y * r.z,
 				y * r.w +  w * r.y + x * r.z - z * r.x,
@@ -191,10 +202,7 @@ Quat4<T> Quat4<T>::s_angleAxis(T rad, const Vec3& axis) {
 	return Quat4(axis.x * s, axis.y * s, axis.z * s, c);
 }
 
-using Quat4f = Quat4<float>;
-using Quat4d = Quat4<double>;
-
 template<> const TypeInfo* TypeOf<Quat4f>();
 template<> const TypeInfo* TypeOf<Quat4d>();
 
-}
+} // namespace axe

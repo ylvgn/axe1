@@ -50,16 +50,18 @@ T Line3<T>::distanceToPoint(const Vec3& pt) const {
 	return Math::inf<T>();
 }
 
-#define	E(T) \
-	template struct Line2<T>; \
-	template struct Line3<T>; \
-	template struct Plane3<T>; \
-	template struct Sphere3<T>; \
-	template struct Cylinder3<T>; \
-	template struct Capsule3<T>; \
+
+// explicit specialization to force VisualC check syntax in function body
+#define AXE_MACRO_OP(T) \
+	template class Line2<T>;     \
+	template class Line3<T>;     \
+	template class Plane3<T>;    \
+	template class Sphere3<T>;   \
+	template class Cylinder3<T>; \
+	template class Capsule3<T>;  \
 //----
-	E(float)
-	E(double)
-#undef E
+	AXE_MACRO_OP(float)
+	AXE_MACRO_OP(double)
+#undef AXE_MACRO_OP
 
 }} // namespace axe/Math

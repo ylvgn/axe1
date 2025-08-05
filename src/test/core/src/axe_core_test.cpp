@@ -13,7 +13,7 @@
 namespace axe {
 
 void run_temp_test() {
-	RUN_TEST(test_Thread);
+	RUN_TEST(test_Rect2);
 }
 
 void run_all_test() {
@@ -26,13 +26,10 @@ void run_all_test() {
 	RUN_TEST(test_Mutex);
 	RUN_TEST(test_Thread);
 	RUN_TEST(test_CondVar);
-
 // file
 	RUN_TEST(test_MemMapFile);
-
 // log
 	RUN_TEST(test_Log);
-
 // math
 	RUN_TEST(test_Math);
 	RUN_TEST(test_Vec2);
@@ -40,16 +37,14 @@ void run_all_test() {
 	RUN_TEST(test_Vec4);
 	RUN_TEST(test_Quat4);
 	RUN_TEST(test_Mat4);
-
+	RUN_TEST(test_Rect2);
 // string
 	RUN_TEST(test_Fmt);
 	RUN_TEST(test_String);
 	RUN_TEST(test_StrView);
 	RUN_TEST(test_UtfUtil);
-
 // net
 	RUN_TEST(test_Socket);
-
 // pointer
 	RUN_TEST(test_WPtr);
 }

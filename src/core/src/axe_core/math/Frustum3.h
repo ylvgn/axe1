@@ -1,17 +1,20 @@
 #pragma once
-#include "MathGeometry.h"
+
 #include "BBox3.h"
+#include "MathGeometry.h"
 
 namespace axe { namespace Math {
 
 template<class T>
-struct Frustum3 {
+class Frustum3 {
+	using This = typename Frustum3<T>;
+public:
 	using Vec3	 = Vec3<T>;
 	using Vec4	 = Vec4<T>;
 	using Mat4   = Mat4<T>;
-	using Plane3 = Plane3<T>;
 	using BBox3  = BBox3<T>;
-public:
+	using Plane3 = Plane3<T>;
+
 	enum class Side : u8 {
 		Near,
 		Far,
@@ -29,9 +32,6 @@ public:
 	constexpr static const int kSideTop    = enumInt(Side::Top   );
 	constexpr static const int kSideBottom = enumInt(Side::Bottom);
 	constexpr static const int kSideCount  = enumInt(Side::_END  );
-
-	Vec3	points[8];
-	Plane3	planes[kSideCount];
 
 	void setByViewProjMatrix(const Mat4& matrix) { setByInvViewProjMatrix(matrix.inverse()); }
 	void setByInvViewProjMatrix(const Mat4& invMatrix);
@@ -55,13 +55,19 @@ public:
 	const Plane3&	topPlane	() const { return planes[kSideTop   ]; }
 	const Plane3&	bottomPlane	() const { return planes[kSideBottom]; }
 
+	Vec3   points[8];
+	Plane3 planes[kSideCount];
+
 private:
-	static bool _outsideOfPlane(const Plane3& p, const Vec3 points[8]);
+	static bool _s_outsideOfPlane(const Plane3& p, const Vec3 points[8]);
 	void _updatePlanesFromPoints();
-};
+}; // Frustum3
+
+using Frustum3f = Frustum3<float>;
+using Frustum3d = Frustum3<double>;
 
 template<class T> inline
-bool Frustum3<T>::_outsideOfPlane(const Plane3& p, const Vec3 points[8]) {
+bool Frustum3<T>::_s_outsideOfPlane(const Plane3& p, const Vec3 points[8]) {
 	for (size_t i = 0; i < 8; i++) {
 		if (p.dot(points[i]) < 0)
 			return false;
@@ -75,8 +81,5 @@ bool Frustum3<T>::isOverlapped(const BBox3& bbox, const Mat4& matrix) const {
 	tmp.setByBBox(bbox, matrix);
 	return isOverlapped(tmp);
 }
-
-using Frustum3f = Frustum3<float>;
-using Frustum3d = Frustum3<double>;
 
 }} // namespace axe/Math

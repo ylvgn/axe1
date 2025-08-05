@@ -1,4 +1,4 @@
-#include "Vec2.h"
+#include "BBox3.h"
 
 namespace axe {
 
@@ -6,12 +6,9 @@ namespace axe {
 
 #ifndef AXE_MATH_USE_SSE
 	#error
-#elif AXE_MATH_USE_SSE
-	template Vec2_SSE<float>;
-	template Vec2_SSE<double>;
 #else
-	template Vec2_Basic<float>;
-	template Vec2_Basic<double>;
+	template BBox3<float>;
+	template BBox3<double>;
 #endif
 
 } // namespace axe

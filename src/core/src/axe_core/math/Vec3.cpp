@@ -9,7 +9,6 @@ namespace axe {
 #elif AXE_MATH_USE_SSE
 	template Vec3_SSE<float>;
 	template Vec3_SSE<double>;
-
 #else
 	template Vec3_Basic<float>;
 	template Vec3_Basic<double>;
@@ -34,4 +33,4 @@ template<> const TypeInfo* TypeOf<Vec3f>() {
 	return &ti;
 }
 
-}
+} // namespace axe

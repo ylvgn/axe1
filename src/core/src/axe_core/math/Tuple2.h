@@ -33,30 +33,35 @@ private: \
 public: \
 //----
 
+
 namespace axe {
 
 template<class T>
-struct Tuple2 {
+class Tuple2 {
+public:
+
 	axeTuple_InterfaceFunctions_Impl(Tuple2, T, 2)
+
 	union {
 		struct { T x, y; };
 		T data[kElementCount];
 	};
 
-	AXE_INLINE constexpr explicit Tuple2(T v)		 : x(v), y(v) {}
-	AXE_INLINE constexpr explicit Tuple2(T x_, T y_) : x(x_), y(y_) {}
+	constexpr explicit Tuple2(T v)		  noexcept : x(v), y(v) {}
+	constexpr explicit Tuple2(T x_, T y_) noexcept : x(x_), y(y_) {}
 
-	AXE_INLINE constexpr void set(const Tuple2<T>& v) { *this = v; }
-	AXE_INLINE constexpr void set(T x_, T y_) {
+	constexpr void set(const Tuple2<T>& v) { *this = v; }
+	constexpr void set(T x_, T y_) {
 		x = x_; y = y_;
 	}
-	AXE_INLINE constexpr void setAll(const T& v)  { set(v,v); }
-	AXE_INLINE constexpr void setToDefaultValue() { setAll(0); }
+
+	constexpr void setAll(const T& v)  { set(v,v); }
+	constexpr void setToDefaultValue() { setAll(0); }
 
 	void onFormat(fmt::format_context& ctx) const {
 		fmt::format_to(ctx.out(), "({}, {})", x, y);
 	}
-};
+}; // Tuple2
 
 using Tuple2f = Tuple2<float>;
 using Tuple2d = Tuple2<double>;

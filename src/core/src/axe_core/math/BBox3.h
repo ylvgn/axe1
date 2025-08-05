@@ -6,29 +6,43 @@
 namespace axe {
 
 template<class T>
-struct BBox3 {
+class BBox3 {
+	using This = typename BBox3<T>;
+public:
 	using Vec3 = Vec3<T>;
 	using Mat4 = Mat4<T>;
 
-	Vec3	min;
-	Vec3	max;
+	explicit constexpr BBox3() = default;
+			 constexpr BBox3(const Vec3& min_, const Vec3& max_) noexcept : min(min_), max(max_) {}
+
+	static BBox3 s_invalid() {
+		return BBox3(Vec3(1,1,1), Vec3(-1,-1,-1));
+	}
 
 	bool isValid() const { return min.x <= max.x; }
 
-	void reset()	{
+	void reset() {
 		min.set( 1, 1, 1);
 		max.set(-1,-1,-1);
 	}
 
-	BBox3() = default;
-	BBox3(const Vec3& min_, const Vec3& max_) : min(min_), max(max_) {}
-
-	static BBox3	s_invalid() { return BBox3(Vec3(1,1,1), Vec3(-1,-1,-1)); }
-
 	void encapsulate(const Vec3& pt);
 
 	void getPoints(Vec3 outPoints[8], const Mat4& matrix) const;
-};
+
+	void onFormat(fmt::format_context& ctx) const {
+		fmt::format_to(ctx.out(), "BBox3(\n  min={},\n  max={})", min, max);
+	}
+
+	Vec3 min;
+	Vec3 max;
+}; // BBox3
+
+using BBox3f = BBox3<float>;
+using BBox3d = BBox3<double>;
+
+AXE_FORMATTER_T(class T, BBox3<T>)
+
 
 template<class T> inline
 void BBox3<T>::getPoints(Vec3 outPoints[8], const Mat4& matrix) const {
@@ -57,7 +71,4 @@ void BBox3<T>::encapsulate(const Vec3& pt) {
 	}
 }
 
-using BBox3f = BBox3<float>;
-using BBox3d = BBox3<double>;
-
-}
+} // namespace axe
