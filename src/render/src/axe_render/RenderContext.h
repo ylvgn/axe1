@@ -4,36 +4,54 @@
 
 namespace axe {
 
+class RenderContext_EventHandler {
+public:
+	void render(RenderContext* ctx);
+
+	virtual void onRender(RenderContext& ctx) {};
+}; // RenderContext_EventHandler
+
+
 class RenderContext_CreateDesc {
 public:
-	NativeUIWindow* window = nullptr;
+	using EventHandler = RenderContext_EventHandler;
+
+//	NativeUIWindow::CreateDesc	winDesc; no need atm
+	NativeUIWindow*				window		 = nullptr;
+	EventHandler*				eventHandler = nullptr;
 }; // RenderContext_CreateDesc
 
 
 class RenderContext : public RenderDeviceObject {
-	using This = RenderContext;
-	using Base = RenderDeviceObject;
+	AXE_ABSTRACT_CLASS_TYPE(RenderContext, RenderDeviceObject)
+	using Vec2  = Vec2f;
+	using Rect2 = Rect2f;
 public:
 	using CreateDesc = RenderContext_CreateDesc;
+	using EventHandler = CreateDesc::EventHandler;
 
-	virtual ~RenderContext() = default;
+	NativeUIWindow*	  window()		 { return _window; }
+	EventHandler*	  eventHandler() { return _eventHandler; }
 
-	void beginRender();
-	void endRender();
+			void beginRender();
+	virtual void onBeginRender() {}
 
-	void setFrameBufferSize(Vec2f newSize);
-	const Vec2f& frameBufferSize() const { return _frameBufferSize; }
+			void endRender();
+	virtual void onEndRender() {}
 
-	void commit(RenderCommandBuffer& cmdBuf) { onCommit(cmdBuf); }
+			void setSwapchainFrameBufferSize(const Vec2& newSize);
+	virtual void onSetSwapchainFrameBufferSize(const Vec2& newSize) { _swapchainFrameBufferSize = newSize; }
+	const auto& swapchainFrameBufferSize() const { return _swapchainFrameBufferSize; }
 
+//	void setNativeViewRect(const Rect2& rect); no need atm
+//	virtual void onSetNativeViewRect(const Rect2& rect) {}; no need atm
+			void commit(RenderCommandBuffer& cmdBuf) { onCommit(cmdBuf); }
+	virtual void onCommit(RenderCommandBuffer& cmdBuf) = 0;
+
+//	void setNeedToRender(); no need atm
+	//	virtual void onSetNeedToRender() = 0; no need atm
 protected:
 	RenderContext(RenderDevice* device, CreateDesc& desc) noexcept; // please create from 'RenderDevice::createRenderContext'
-
-	virtual void onBeginRender() {}
-	virtual void onEndRender()	 {}
-
-	virtual void onSetFrameBufferSize(const Vec2f& newSize) {};
-	virtual void onCommit(RenderCommandBuffer& cmdBuf) {}
 
 	template<class IMPL>
 	void _dispatch(IMPL* impl, RenderCommandBuffer& cmdBuf) {
@@ -59,7 +77,9 @@ protected:
 		#undef AXE_MACRO_OP
 	}
 
-	Vec2f _frameBufferSize {0,0};
+	Vec2			_swapchainFrameBufferSize{ 0, 0 };
+	NativeUIWindow* _window = nullptr;
+	EventHandler*	_eventHandler = nullptr;
 }; // RenderContext
 
 } // namespace axe

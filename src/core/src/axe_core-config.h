@@ -5,7 +5,8 @@
 #define AXE_MATH_USE_SSE	1
 
 #define AXE_TRY_USE_DX12	1
-#define AXE_TRY_USE_OPENGL	0 // would be removed in these days
+#define AXE_TRY_USE_OPENGL	1
+#define AXE_TRY_USE_VULKAN	1
 
 #if AXE_OS_WINDOWS
 	#define TRACY_ENABLE 1

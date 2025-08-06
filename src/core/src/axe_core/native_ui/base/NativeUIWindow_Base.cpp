@@ -47,4 +47,8 @@ void NativeUIWindow_Base::setCursor(UIMouseCursor cursor) {
 	onSetNativeCursor(cursor);
 }
 
+void NativeUIWindow_Base::setVisible(bool b) {
+	onSetNativeVisible(b);
+}
+
 } // namespace axe

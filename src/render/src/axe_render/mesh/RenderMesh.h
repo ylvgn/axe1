@@ -8,9 +8,14 @@ namespace axe {
 
 #if 0
 #pragma mark ========= RenderSubMesh ============
-#endif	
-class RenderSubMesh {
+#endif
+class RenderSubMesh /*: public NonCopyable*/ {
+	using This = RenderSubMesh;
+friend class RenderMesh;
 public:
+//	RenderSubMesh() = default;
+//	RenderSubMesh(This && ) = default;
+
 	void create(const EditMesh& src);
 	void clear();
 
@@ -28,7 +33,6 @@ public:
 
 	RenderPrimitiveType primitive()		const;
 	const VertexLayout* vertexLayout()	const;
-	RenderDevice*		device()		const;
 
 	RenderGpuBuffer*	vertexBuffer()	const	{ return constCast(_vertexBuffer); }
 	RenderGpuBuffer*	indexBuffer()	const	{ return constCast(_indexBuffer); }
@@ -38,7 +42,6 @@ public:
 
 	const BBox3f&		boundingBox()	const	{ return _boundingBox; }
 
-friend class RenderMesh;
 protected:
 	void _createVB(const EditMesh& src, size_t vertexCount);
 	void _createIB(const EditMesh& src, size_t  indexCount);
@@ -66,20 +69,15 @@ protected:
 	size_t  _indexCount = 0;
 
 	BBox3f _boundingBox;
-};
+}; // RenderSubMesh
+
 
 #if 0
 #pragma mark ========= RenderMesh ============
 #endif	
-class RenderMesh : public RenderResource {
-	AXE_CLASS_TYPE(RenderMesh, RenderResource)
+class RenderMesh : public NonCopyable {
 public:
 	using SubMesh = RenderSubMesh;
-
-	RenderMesh() = default;
-	RenderMesh(RenderDevice* device) noexcept : Base(device) {}
-
-	axeRenderResources_InterfaceFunctions(RenderMesh)
 
 	static constexpr size_t kSubMeshMaxVertexCount = 0x8000;
 
@@ -90,22 +88,22 @@ public:
 
 	void clear();
 
-	PrimitiveType primitive()			const	{ return _primitive; }
-	const VertexLayout* vertexLayout()	const	{ return _vertexLayout; }
+	RenderPrimitiveType primitive()		const	 { return _primitive; }
+	const VertexLayout* vertexLayout()	const	 { return _vertexLayout; }
 
-	Span<      SubMesh>	subMeshes()				{ return _subMeshes; }
-	Span<const SubMesh>	subMeshes()		const	{ return _subMeshes; }
+	Span<      SubMesh>	subMeshes()				 { return _subMeshes; }
+	Span<const SubMesh>	subMeshes()		const	 { return _subMeshes; }
 
-	void setPrimitiveType(PrimitiveType t)		{ _primitive = t; }
-	void setVertexLayout(const VertexLayout* v)	{ _vertexLayout = v; }
+	void setPrimitiveType(RenderPrimitiveType t) { _primitive = t; }
+	void setVertexLayout(const VertexLayout* v)	 { _vertexLayout = v; }
 	void setSubMeshCount(size_t newSize);
 
 private:
 	const VertexLayout* _vertexLayout = nullptr;
 
-	Vector<SubMesh, 1>	_subMeshes;
-	PrimitiveType	   _primitive = PrimitiveType::Triangles;
-};
+	Vector<SubMesh, 1>  _subMeshes;
+	RenderPrimitiveType _primitive = RenderPrimitiveType::Triangles;
+}; // RenderMesh
 
 AXE_INLINE RenderPrimitiveType RenderSubMesh::primitive() const {
 	return _mesh->primitive();
@@ -113,11 +111,6 @@ AXE_INLINE RenderPrimitiveType RenderSubMesh::primitive() const {
 
 AXE_INLINE const VertexLayout* RenderSubMesh::vertexLayout() const {
 	return _mesh->vertexLayout();
-}
-
-AXE_INLINE RenderDevice* RenderSubMesh::device() const {
-	auto* p = _mesh->device();
-	return !p ? Renderer::s_instance()->findDevice() : p;
 }
 
 template<class VertexT> inline

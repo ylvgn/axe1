@@ -1,9 +1,9 @@
 #pragma once
 
+#if AXE_RENDER_HAS_DX12
+
 #include <axe_render/buffer/RenderGpuBuffer.h>
 #include "Common_DX12.h"
-
-#if AXE_RENDER_HAS_DX12
 
 namespace axe {
 
@@ -11,6 +11,8 @@ class GpuBuffer_DX12 : public RenderGpuBuffer {
 	AXE_CLASS_TYPE(GpuBuffer_DX12, RenderGpuBuffer)
 public:
 	//DX12_ID3DBuffer* d3dBuf() { return _d3dBuf; }
+
+	using Base::Base;
 
 protected:
 	virtual void onCreate(CreateDesc& desc) final;

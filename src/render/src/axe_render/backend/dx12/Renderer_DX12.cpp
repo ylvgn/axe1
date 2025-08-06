@@ -38,15 +38,6 @@ Renderer_DX12::Renderer_DX12(CreateDesc& desc)
 	_getHardwareAdapterBasicInfo();
 }
 
-Device_DX12* Renderer_DX12::findDevice(int i) const {
-	return static_cast<Device_DX12*>(Base::findDevice(i));
-}
-
-DX12_ID3D12Device* Renderer_DX12::d3dDevice(int i) {
-	auto* p = findDevice(i);
-	return p ? p->d3dDevice() : nullptr;
-}
-
 void Renderer_DX12::setDebugLayer(bool isEnable) {
 #if defined(_DEBUG)
 	// Enable the debug layer (requires the Graphics Tools "optional feature" from Windows Settings > System > Optional features).
@@ -84,8 +75,34 @@ void Renderer_DX12::setSyncCommandQueueValidation(bool isEnable) {
 #endif
 }
 
-RenderDevice* Renderer_DX12::onCreateRenderDevice(RenderDevice_CreateDesc& desc) {
-	return new Device_DX12(desc);
+void Renderer_DX12::Helper::forEachDXGIAdapter(ForEachDXGIAdapterHandler func) {
+	AXE_ASSERT(func != nullptr);
+
+	auto* renderer	  = Renderer_DX12::s_instance();
+	auto* dxgiFactory = renderer->dxgiFactory();
+	AXE_ASSERT(dxgiFactory != nullptr);
+
+	::HRESULT			  hr;
+	::DXGI_GPU_PREFERENCE gpuPreference = DXGI_GPU_PREFERENCE_UNSPECIFIED;
+
+	for (::UINT i = 0;; ++i) {
+		ComPtr<IDXGIAdapter> dxgiAdapter;
+		hr = dxgiFactory->EnumAdapterByGpuPreference(i, gpuPreference, IID_PPV_ARGS(dxgiAdapter.ptrForInit()));
+
+		if (DXGI_ERROR_NOT_FOUND == hr)
+			break;
+
+		if (!Util::isValid(hr))
+		{
+			AXE_LOG_ERROR("[forEachDXGIAdapter] error: {}", DX12_HRESULT_String(hr, nullptr));
+			continue;
+		}
+
+		if ( func(dxgiAdapter) ) {
+			// return true will early exit
+			break;
+		}
+	}
 }
 
 void Renderer_DX12::_getHardwareAdapterBasicInfo() {
@@ -111,7 +128,7 @@ void Renderer_DX12::_getHardwareAdapterBasicInfo() {
 		}
 
 		// Check to see if the adapter supports Direct3D 12.0, but don't create the actual device yet.
-		hr = D3D12CreateDevice(adapter, D3D_FEATURE_LEVEL_12_0, _uuidof(decltype(adapter)), nullptr);
+		hr = ::D3D12CreateDevice(adapter, D3D_FEATURE_LEVEL_12_0, _uuidof(decltype(adapter)), nullptr);
 		if (!Util::isValid(hr))
 			return false;
 
@@ -120,7 +137,7 @@ void Renderer_DX12::_getHardwareAdapterBasicInfo() {
 		UtfUtil::convert(adapterInfo.adapterName, desc.Description);
 		adapterInfo.memorySize = desc.DedicatedVideoMemory;
 
-		AXE_LOG("DX12 Adpter = {}\n"
+		AXE_LOG("DX12 Adapter = {}\n"
 				"    SubSysId = {}\n"
 				"    Revision = {}\n"
 				"    VendorId = 0x{:0X}\n"
@@ -137,9 +154,9 @@ void Renderer_DX12::_getHardwareAdapterBasicInfo() {
 			  , desc.VendorId
 			  , desc.DeviceId
 			  , desc.AdapterLuid
-			  , desc.DedicatedVideoMemory * kToMegaByte
+			  , desc.DedicatedVideoMemory  * kToMegaByte
 			  , desc.DedicatedSystemMemory * kToMegaByte
-			  , desc.SharedSystemMemory * kToMegaByte
+			  , desc.SharedSystemMemory    * kToMegaByte
 			  , enumInt(desc.Flags)
 		);
 
@@ -188,36 +205,22 @@ Renderer_DX12::LiveObjectReporter::~LiveObjectReporter() {
 	}
 }
 
-void Renderer_DX12::Helper::forEachDXGIAdapter(ForEachDXGIAdapterHandler func) {
-	if (!func)
-		return;
+Device_DX12* Renderer_DX12::findDevice(int i) const {
+	return static_cast<Device_DX12*>(Base::findDevice(i));
+}
 
-	auto* renderer = Renderer_DX12::s_instance();
-	auto* dxgiFactory = renderer->dxgiFactory();
-	AXE_ASSERT(dxgiFactory != nullptr);
+Span< Device_DX12* > Renderer_DX12::devices() {
+	using DST = Device_DX12*;
+	return Span<DST>(reinterpret_cast<DST*>(_devices.data()), _devices.size());
+}
 
-	::HRESULT			  hr;
-	::DXGI_GPU_PREFERENCE gpuPreference = DXGI_GPU_PREFERENCE_UNSPECIFIED;
+DX12_ID3D12Device* Renderer_DX12::d3dDevice(int i) {
+	auto* p = findDevice(i);
+	return p ? p->d3dDevice() : nullptr;
+}
 
-	for (UINT i = 0;; ++i)
-	{
-		ComPtr<IDXGIAdapter> dxgiAdapter;
-		hr = dxgiFactory->EnumAdapterByGpuPreference(i, gpuPreference, IID_PPV_ARGS(dxgiAdapter.ptrForInit()));
-
-		if (DXGI_ERROR_NOT_FOUND == hr)
-			break;
-
-		if (!Util::isValid(hr))
-		{
-			AXE_LOG_ERROR("[forEachDXGIAdapter] error: {}", DX12_HRESULT_String(hr, nullptr));
-			continue;
-		}
-
-		if ( func(dxgiAdapter) ) {
-			// return true will early rejection
-			break;
-		}
-	}
+RenderDevice* Renderer_DX12::onCreateRenderDevice(RenderDevice_CreateDesc& desc) {
+	return new Device_DX12(desc);
 }
 
 } // namespace axe

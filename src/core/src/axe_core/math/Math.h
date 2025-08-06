@@ -5,6 +5,9 @@ namespace axe { namespace Math {
 	template<class T> constexpr T max(const T& a, const T& b) { return a > b ? a : b; }
 	template<class T> constexpr T min(const T& a, const T& b) { return a < b ? a : b; }
 
+	template<class T> constexpr void max_it(T& a, const T& b) { a = max(a, b); }
+	template<class T> constexpr void min_it(T& a, const T& b) { a = min(a, b); }
+
 	template<class T> constexpr T clamp		(const T& v, const T& a, const T& b) { return max(a, min(v, b)) ; }
 	template<class T> constexpr T clamp01	(const T& v) { return clamp(v, T(0), T(1)); }
 	template<class T> constexpr T saturate	(const T& v) { return clamp01(v); }

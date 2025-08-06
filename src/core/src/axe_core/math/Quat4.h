@@ -5,8 +5,9 @@
 namespace axe {
 
 // Quaternion
-template<class T>
+template <class T>
 class Quat4 {
+	using This = typename Quat4<T>;
 public:
 	using ElementType = T;
 	static const size_t kElementCount = 4;
@@ -20,6 +21,7 @@ public:
 	};
 
 	constexpr explicit Quat4() = default;
+	constexpr explicit Quat4(T v)					 noexcept : x(v), y(v), z(v), w(v) {}
 	constexpr explicit Quat4(T x_, T y_, T z_, T w_) noexcept : x(x_), y(y_), z(z_), w(w_) {}
 
 	constexpr void set(T v)					   noexcept { x = v; y = v; z = v; w = v; }
@@ -59,8 +61,8 @@ public:
 
 	T dot(const Quat4& r) const { return (x * r.x + y * r.y) + (z * r.z + w * r.w); }
 
-	AXE_INLINE bool operator==(const Quat4& r) const { return x == r.x && y == r.y && z == r.z && w == r.w; }
-	AXE_INLINE bool operator!=(const Quat4& r) const { return !(this->operator==(r)); }
+	bool operator== (const This& r) const { return x == r.x && y == r.y && z == r.z && w == r.w; }
+	bool operator!= (const This& r) const { return !(this->operator==(r)); }
 
 	AXE_NODISCARD Quat4 operator-() const { return Quat4(-x, -y, -z, -w); }
 
@@ -74,7 +76,7 @@ public:
 	AXE_NODISCARD Quat4 operator / (const T&     v) const { return Quat4(x/v, y/v, z/v, w/v); }
 
 	void onFormat(fmt::format_context& ctx) const {
-		fmt::format_to(ctx.out(), "({}, {}, {}, {})", x, y, z, w);
+		fmt::format_to(ctx.out(), "Quat4({}, {}, {}, {})", x, y, z, w);
 	}
 }; // Quat4
 

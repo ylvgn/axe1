@@ -2,7 +2,8 @@
 
 #include <axe_core/base/axe_base.h>
 #include <axe_core/base/BitUtil.h>
-
+#include <axe_core/base/Callstack.h>
+#include <axe_core/base/Reflection.h>
 #include <axe_core/base/Object.h>
 
 #include <axe_core/base/UnitTest.h>

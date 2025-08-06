@@ -24,7 +24,6 @@
 	// TODO
 	#include <d3dcompiler.h>
 	#pragma comment(lib, "D3DCompiler.lib")
-
 #endif // AXE_OS_WINDOWS
 
 #define AXE_DX12_THROWIF_HRESULT_ERROR_SELECT(COUNT) AXE_DX12_THROWIF_HRESULT_ERROR_##COUNT
@@ -34,32 +33,34 @@
 
 namespace axe {
 
-using DX12_IDXGIFactory				 = IDXGIFactory7; // use IDXGIFactory4 or newer
-using DX12_IDXGIAdapter				 = IDXGIAdapter4;
-using DX12_IDXGIOutput				 = IDXGIOutput6;
-using DX12_IDXGIDevice				 = IDXGIDevice;
-using DX12_IDXGISwapChain			 = IDXGISwapChain4;
-
-using DX12_ID3D12Device				 = ID3D12Device5;
-using DX12_ID3D12GraphicsCommandList = ID3D12GraphicsCommandList7; // ID3D12GraphicsCommandList10
-using DX12_ID3D12Resource			 = ID3D12Resource2;
-using DX12_ID3D12Fence				 = ID3D12Fence1;
-
 #if defined(_DEBUG)
 	using DX12_IDXGIDebug			 = IDXGIDebug1;
 	using DX12_ID3D12Debug			 = ID3D12Debug1; // ID3D12Debug6
 	using DX12_ID3D12InfoQueue		 = ID3D12InfoQueue;
 #endif
 
+using DX12_IDXGIFactory				 = IDXGIFactory7; // use IDXGIFactory4 or newer
+using DX12_IDXGIAdapter				 = IDXGIAdapter4;
+using DX12_IDXGIOutput				 = IDXGIOutput6;
+using DX12_IDXGIDevice				 = IDXGIDevice;
+using DX12_IDXGISwapChain			 = IDXGISwapChain4;
+
+using DX12_ID3D12CommandQueue		 = ID3D12CommandQueue;
+using DX12_ID3D12Device				 = ID3D12Device5;
+using DX12_ID3D12GraphicsCommandList = ID3D12GraphicsCommandList7; // ID3D12GraphicsCommandList10
+using DX12_ID3D12Resource			 = ID3D12Resource2;
+using DX12_ID3D12Fence				 = ID3D12Fence1;
+
 using DX12_ID3D12DeviceRemovedExtendedDataSettings = ID3D12DeviceRemovedExtendedDataSettings1;
 
-class Renderer_DX12;
-class Capabilities_DX12;
+class CommandQueue_DX12;
 class Context_DX12;
+class Capabilities_DX12;
 class Device_DX12;
 class Fence_DX12;
 class GpuBuffer_DX12;
-
+class Renderer_DX12;
+class SwapChain_DX12;
 
 #if 0
 #pragma mark ========= DX12Util ============
@@ -69,11 +70,9 @@ public:
 	static bool isValid		  (::HRESULT hr);
 	static void warningIfError(::HRESULT hr);
 
-	static Renderer_DX12*	renderer();
-	static Device_DX12*		device();
-
+	static Renderer_DX12*		renderer();
 	static DX12_IDXGIFactory*	dxgiFactory();
-	static DX12_ID3D12Device*	d3dDevice();
+	static Device_DX12*			rootDevice();
 
 	static void convert(Rect2f& o, const ::D3D12_RECT& i) {
 		using T = decltype(o.x);
@@ -113,6 +112,9 @@ public:
 	static ::D3D12_RECT toD3DRect(const Rect2f& i)			{ ::D3D12_RECT o;	convert(o, i);	return o; }
 
 	static void setDebugName(::ID3D12Object* pObject, StrView name);
+
+	static void setResourceCallstack(::ID3D12Object* pObject);
+	static bool getResourceCallstack(Callstack<6>& outCallstack, ::ID3D12Object* pObject);
 
 private:
 	static bool _checkError(::HRESULT hr) {

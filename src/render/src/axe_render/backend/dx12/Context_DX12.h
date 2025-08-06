@@ -14,17 +14,20 @@ class Context_DX12 : public RenderContext {
 public:
 	Context_DX12(RenderDevice* device, CreateDesc& desc);
 
-	static const UINT FrameCount = 2;
+	static const UINT kFrameBufferCount = 2;
 
-	// Pipeline objects.
-	D3D12_VIEWPORT				m_viewport;
+	ComPtr<DX12_ID3D12CommandQueue> _graphicsCmdQueue;
+	ComPtr<DX12_ID3D12CommandQueue> _computeCmdQueue;
+//	ComPtr<DX12_ID3D12CommandQueue> _copyCmdQueue; // no use atm
+
+	::D3D12_VIEWPORT m_viewport;
+
 	ComPtr<DX12_IDXGISwapChain> m_swapChain; // TODO RenderSwapChain
 
 	D3D12_RECT m_scissorRect;
 
-	ComPtr<ID3D12Resource>			  m_renderTargets[FrameCount];
+	ComPtr<ID3D12Resource>			  m_renderTargets[kFrameBufferCount];
 	ComPtr<ID3D12CommandAllocator>	  m_commandAllocator;
-	ComPtr<ID3D12CommandQueue>		  m_commandQueue;
 	ComPtr<ID3D12RootSignature>		  m_rootSignature;
 	ComPtr<ID3D12DescriptorHeap>	  m_rtvHeap;
 	ComPtr<ID3D12PipelineState>		  m_pipelineState;
@@ -47,6 +50,8 @@ public:
 	AXE_INLINE Device_DX12*		  renderDevice();
 	AXE_INLINE DX12_ID3D12Device* _d3dDevice();
 
+//	virtual void onSetNeedToRender() final;
+	virtual void onSetSwapchainFrameBufferSize(const Vec2f& newSize) final;
 	virtual void onCommit(RenderCommandBuffer& cmdBuf) final;
 
 	void onCmd_ClearFrameBuffers(RenderCommand_ClearFrameBuffers& cmd);
@@ -55,12 +60,22 @@ public:
 //	void onCmd_SetScissorRect(RenderCommand_SetScissorRect& cmd);
 
 private:
+	static LRESULT WINAPI s_wndProc(::HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
+	AXE_INLINE static This* s_getThis(::HWND hwnd) {
+		return reinterpret_cast<This*>(::GetWindowLongPtr(hwnd, GWLP_USERDATA));
+	}
+
+	void _createWindow(CreateDesc& desc);
+
 	void _test_LoadAssets();
 	void _test_PopulateCommandList();
 	void _test_WaitForPreviousFrame();
 
 	void _createRenderTargetView();
 	void _releaseRenderTargetView();
+
+//	HWND _hwnd = nullptr;
+
 }; // Context_DX12
 
 } // namespace axe

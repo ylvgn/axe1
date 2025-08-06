@@ -171,6 +171,20 @@ Vec3_Basic<T, DATA> max(const Vec3_Basic<T, DATA>& a, const Vec3_Basic<T, DATA>&
 }
 
 template<class T, class DATA> AXE_INLINE
+void min_it(Vec3_Basic<T, DATA>& a, const Vec3_Basic<T, DATA>& b) {
+	Math::min_it(a.x, b.x);
+	Math::min_it(a.y, b.y);
+	Math::min_it(a.z, b.z);
+}
+
+template<class T, class DATA> AXE_INLINE
+void max_it(Vec3_Basic<T, DATA>& a, const Vec3_Basic<T, DATA>& b) {
+	Math::max_it(a.x, b.x);
+	Math::max_it(a.y, b.y);
+	Math::max_it(a.z, b.z);
+}
+
+template<class T, class DATA> AXE_INLINE
 Vec3_Basic<T, DATA> clamp(const Vec3_Basic<T, DATA>& v, const Vec3_Basic<T, DATA>& a, const Vec3_Basic<T, DATA>& b) {
 	return Vec3_Basic<T, DATA>(	Math::clamp(v.x, a.x, b.x),
 								Math::clamp(v.y, a.y, b.y),

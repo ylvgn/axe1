@@ -12,24 +12,24 @@ public: \
 	using ElementType = ELEMENT_TYPE; \
 	static const size_t kElementCount = COUNT; \
 	\
-	AXE_INLINE explicit	constexpr This() = default; \
+	constexpr explicit This() = default; \
 	\
-	AXE_INLINE			ElementType& operator[]	(int i)			{ return at(i); } \
-	AXE_INLINE	const	ElementType& operator[]	(int i)	const	{ return at(i); } \
+			ElementType& operator[]	(int i)			{ return at(i); } \
+	const	ElementType& operator[]	(int i)	const	{ return at(i); } \
 	\
-	AXE_INLINE			ElementType& at			(int i)			{ s_checkBound(i); return data[i]; } \
-	AXE_INLINE	const	ElementType& at			(int i)	const	{ s_checkBound(i); return data[i]; } \
+			ElementType& at			(int i)			{ s_checkBound(i); return data[i]; } \
+	const	ElementType& at			(int i)	const	{ s_checkBound(i); return data[i]; } \
 	\
-	AXE_INLINE			ElementType& unsafe_at	(int i)			{ return data[i]; } \
-	AXE_INLINE	const	ElementType& unsafe_at	(int i)	const	{ return data[i]; } \
+			ElementType& unsafe_at	(int i)			{ return data[i]; } \
+	const	ElementType& unsafe_at	(int i)	const	{ return data[i]; } \
 	\
-	AXE_INLINE			Span<		ElementType> span()			{ return Span<		ElementType>(&x, kElementCount); } \
-	AXE_INLINE			Span<const	ElementType> span() const	{ return Span<const ElementType>(&x, kElementCount); } \
+			Span<		ElementType> span()			{ return Span<		ElementType>(&x, kElementCount); } \
+			Span<const	ElementType> span() const	{ return Span<const ElementType>(&x, kElementCount); } \
 	\
-	template<class V> AXE_INLINE constexpr void setByCast(const V& v) { *this = s_cast(v); } \
+	template<class V> constexpr void setByCast(const V& v) { *this = s_cast(v); } \
 private: \
-	AXE_INLINE static constexpr bool s_inBound		(int i)		{ return i >= 0 && i < kElementCount; } \
-	AXE_INLINE static constexpr void s_checkBound	(int i)		{ if (!s_inBound(i)) throw std::out_of_range(__FILE__); } \
+	static constexpr bool s_inBound		(int i)		{ return i >= 0 && i < kElementCount; } \
+	static constexpr void s_checkBound	(int i)		{ if (!s_inBound(i)) throw std::out_of_range(__FILE__); } \
 public: \
 //----
 

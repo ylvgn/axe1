@@ -3,121 +3,135 @@
 namespace axe {
 
 class EditorApp;
-class MainWin;
+class EditorMainWindow;
 
-class MainWin : public NativeUIWindow {
-	using This = MainWin;
+class EditorMainWindow : public NativeUIWindow {
+	using This = EditorMainWindow;
 	using Base = NativeUIWindow;
 public:
-	using VertexT = VertexT_Color<Color4f, 1, Vertex_Pos>;
+	EditorMainWindow();
+
+	static CreateDesc& s_createDesc();
 
 	virtual void onCreate(CreateDesc& desc) final;
 	virtual void onCloseButton() final;
 	virtual void onDraw() final;
 
-	EditorApp* app();
-	RenderDevice* renderDevice();
-
+private:
+	UPtr<RenderDevice>	_renderDevice;
 	SPtr<RenderContext> _renderContext;
-	RenderMesh			_renderMesh;
-	RenderCommandBuffer _cmdBuf;
-}; // MainWin
 
+	class EventHandler : public RenderContext::EventHandler {
+	public:
+		virtual void onRender(RenderContext& renderContext) final;
+
+		void test_mesh()
+		{
+			AXE_TODO("");
+			{
+				EditMesh editMesh;
+
+				editMesh.pos.emplace_back(0.0f, 0.5f, 0.0f);
+				editMesh.pos.emplace_back(0.5f, -0.5f, 0.0f);
+				editMesh.pos.emplace_back(-0.5f, -0.5f, 0.0f);
+
+				editMesh.color.emplace_back(255, 0, 0, 255);
+				editMesh.color.emplace_back(0, 255, 0, 255);
+				editMesh.color.emplace_back(0, 0, 255, 255);
+
+				_renderMesh.create(editMesh);
+			}
+		}
+
+		RenderCommandBuffer _cmdBuf;
+		RenderMesh			_renderMesh;
+	};
+	EventHandler _eventHandler;
+}; // EditorMainWindow
 
 class EditorApp : public NativeUIApp {
 	using This = EditorApp;
 	using Base = NativeUIApp;
 public:
-
-	RenderDevice* renderDevice() { return _renderDevice; }
-
-	virtual void onCreate(CreateDesc& desc) override {
-		setCurDirRelativeToExecutable("/../../../Test101");
-
-		{ // create renderer
-			Renderer::CreateDesc renderDesc;
-			renderDesc.api = RendererApi::DX12;
-			auto* p = Renderer::s_create(renderDesc);
-			
-			auto deviceDesc = RenderDevice_CreateDesc();
-			_renderDevice	= p->createRenderDevice(deviceDesc);
-		}
-
-		{ // create window
-			TempString title("AXE Editor -");
-			AXE_ASSERT(Renderer::s_instance()->devices().size() > 0);
-
-			for (auto& device : Renderer::s_instance()->devices()) {
-				FmtTo(title, " [{}({}, VSync: {})]", device->debugName(), device->api(), device->VSync());
-			}
-
-			NativeUIWindow::CreateDesc winDesc;
-			winDesc.isMainWindow = true;
-			_mainWin = new MainWin();
-			_mainWin->create(winDesc);
-			_mainWin->setWindowTitle(title);
-		}
-	}
-
+	virtual void onCreate(CreateDesc& desc) final;
 private:
-	MainWin*		_mainWin = nullptr;
-	RenderDevice*	_renderDevice = nullptr;
+	UPtr<EditorMainWindow> _mainWin;
+	RenderDevice*		   _renderDevice = nullptr;
 }; // EditorApp
 
 
-EditorApp* MainWin::app() {
-	return static_cast<EditorApp*>(NativeUIApp::current());
+void EditorApp::onCreate(CreateDesc& desc) {
+	setCurDirRelativeToExecutable("/../../../Test101");
+
+	{ // create renderer
+		Renderer::CreateDesc renderDesc;
+		renderDesc.api = RendererApi::DX12;
+		Renderer::s_create(renderDesc);
+	}
+
+	{ // create window
+		_mainWin = UPtr<EditorMainWindow>(new EditorMainWindow());
+		_mainWin->create(EditorMainWindow::s_createDesc());
+
+		_mainWin->setVisible(true);
+	}
 }
 
-RenderDevice* MainWin::renderDevice() {
-	return app()->renderDevice();
+EditorMainWindow::EditorMainWindow() {
+	{ // create render device
+		auto desc = RenderDevice_CreateDesc();
+		_renderDevice.reset(Renderer::s_instance()->createRenderDevice(desc));
+		AXE_ASSERT(Renderer::s_instance()->devices().size() > 0);
+	}
 }
 
-void MainWin::onCloseButton() {
+void EditorMainWindow::onCloseButton() {
 	NativeUIApp::current()->quit(0);
 }
 
-void MainWin::onCreate(CreateDesc& desc) {
+EditorMainWindow::CreateDesc& EditorMainWindow::s_createDesc() {
+	static EditorMainWindow::CreateDesc desc;
+	desc.isMainWindow = true;
+	desc.visible	  = false;
+	return desc;
+}
+
+void EditorMainWindow::onCreate(CreateDesc& desc) {
 	Base::onCreate(desc);
+
+	AXE_ASSERT(_renderDevice != nullptr);
 
 	{ // create render context
 		RenderContext::CreateDesc renderContextDesc;
-		renderContextDesc.window = this;
-		_renderContext = renderDevice()->createContext(renderContextDesc);
+		renderContextDesc.window	   = this;
+		renderContextDesc.eventHandler = &_eventHandler;
+		_renderContext				   = _renderDevice->createContext(renderContextDesc);
 	}
 
-	{
-		EditMesh editMesh;
-
-		editMesh.pos.emplace_back(0.0f,  0.5f, 0.0f);
-		editMesh.pos.emplace_back(0.5f, -0.5f, 0.0f);
-		editMesh.pos.emplace_back(-0.5f,-0.5f, 0.0f);
-
-		editMesh.color.emplace_back(255, 0, 0, 255);
-		editMesh.color.emplace_back(0, 255, 0, 255);
-		editMesh.color.emplace_back(0, 0, 255, 255);
-
-		_renderMesh._internalSetDevice(renderDevice());
-		_renderMesh.create(editMesh);
+	{ // set window title
+		auto title = TempString::s_format("AXE Editor - [{}({}, VSync: {})]"
+										, _renderDevice->debugName()
+										, _renderDevice->api()
+										, _renderDevice->VSync()
+		);
+		setWindowTitle(title);
 	}
 }
 
-void MainWin::onDraw()
-{
-	if (!_renderContext)
-		return;
+void EditorMainWindow::EventHandler::onRender(RenderContext& renderContext) {
+	AXE_RUN_ONCE(test_mesh());
 
-	_renderContext->setFrameBufferSize(clientRect().size);
-	_renderContext->beginRender();
-	_cmdBuf.reset(_renderContext);
+	renderContext.beginRender();
+
+	_cmdBuf.reset(&renderContext);
 	_cmdBuf.clearFrameBuffers()->setColor({ 0, 0, 0.2f, 1 });
 	{ // draw mesh
 		for (auto& sm : _renderMesh.subMeshes())
 		{
 			auto* cmd = _cmdBuf.addDrawCall();
-			#if _DEBUG
-				cmd->debugLoc = SrcLoc();
-			#endif
+#if _DEBUG
+			cmd->debugLoc = SrcLoc();
+#endif
 			cmd->primitive	  = sm.primitive();
 			cmd->vertexLayout = sm.vertexLayout();
 			cmd->vertexBuffer = sm.vertexBuffer();
@@ -125,10 +139,18 @@ void MainWin::onDraw()
 		}
 	}
 	_cmdBuf.swapBuffers();
-	_renderContext->commit(_cmdBuf);
-	_renderContext->endRender();
+	renderContext.commit(_cmdBuf);
 
-	onDrawNeeded();
+	renderContext.endRender();
+}
+
+void EditorMainWindow::onDraw()
+{
+	if (!_renderContext) return;
+
+	AXE_TODO("setSwapchainFrameBufferSize each frame, cuz we use single global Native Window client rect");
+	_renderContext->setSwapchainFrameBufferSize(clientRect().size);
+	_renderContext->eventHandler()->render(_renderContext);
 }
 
 } // namespace axe

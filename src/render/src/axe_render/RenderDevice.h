@@ -47,7 +47,7 @@ public:
 protected:
 	RenderDevice(CreateDesc& desc) noexcept; // please create from Renderer::createDevice
 
-	virtual SPtr<RenderContext>   onCreateContext(RenderDevice* device, RenderContext_CreateDesc& desc) = 0;
+	virtual SPtr<RenderContext>	  onCreateContext(RenderDevice* device, RenderContext_CreateDesc& desc) = 0;
 	virtual SPtr<RenderGpuBuffer> onCreateGpuBuffer(RenderDevice* device, RenderGpuBuffer_CreateDesc& desc) = 0;
 
 	RendererApi _api = RendererApi::Unknown;
@@ -70,8 +70,7 @@ protected:
 	}                                                                                                           \
 	SPtr<RenderGpuBuffer> Device_##T::onCreateGpuBuffer(RenderDevice* device, RenderGpuBuffer_CreateDesc& desc) \
 	{                                                                                                           \
-		SPtr<RenderGpuBuffer> p = new GpuBuffer_##T();                                                          \
-		p->_internalSetDevice(device);                                                                          \
+		SPtr<RenderGpuBuffer> p = new GpuBuffer_##T(device);                                                          \
 		p->create(desc);                                                                                        \
 		return p;                                                                                               \
 	}                                                                                                           \

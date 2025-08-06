@@ -43,20 +43,10 @@ struct RenderMesh_InternalHelper {
 	}
 }; // RenderMesh_InternalHelper
 
+
 #if 0
 #pragma mark ========= RenderMesh ============
 #endif
-const TypeInfo* RenderMesh::s_getType() {
-	class TI : public TI_Base {
-	public:
-		TI() {
-			AXE_TODO("");
-		}
-	};
-	static TI ti;
-	return &ti;
-}
-
 void RenderMesh::create(const EditMesh& src) {
 	using Helper = RenderMesh_InternalHelper;
 	clear();
@@ -71,7 +61,7 @@ void RenderMesh::create(const EditMesh& src) {
 	u8 tangentCount		= 0;
 	u8 binormalCount	= 0;
 
-	_primitive = PrimitiveType::Triangles;
+	_primitive = RenderPrimitiveType::Triangles;
 
 	if (Helper::hasAttr(src.color.size(), vertexCount)) colorCount = 1;
 	if (Helper::hasAttr(src.normal.size(), vertexCount)) normalCount = 1;
@@ -489,7 +479,7 @@ void RenderSubMesh::_setVertexBuffer(ByteSpan vertexData) {
 	desc.type		= RenderGpuBufferType::Vertex;
 	desc.bufferSize = vertexData.size();
 
-	_vertexBuffer = device()->createGpuBuffer(desc);
+	_vertexBuffer = Renderer::s_rootDevice()->createGpuBuffer(desc);
 	_vertexBuffer->uploadToGpu(vertexData);
 }
 
@@ -502,7 +492,7 @@ void RenderSubMesh::_setIndexBuffer(ByteSpan indexData) {
 	desc.type		= RenderGpuBufferType::Index;
 	desc.bufferSize = indexData.size();
 
-	_indexBuffer = device()->createGpuBuffer(desc);
+	_indexBuffer = Renderer::s_rootDevice()->createGpuBuffer(desc);
 	_indexBuffer->uploadToGpu(indexData);
 }
 

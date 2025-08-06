@@ -7,7 +7,6 @@ namespace axe {
 #define RenderResourceType_ENUM_LIST(E) \
 	E(Unknown, )                        \
 	E(RenderGpuBuffer, )                \
-	E(RenderMesh, )						\
 	E(Texture, )                        \
 	E(Shader, )                         \
 	E(Material, )                       \
@@ -19,7 +18,7 @@ AXE_ENUM_CLASS(RenderResourceType, u8);
 class RenderResource : public RenderDeviceObject {
 	AXE_CLASS_TYPE(RenderResource, RenderDeviceObject)
 public:
-	RenderResource() = default;
+	using Base::Base;
 
 	static constexpr RenderResourceType kRscType = RenderResourceType::Unknown;
 
@@ -29,8 +28,6 @@ public:
 		AXE_TODO("send resource to renderer to clean up in render thread");
 		axe_delete(this);
 	}
-protected:
-	RenderResource(RenderDevice* device) noexcept : Base(device) {}
 }; // RenderResource
 
 #define axeRenderResources_InterfaceFunctions(T)                            \

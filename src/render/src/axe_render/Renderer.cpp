@@ -35,7 +35,7 @@ RenderDevice* Renderer::createRenderDevice(RenderDevice_CreateDesc& desc) {
 	return device;
 }
 
-void Renderer::onRenderDeviceDestory(RenderDevice* device) {
+void Renderer::onRenderDeviceDestroy(RenderDevice* device) {
 	auto it = ::eastl::find(_devices.begin(), _devices.end(), device);
 	if (it != _devices.end()) {
 		_devices.erase_unsorted(it);
@@ -47,6 +47,10 @@ Renderer::Renderer(CreateDesc& desc) noexcept
 {
 	AXE_ASSERT(_s_instance == nullptr);
 	_s_instance = this;
+}
+
+RenderDevice* Renderer::s_rootDevice() {
+	return _s_instance->findDevice(0);
 }
 
 Renderer::~Renderer() noexcept

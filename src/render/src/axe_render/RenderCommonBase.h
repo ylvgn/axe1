@@ -29,7 +29,6 @@ class RenderDeviceObject;
 class RenderDevice;
 class RenderDevice_CreateDesc;
 class RenderFence;
-class RenderFence_CreateDesc;
 class RenderGpuBuffer;
 class RenderGpuBuffer_CreateDesc;
 class RenderGpuQuery;
@@ -51,9 +50,11 @@ class RenderSwapChain_CreateDesc;
 class RenderVertexArray;
 class RenderVertexDesc;
 
-enum class RenderState_BlendFactor : u8;
-enum class RenderState_BlendOp : u8;
-enum class RenderState_DepthTestOp : u8;
+enum class RenderCommandType		: u32;
+enum class RenderGpuBufferType		: u8;
+enum class RenderState_BlendFactor	: u8;
+enum class RenderState_BlendOp		: u8;
+enum class RenderState_DepthTestOp	: u8;
 
 class SamplerState;
 class Shader;

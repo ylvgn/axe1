@@ -18,7 +18,8 @@ public:
 
 	virtual RenderDevice* onCreateRenderDevice(RenderDevice_CreateDesc& desc) final;
 
-	Device_DX12* findDevice(int i = 0) const;
+	Device_DX12*	   findDevice(int i) const;
+	Span<Device_DX12*> devices();
 
 	DX12_IDXGIFactory* dxgiFactory() { return _dxgiFactory; }
 	DX12_ID3D12Device* d3dDevice(int i = 0);

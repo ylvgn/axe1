@@ -6,6 +6,7 @@ const TypeInfo* RenderGpuBuffer::s_getType() {
 	class TI : public TI_Base {
 	public:
 		TI() {
+			name = "RenderGpuBuffer";
 			AXE_TODO("");
 		}
 	};
@@ -14,6 +15,7 @@ const TypeInfo* RenderGpuBuffer::s_getType() {
 }
 
 void RenderGpuBuffer::create(CreateDesc& desc) {
+	AXE_ASSERT(_device != nullptr);
 	_desc = desc;
 	onCreate(desc);
 }

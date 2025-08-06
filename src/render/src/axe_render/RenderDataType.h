@@ -92,6 +92,7 @@ AXE_ENUM_CLASS(RenderGpuBufferType, u8)
 //----
 AXE_ENUM_CLASS(RenderDataType, u8)
 
+
 class RenderDataTypeUtil : public StaticClass {
 public:
 	using DataType = RenderDataType;

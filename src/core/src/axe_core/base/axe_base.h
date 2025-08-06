@@ -1,4 +1,3 @@
-
 #pragma once
 
 #include "../detect_platform/axe_detect_platform.h"
@@ -360,6 +359,7 @@ public:
 
 
 template <class KEY, class VALUE>	using Map		= typename ::eastl::map<KEY, VALUE>;
+template <class KEY, class VALUE>	using HashMap	= typename ::eastl::hash_map<KEY, VALUE>;
 template <class KEY, class VALUE>	using VectorMap	= typename ::eastl::vector_map<KEY, VALUE>;
 template <class VALUE>				using StringMap	= typename ::eastl::string_map<VALUE>;
 template <class KEY>				using Set		= typename ::eastl::set<KEY>;

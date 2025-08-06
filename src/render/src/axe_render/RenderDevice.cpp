@@ -2,9 +2,20 @@
 #include "RenderDevice.h"
 #include "RenderContext.h"
 #include "buffer/RenderGpuBuffer.h"
-//#include "synchronized/RenderFence.h" TODO
 
 namespace axe {
+
+const TypeInfo* RenderDevice::s_getType() {
+	class TI : public TI_Base {
+	public:
+		TI() {
+			name = "RenderDevice";
+			AXE_TODO("");
+		}
+	};
+	static TI ti;
+	return &ti;
+}
 
 RenderDevice_CreateDesc::RenderDevice_CreateDesc() noexcept
 	: VSync(true)
@@ -28,21 +39,9 @@ RenderDevice_CreateDesc::RenderDevice_CreateDesc(const RenderAdapterInfo* info) 
 	adapterInfo = info;
 }
 
-const TypeInfo* RenderDevice::s_getType() {
-	class TI : public TI_Base {
-	public:
-		TI() {
-			name = "RenderDevice";
-			AXE_TODO("");
-		}
-	};
-	static TI ti;
-	return &ti;
-}
-
 RenderDevice::~RenderDevice() {
 	auto* renderer = Renderer::s_instance();
-	renderer->onRenderDeviceDestory(this);
+	renderer->onRenderDeviceDestroy(this);
 }
 
 SPtr<RenderContext> RenderDevice::createContext(RenderContext_CreateDesc& desc) {

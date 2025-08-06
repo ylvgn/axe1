@@ -13,13 +13,14 @@ public:
 
 
 class Renderer : public NonCopyable {
-	using This	 = Renderer;
-	using Device = RenderDevice;
+	using This = Renderer;
 public:
 	using CreateDesc = Renderer_CreateDesc;
 
-	static Renderer* s_instance() { return _s_instance; };
-	static Renderer* s_create(CreateDesc& desc);
+	static Renderer*	 s_create(CreateDesc& desc);
+
+	static Renderer*	 s_instance() { return _s_instance; };
+	static RenderDevice* s_rootDevice();
 
 	virtual ~Renderer() noexcept;
 
@@ -29,20 +30,20 @@ public:
 
 	const RenderAdapterInfo* findAdapterInfo(int i = 0) const { return _adapterInfos.inBound(i) ? &_adapterInfos[i] : nullptr; }
 
-	Device*	findDevice(int i = 0) const { return _devices.inBound(i) ? _devices[i] : nullptr; }
-	Span<Device*> devices()	{ return _devices; }
+	RenderDevice* findDevice(int i) const { return _devices.inBound(i) ? _devices[i] : nullptr; }
+	Span<RenderDevice*> devices() { return _devices; }
 
 	RenderDevice* createRenderDevice(RenderDevice_CreateDesc& desc);
 
-	void onRenderDeviceDestory(RenderDevice* device);
+	void onRenderDeviceDestroy(RenderDevice* device);
 
 protected:
 	Renderer(CreateDesc& desc) noexcept; // please create from Renderer::s_create
 
-	virtual Device* onCreateRenderDevice(RenderDevice_CreateDesc& desc) = 0;
+	virtual RenderDevice* onCreateRenderDevice(RenderDevice_CreateDesc& desc) = 0;
 
-	Vector<RenderAdapterInfo, 1>	_adapterInfos;
-	Vector<Device*, 1>				_devices;
+	Vector<RenderAdapterInfo, 1> _adapterInfos;
+	Vector<RenderDevice*, 1>	 _devices;
 
 private:
 	static Renderer* _s_instance;

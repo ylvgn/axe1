@@ -9,8 +9,8 @@ public:
 	using Type = RenderGpuBufferType;
 
 	Type	type		= Type::None;
-	size_t	bufferSize	= 0;
 	size_t	stride		= 16;
+	size_t	bufferSize	= 0;
 }; // RenderGpuBuffer_CreateDesc
 
 
@@ -20,9 +20,11 @@ public:
 	using Type		 = RenderGpuBufferType;
 	using CreateDesc = RenderGpuBuffer_CreateDesc;
 
+	using Base::Base;
+
 	axeRenderResources_InterfaceFunctions(RenderGpuBuffer)
 
-	void create(CreateDesc& desc);
+	void create(CreateDesc& desc); // please create from RenderDevice::createGpuBuffer
 
 	size_t	bufferSize() const { return _desc.bufferSize; }
 	void	uploadToGpu(ByteSpan data, size_t offset = 0);

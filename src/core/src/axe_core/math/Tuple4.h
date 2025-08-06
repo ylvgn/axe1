@@ -17,15 +17,13 @@ public:
 	constexpr explicit Tuple4(T v)					  noexcept: x(v), y(v), z(v), w(v) {}
 	constexpr explicit Tuple4(T x_, T y_, T z_, T w_) noexcept: x(x_), y(y_), z(z_), w(w_) {}
 
-	constexpr void set(const Tuple4<T>& v) { *this = v; }
-	constexpr void set(T x_, T y_, T z_, T w_) {
-		x = x_; y = y_; z = z_; w = w_;
-	}
+	constexpr void set(const Tuple4<T>& v) noexcept { *this = v; }
+	constexpr void set(T x_, T y_, T z_, T w_) noexcept { x = x_; y = y_; z = z_; w = w_; }
 	constexpr void setAll(const T& v)  { set(v,v,v,v); }
 	constexpr void setToDefaultValue() { setAll(0); }
 
 	void onFormat(fmt::format_context& ctx) const {
-		fmt::format_to(ctx.out(), "({}, {}, {}, {})", x, y, z, w);
+		fmt::format_to(ctx.out(), "Tuple4({}, {}, {}, {})", x, y, z, w);
 	}
 }; // Tuple4
 

@@ -14,10 +14,6 @@ const TypeInfo* RenderFence::s_getType() {
 	return &ti;
 }
 
-void RenderFence::create(RenderFence_CreateDesc& desc) {
-	onCreate(desc);
-}
-
 bool RenderFence::isDone() {
 	if (_signaled)
 		return true;

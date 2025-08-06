@@ -17,96 +17,184 @@ const TypeInfo* Fence_DX12::s_getType() {
 	return &ti;
 }
 
-void Fence_DX12::onCreate(CreateDesc& desc) {
-	_lastCompletedValue = desc.initialFenceValue;
-	_curSignal			= desc.initialFenceValue + 1;
-	_lastSignaled		= 0;
+Fence_DX12::Fence_DX12() noexcept
+	: Fence_DX12(Util::rootDevice())
+{
+}
 
-	::HRESULT hr;
+Fence_DX12::Fence_DX12(Device_DX12* device) noexcept
+	: Base(device) 
+{
+}
+
+void Fence_DX12::create(const SrcLoc& srcLoc) {
+	destroy();
+
+	_signaled = 0;
 
 	auto* device	= static_cast<Device_DX12*>(_device);
 	auto* d3dDevice = device->d3dDevice();
 
-	hr = d3dDevice->CreateFence(desc.initialFenceValue, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(_d3dFence.ptrForInit()));
+	::HRESULT hr;
+	hr = d3dDevice->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(_d3dFence.ptrForInit()));
 	AXE_DX12_THROWIF_HRESULT_ERROR(hr, d3dDevice);
 
-	Util::setDebugName(_d3dFence.ptr(), "Fence_DX12");
+#if defined(_DEBUG)
+	auto debugName = TempString::s_format("{}", srcLoc);
+	Util::setDebugName(_d3dFence.ptr(), debugName);
+#endif
 
 	_onGpuCompletedEvent = ::CreateEvent(nullptr, false, false, L"DX12 Fence Event");
-
 	if (!_onGpuCompletedEvent)
 		AXE_THROW();
 }
 
-Fence_DX12::~Fence_DX12() {
-	if (_onGpuCompletedEvent)
+void Fence_DX12::destroy() {
+	if (!_checkCompleted()) {
+		AXE_THROW();
+	}
+	if (_onGpuCompletedEvent) {
 		::CloseHandle(_onGpuCompletedEvent);
+		_onGpuCompletedEvent = nullptr;
+	}
+	if (_d3dFence) {
+		_d3dFence.reset(nullptr);
+	}
 }
 
 bool Fence_DX12::onCheckCompleted() {
-	return _isCompleted(_lastSignaled);
+	if (!_d3dFence)
+		AXE_THROW();
+	return _checkCompleted();
 }
 
-void Fence_DX12::cpuWait(::UINT64 expectGpuCompletedValue) {
-	if (_isCompleted(expectGpuCompletedValue)) {
-		// lock-free checking
+bool Fence_DX12::_checkCompleted() {
+	return _signaled == 0 || _d3dFence->GetCompletedValue() > 0;
+}
+
+bool Fence_DX12::_isCpuWaiting() {
+	return _signaled > 1;
+}
+
+void Fence_DX12::cpuWait() {
+	if (onCheckCompleted()) {
+		return;
+	}
+	if (_isCpuWaiting()) {
 		return;
 	}
 
-	auto scopedLock = ScopedLock_make(_fenceWaitCS);
-	// Double-check after acquiring the lock (avoid race condition between threads)
-	if (_isCompleted(expectGpuCompletedValue)) {
-		// locked checking
-		return;
-	}
+	++ _signaled;
 
 	::HRESULT hr;
-	hr = _d3dFence->SetEventOnCompletion(expectGpuCompletedValue, _onGpuCompletedEvent);
+	hr = _d3dFence->SetEventOnCompletion(1, _onGpuCompletedEvent);
 	AXE_DX12_THROWIF_HRESULT_ERROR(hr);
 
 	::DWORD result = ::WaitForSingleObject(_onGpuCompletedEvent, INFINITE); // CPU thread is blocking here until the GPU signals the fence. (INFINITE is Wait Forever)
 	if (result == WAIT_OBJECT_0) {
-		// finished
+		// cpu side finished
 	}
 
-	_lastCompletedValue = _d3dFence->GetCompletedValue();
+	resetFenceValue();
 }
 
-void Fence_DX12::cpuWait() {
-	cpuWait(_lastSignaled);
-}
-
-u64 Fence_DX12::signal(::UINT64 fenceValue) {
-	_lastSignaled		= fenceValue;
-	_lastCompletedValue = fenceValue;
-	_curSignal++;
-	return _lastSignaled;
-}
-
-void Fence_DX12::_gpuWait(::ID3D12CommandQueue* d3dCmdQueue) {
-	::HRESULT hr = d3dCmdQueue->Wait(_d3dFence, _curSignal);
-	AXE_DX12_THROWIF_HRESULT_ERROR(hr);
-}
-
-::UINT64 Fence_DX12::_gpuSignal(::ID3D12CommandQueue* d3dCmdQueue) {
-	::HRESULT hr = d3dCmdQueue->Signal(_d3dFence, _curSignal);
-	AXE_DX12_THROWIF_HRESULT_ERROR(hr);
-
-	_lastSignaled = _curSignal;
-	_curSignal++;
-	return _lastSignaled;
-}
-
-bool Fence_DX12::_isCompleted(::UINT64 expectGpuCompletedValue) {
-	if (!_d3dFence)
-		AXE_THROW();
-
-	if (expectGpuCompletedValue <= _lastCompletedValue) {
-		return true;
+void Fence_DX12::resetFenceValue() {
+	if (!onCheckCompleted()) {
+		AXE_ASSERT(false);
 	}
+	_signaled = 0;
+	_d3dFence->Signal(0);
+}
 
-	_lastCompletedValue = Math::max(_lastCompletedValue, _d3dFence->GetCompletedValue());
-	return expectGpuCompletedValue <= _lastCompletedValue; // true means gpu is done, false means cpu may keep waiting gpu.
+void Fence_DX12::gpuWait(::ID3D12CommandQueue* d3dCmdQueue) {
+	if (_isCpuWaiting()) {
+		return;
+	}
+	_signaled = 1;
+	AXE_DX12_THROWIF_HRESULT_ERROR(d3dCmdQueue->Wait(_d3dFence, _signaled));
+}
+
+void Fence_DX12::gpuSignal(::ID3D12CommandQueue* d3dCmdQueue) {
+	if (_isCpuWaiting()) {
+		return;
+	}
+	_signaled = 1;
+	AXE_DX12_THROWIF_HRESULT_ERROR(d3dCmdQueue->Signal(_d3dFence, _signaled));
+}
+
+
+#if 0
+#pragma mark ========= FencePool_DX12 ============
+#endif
+FencePool_DX12::FencePool_DX12() {
+	create(Util::rootDevice());
+}
+
+void FencePool_DX12::create(Device_DX12* device) {
+	destroy();
+
+	_device = device;
+
+	if (_idleList.empty()) {
+		_idleList.resizeToLocalBufSize();
+		for (int i = 0; i < _idleList.size(); ++i) {
+			_idleList[i] = AXE_MOVE(_ctorNewFence());
+		}
+	}
+}
+
+void FencePool_DX12::destroy() {
+	cpuWaitAll();
+	for (auto i = _runningList.size(); i > 0; --i) {
+		_pushBackToIdle();
+	}
+	_runningList.clear();
+}
+
+Fence_DX12* FencePool_DX12::acquire() {
+	auto scopedLock = _mutex.scopedLock();
+    if (!_idleList.empty()) {
+		_popBackToRunning();
+    } else {
+		_runningList.emplace_back(AXE_MOVE(_ctorNewFence()));
+    }
+	return _runningList.back().get();
+}
+
+void FencePool_DX12::release(Fence* fence) {
+	auto scopedLock = _mutex.scopedLock();
+	auto it	= ::eastl::find(_runningList.begin(), _runningList.end(), fence, [](auto& first, auto& target) {
+		return first.get() == target;
+	});
+	if (it != _runningList.end()) {
+		auto* tmp = _runningList.erase(it);
+		_idleList.emplace_back(AXE_MOVE(*tmp));
+	}
+}
+
+void FencePool_DX12::cpuWaitAll() {
+	for (auto& fence : _runningList) {
+		fence->cpuWait();
+	}
+}
+
+void FencePool_DX12::_pushBackToIdle() {
+	UPtr<Fence> tmp = AXE_MOVE(_runningList.back());
+	_runningList.pop_back();
+	_idleList.emplace_back(AXE_MOVE(tmp));
+}
+
+void FencePool_DX12::_popBackToRunning() {
+	UPtr<Fence> tmp = AXE_MOVE(_idleList.back());
+	_idleList.pop_back();
+	tmp->resetFenceValue();
+	_runningList.emplace_back(AXE_MOVE(tmp));
+}
+
+UPtr<Fence_DX12> FencePool_DX12::_ctorNewFence() {
+	auto res = UPtr<Fence>(new Fence(_device));
+	res->create(AXE_LOC);
+	return res;
 }
 
 } // namespace axe

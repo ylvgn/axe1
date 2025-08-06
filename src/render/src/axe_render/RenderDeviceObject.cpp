@@ -20,7 +20,7 @@ RenderDeviceObject::RenderDeviceObject(RenderDevice* device) noexcept
 {
 }
 
-void RenderDeviceObject::_internalSetDevice(RenderDevice* device){
+void RenderDeviceObject::_internalSetDevice(RenderDevice* device) {
 	_device = device;
 }
 

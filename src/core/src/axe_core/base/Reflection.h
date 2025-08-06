@@ -15,6 +15,7 @@ public: \
 	static const TypeInfo* s_getType(); \
 	inline virtual const TypeInfo* getType() const { return s_getType(); } \
 //----
+
 #define AXE_RTTI_CLASS_COMMON__BASE_IMPL(T, BASE) \
 private:\
 	using This = T; \
@@ -23,7 +24,8 @@ public: \
 	static const TypeInfo* s_getType(); \
 	inline virtual const TypeInfo* getType() const override { return s_getType(); } \
 //----
-#define AXE_RTTI_CLASS_COMMON_SELECT(COUNT) AXE_RTTI_CLASS_COMMON_##COUNT
+
+#define AXE_RTTI_CLASS_COMMON_SELECT(COUNT) AXE_RTTI_CLASS_COMMON_ ## COUNT
 #define AXE_RTTI_CLASS_COMMON_1(T)			AXE_RTTI_CLASS_COMMON__NOBASE_IMPL(T)
 #define AXE_RTTI_CLASS_COMMON_2(T, BASE)	AXE_RTTI_CLASS_COMMON__BASE_IMPL(T, BASE)
 #define AXE_RTTI_CLASS_COMMON(...)			AXE_IDENTITY(AXE_CALL(AXE_RTTI_CLASS_COMMON_SELECT, AXE_VA_ARGS_COUNT(__VA_ARGS__)(__VA_ARGS__)))
@@ -38,6 +40,7 @@ public: \
 	}; \
 private: \
 //----
+
 #define AXE_ABSTRACT_CLASS_TYPE__BASE_IMPL(T, BASE) \
 	AXE_RTTI_CLASS_COMMON(T, BASE) \
 	class TI_Base : public TypeInfoInit<T, BASE> { \
@@ -46,6 +49,7 @@ private: \
 	}; \
 private: \
 //----
+
 #define AXE_ABSTRACT_CLASS_TYPE_SELECT(COUNT) AXE_ABSTRACT_CLASS_TYPE_##COUNT
 #define AXE_ABSTRACT_CLASS_TYPE_1(T)		  AXE_ABSTRACT_CLASS_TYPE__NOBASE_IMPL(T)
 #define AXE_ABSTRACT_CLASS_TYPE_2(T, BASE)	  AXE_ABSTRACT_CLASS_TYPE__BASE_IMPL(T, BASE)
@@ -61,6 +65,7 @@ private: \
 	}; \
 private: \
 //----
+
 #define AXE_CLASS_TYPE__BASE_IMPL(T, BASE) \
 	AXE_RTTI_CLASS_COMMON(T, BASE) \
 	class TI_Base : public TypeInfoInit<T, BASE> { \
@@ -69,11 +74,13 @@ private: \
 	}; \
 private: \
 //----
-#define AXE_CLASS_TYPE_SELECT(COUNT) AXE_CLASS_TYPE_##COUNT
+
+#define AXE_CLASS_TYPE_SELECT(COUNT) AXE_CLASS_TYPE_ ## COUNT
 #define AXE_CLASS_TYPE_1(T)			 AXE_CLASS_TYPE__NOBASE_IMPL(T)
 #define AXE_CLASS_TYPE_2(T, BASE)	 AXE_CLASS_TYPE__BASE_IMPL(T, BASE)
 #define AXE_CLASS_TYPE(...)			 AXE_IDENTITY(AXE_CALL(AXE_CLASS_TYPE_SELECT, AXE_VA_ARGS_COUNT(__VA_ARGS__)(__VA_ARGS__)))
 //----
+
 
 namespace axe {
 
