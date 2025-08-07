@@ -27,8 +27,8 @@ class RenderContext : public RenderDeviceObject {
 	using Vec2  = Vec2f;
 	using Rect2 = Rect2f;
 public:
-	using CreateDesc = RenderContext_CreateDesc;
-	using EventHandler = CreateDesc::EventHandler;
+	using CreateDesc	= RenderContext_CreateDesc;
+	using EventHandler	= CreateDesc::EventHandler;
 
 	NativeUIWindow*	  window()		 { return _window; }
 	EventHandler*	  eventHandler() { return _eventHandler; }
@@ -39,9 +39,9 @@ public:
 			void endRender();
 	virtual void onEndRender() {}
 
-			void setSwapchainFrameBufferSize(const Vec2& newSize);
-	virtual void onSetSwapchainFrameBufferSize(const Vec2& newSize) { _swapchainFrameBufferSize = newSize; }
-	const auto& swapchainFrameBufferSize() const { return _swapchainFrameBufferSize; }
+			void setSwapChainFrameBufferSize(const Vec2& newSize);
+	virtual void onSetSwapChainFrameBufferSize(const Vec2& newSize) { _swapChainFrameBufferSize = newSize; }
+	const auto& swapChainFrameBufferSize() const { return _swapChainFrameBufferSize; }
 
 //	void setNativeViewRect(const Rect2& rect); no need atm
 //	virtual void onSetNativeViewRect(const Rect2& rect) {}; no need atm
@@ -77,7 +77,7 @@ protected:
 		#undef AXE_MACRO_OP
 	}
 
-	Vec2			_swapchainFrameBufferSize{ 0, 0 };
+	Vec2			_swapChainFrameBufferSize{ 0, 0 };
 	NativeUIWindow* _window = nullptr;
 	EventHandler*	_eventHandler = nullptr;
 }; // RenderContext

@@ -148,8 +148,8 @@ void EditorMainWindow::onDraw()
 {
 	if (!_renderContext) return;
 
-	AXE_TODO("setSwapchainFrameBufferSize each frame, cuz we use single global Native Window client rect");
-	_renderContext->setSwapchainFrameBufferSize(clientRect().size);
+	AXE_TODO("setSwapChainFrameBufferSize each frame for windows resize, cuz we use single global Native Window client rect");
+	_renderContext->setSwapChainFrameBufferSize(clientRect().size);
 	_renderContext->eventHandler()->render(_renderContext);
 }
 

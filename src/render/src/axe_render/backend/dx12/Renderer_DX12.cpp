@@ -171,16 +171,19 @@ void Renderer_DX12::_getHardwareAdapterBasicInfo() {
 			::DXGI_OUTPUT_DESC1 outputDesc;
 			output->GetDesc1(&outputDesc);
 
-			Rect2f resolution;
-			Util::convert(resolution, outputDesc.DesktopCoordinates);
+			Rect2f desktopCoordinates;
+			Util::convert(desktopCoordinates, outputDesc.DesktopCoordinates);
 
 			AXE_LOG("    Monitor {} - {}x{}\n"
+					"		 Virtual Screen Pos: ({}, {})\n"
 					"        HDR: {}\n"
 					"        BPP: {}\n"
 					"        Min Lum: {}\n"
 					"        Max Lum: {}\n"
 					"        MaxFFL: {}\n",
-				outputIndex, resolution.w, resolution.h
+				outputIndex
+			  , desktopCoordinates.w, desktopCoordinates.h
+			  , desktopCoordinates.x, desktopCoordinates.y
 			  , outputDesc.ColorSpace == DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020 ? "Yes" : "No"
 			  , outputDesc.BitsPerColor
 			  , outputDesc.MinLuminance

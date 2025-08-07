@@ -6,18 +6,22 @@
 
 namespace axe {
 
-LRESULT WINAPI NativeUIWindow_Win32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
+::LRESULT WINAPI NativeUIWindow_Win32::s_wndProc(::HWND hwnd
+											   , ::UINT msg
+											   , ::WPARAM wParam
+											   , ::LPARAM lParam)
+{
 	switch (msg) {
 		case WM_CREATE: {
-			auto cs = reinterpret_cast<CREATESTRUCT*>(lParam);
+			auto cs = reinterpret_cast<::CREATESTRUCT*>(lParam);
 			auto* thisObj = static_cast<This*>(cs->lpCreateParams);
 			thisObj->_hwnd = hwnd;
-			SetWindowLongPtr(hwnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(thisObj));
+			SetWindowLongPtr(hwnd, GWLP_USERDATA, reinterpret_cast<::LONG_PTR>(thisObj));
 		}break;
 
 		case WM_DESTROY: {
 			if (auto* thisObj = s_getThis(hwnd)) {
-				SetWindowLongPtr(hwnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(nullptr));
+				SetWindowLongPtr(hwnd, GWLP_USERDATA, reinterpret_cast<::LONG_PTR>(nullptr));
 				thisObj->_hwnd = nullptr;
 				axe_delete(thisObj);
 			}
@@ -44,29 +48,29 @@ LRESULT WINAPI NativeUIWindow_Win32::s_wndProc(HWND hwnd, UINT msg, WPARAM wPara
 			if (auto* thisObj = s_getThis(hwnd)) {
 				u16 a = LOWORD(wParam);
 				switch (a) {
-				case WA_ACTIVE:		thisObj->onActive(true);  break;
-				case WA_CLICKACTIVE:thisObj->onActive(true);  break;
-				case WA_INACTIVE:	thisObj->onActive(false); break;
+				case WA_ACTIVE:		 thisObj->onActive(true);  break;
+				case WA_CLICKACTIVE: thisObj->onActive(true);  break;
+				case WA_INACTIVE:	 thisObj->onActive(false); break;
 				}
 			}
 		}break;
 
 		case WM_MOVE: {
 			if (auto* thisObj = s_getThis(hwnd)) {
-				auto rc = s_win32_getWorldRect(hwnd);
+				auto rc = _s_win32_getWorldRect(hwnd);
 				thisObj->onSetWorldPos(rc.pos);
 			}
 		}break;
 
 		case WM_SIZING: {
 			if (auto* thisObj = s_getThis(hwnd)) {
-				thisObj->setWorldRect(s_win32_getWorldRect(hwnd));
+				thisObj->setWorldRect(_s_win32_getWorldRect(hwnd));
 			}
 		}break;
 
 		case WM_SIZE: {
 			if (auto* thisObj = s_getThis(hwnd)) {
-				thisObj->setWorldRect(s_win32_getWorldRect(hwnd));
+				thisObj->setWorldRect(_s_win32_getWorldRect(hwnd));
 
 				::RECT clientRect;
 				::GetClientRect(hwnd, &clientRect);
@@ -77,6 +81,7 @@ LRESULT WINAPI NativeUIWindow_Win32::s_wndProc(HWND hwnd, UINT msg, WPARAM wPara
 				return 0;
 			}
  		}break;
+
 	//---
 		default: {
 			if (auto* thisObj = s_getThis(hwnd)) {
@@ -94,7 +99,7 @@ void NativeUIWindow_Win32::onCreate(CreateDesc& desc) {
 
 	static const wchar_t* kClassName = L"NativeUIWindow";
 
-	auto hInstance		= GetModuleHandle(nullptr);
+	auto hInstance		= ::GetModuleHandle(nullptr);
 	::WNDCLASSEX wc     = {};
 	wc.cbSize			= sizeof(wc);
 	wc.style			= CS_HREDRAW | CS_VREDRAW; // | CS_DROPSHADOW;
@@ -146,9 +151,9 @@ void NativeUIWindow_Win32::onCreate(CreateDesc& desc) {
 	}
 
 	::WNDCLASSEX tmpWc;
-	bool registered = (0 != GetClassInfoEx(hInstance, kClassName, &tmpWc));
+	bool registered = (0 != ::GetClassInfoEx(hInstance, kClassName, &tmpWc));
 	if (!registered) {
-		if (!RegisterClassEx(&wc)) {
+		if (!::RegisterClassEx(&wc)) {
 			throw AXE_ERROR("error RegisterClassEx");
 		}
 	}
@@ -161,7 +166,7 @@ void NativeUIWindow_Win32::onCreate(CreateDesc& desc) {
 		rect.pos = (screenSize - rect.size) / 2;
 	}
 
-	_hwnd = CreateWindowEx(dwExStyle, kClassName, kClassName, dwStyle,
+	_hwnd = ::CreateWindowEx(dwExStyle, kClassName, kClassName, dwStyle,
 						   int(desc.rect.x),
 						   int(desc.rect.y),
 						   int(desc.rect.w),
@@ -172,7 +177,7 @@ void NativeUIWindow_Win32::onCreate(CreateDesc& desc) {
 		throw AXE_ERROR("cannot create native window");
 	}
 
-	setWorldRect(s_win32_getWorldRect(_hwnd));
+	setWorldRect(_s_win32_getWorldRect(_hwnd));
 	setVisible(desc.visible);
 }
 
@@ -184,6 +189,7 @@ void NativeUIWindow_Win32::onClientRectChanged(const Rect2f& rc) {
 
 void NativeUIWindow_Win32::onSetNativeWindowTitle(StrView title) {
 	if (!_hwnd) return;
+
 	TempStringW tmp = UtfUtil::toStringW(title);
 	::SetWindowText(_hwnd, tmp.c_str());
 }
@@ -191,7 +197,7 @@ void NativeUIWindow_Win32::onSetNativeWindowTitle(StrView title) {
 void NativeUIWindow_Win32::onSetNativeWorldPos(const Vec2f& screenPos) {
 	if (!_hwnd) return;
 
-	auto rc = s_win32_getWorldRect(_hwnd);
+	auto rc = _s_win32_getWorldRect(_hwnd);
 
 	::POINT out_screenPosPt;
 	Win32Util::convert(out_screenPosPt, screenPos);
@@ -226,7 +232,7 @@ void NativeUIWindow_Win32::onSetNativeCursor(UIMouseCursor type) {
 	if (!_hwnd) return;
 
 	using Cursor	= UIMouseCursor;
-	LPTSTR cursor	= IDC_ARROW;
+	::LPTSTR cursor	= IDC_ARROW;
 	switch (type)
 	{
 		case Cursor::Arrow:		cursor = IDC_ARROW;		break;
@@ -263,13 +269,17 @@ void NativeUIWindow_Win32::doDestroyWindow() {
 	}
 }
 
-NativeUIWindow_Win32::Rect2 NativeUIWindow_Win32::s_win32_getWorldRect(HWND hwnd) {
+NativeUIWindow_Win32::Rect2 NativeUIWindow_Win32::_s_win32_getWorldRect(HWND hwnd) {
 	::RECT rc;
 	::GetWindowRect(hwnd, &rc);
 	return Rect2(rc);
 }
 
-bool NativeUIWindow_Win32::_handleNativeUIMouseEvent(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
+bool NativeUIWindow_Win32::_handleNativeUIMouseEvent(::HWND hwnd
+												   , ::UINT msg
+												   , ::WPARAM wParam
+												   , ::LPARAM lParam)
+{
 	UIMouseEvent ev;
 
 	ev.modifier = _getWin32Modifier();
@@ -277,17 +287,16 @@ bool NativeUIWindow_Win32::_handleNativeUIMouseEvent(HWND hwnd, UINT msg, WPARAM
 	using Button = UIMouseEventButton;
 	using Type   = UIMouseEventType;
 
-	POINT curPos;
-	GetCursorPos(&curPos);
-	ScreenToClient(hwnd, &curPos);
+	::POINT curPos;
+	::GetCursorPos(&curPos);
+	::ScreenToClient(hwnd, &curPos);
 
 	Win32Util::convert(ev.pos, curPos);
 
-	// the 'auto button' no need, why???
-	auto button = Button::None;
+	ev.button = Button::None;
 	switch (HIWORD(wParam)) {
-		case XBUTTON1: button = Button::Button4; break;
-		case XBUTTON2: button = Button::Button5; break;
+		case XBUTTON1: ev.button = Button::Button4; break;
+		case XBUTTON2: ev.button = Button::Button5; break;
 	}
 
 	switch (msg) {
@@ -324,10 +333,10 @@ bool NativeUIWindow_Win32::_handleNativeUIMouseEvent(HWND hwnd, UINT msg, WPARAM
 	return true;
 }
 
-bool NativeUIWindow_Win32::_handleNativeUIKeyboardEvent(HWND hwnd,
-														UINT msg,
-														WPARAM wParam,
-														LPARAM lParam)
+bool NativeUIWindow_Win32::_handleNativeUIKeyboardEvent(::HWND hwnd,
+														::UINT msg,
+														::WPARAM wParam,
+														::LPARAM lParam)
 {
 	// https://learn.microsoft.com/en-us/windows/win32/learnwin32/keyboard-input
 	// https://learn.microsoft.com/en-us/windows/win32/inputdev/virtual-key-codes
@@ -590,7 +599,11 @@ bool NativeUIWindow_Win32::_handleNativeUIKeyboardEvent(HWND hwnd,
 	return true;
 }
 
-LRESULT NativeUIWindow_Win32::_handleNativeEvent(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
+LRESULT NativeUIWindow_Win32::_handleNativeEvent(::HWND hwnd
+											   , ::UINT msg
+											   , ::WPARAM wParam
+											   , ::LPARAM lParam)
+{
 	if (_handleNativeUIMouseEvent(hwnd, msg, wParam, lParam)) return 0;
 	if (_handleNativeUIKeyboardEvent(hwnd, msg, wParam, lParam)) return 0;
 	return ::DefWindowProc(hwnd, msg, wParam, lParam);
@@ -598,9 +611,9 @@ LRESULT NativeUIWindow_Win32::_handleNativeEvent(HWND hwnd, UINT msg, WPARAM wPa
 
 UIEventModifier NativeUIWindow_Win32::_getWin32Modifier() {
 	auto o = UIEventModifier::None;
-	if (GetAsyncKeyState(VK_CONTROL))	o |= UIEventModifier::Ctrl;
-	if (GetAsyncKeyState(VK_SHIFT))		o |= UIEventModifier::Shift;
-	if (GetAsyncKeyState(VK_MENU))		o |= UIEventModifier::Alt;
+	if (GetAsyncKeyState(VK_CONTROL)) o |= UIEventModifier::Ctrl;
+	if (GetAsyncKeyState(VK_SHIFT)) o |= UIEventModifier::Shift;
+	if (GetAsyncKeyState(VK_MENU)) o |= UIEventModifier::Alt;
 	if (GetAsyncKeyState(VK_LWIN) || GetAsyncKeyState(VK_RWIN)) {
 		o |= UIEventModifier::Cmd;
 	}

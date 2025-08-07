@@ -14,7 +14,7 @@ class Context_DX12 : public RenderContext {
 public:
 	Context_DX12(RenderDevice* device, CreateDesc& desc);
 
-	static const UINT kFrameBufferCount = 2;
+	DX12_ID3D12CommandQueue* d3dGraphicsCmdQueue() { return _graphicsCmdQueue; }
 
 	ComPtr<DX12_ID3D12CommandQueue> _graphicsCmdQueue;
 	ComPtr<DX12_ID3D12CommandQueue> _computeCmdQueue;
@@ -22,17 +22,14 @@ public:
 
 	::D3D12_VIEWPORT m_viewport;
 
-	ComPtr<DX12_IDXGISwapChain> m_swapChain; // TODO RenderSwapChain
+	UPtr<SwapChain_DX12> m_swapChain;
 
 	D3D12_RECT m_scissorRect;
 
-	ComPtr<ID3D12Resource>			  m_renderTargets[kFrameBufferCount];
 	ComPtr<ID3D12CommandAllocator>	  m_commandAllocator;
 	ComPtr<ID3D12RootSignature>		  m_rootSignature;
-	ComPtr<ID3D12DescriptorHeap>	  m_rtvHeap;
 	ComPtr<ID3D12PipelineState>		  m_pipelineState;
 	ComPtr<ID3D12GraphicsCommandList> m_commandList;
-	UINT							  m_rtvDescriptorSize;
 
 	// App resources.
 	ComPtr<ID3D12Resource>	 m_vertexBuffer;
@@ -47,11 +44,11 @@ public:
 	virtual void onBeginRender() override;
 	virtual void onEndRender() override;
 
-	AXE_INLINE Device_DX12*		  renderDevice();
-	AXE_INLINE DX12_ID3D12Device* _d3dDevice();
+	Device_DX12*		renderDevice();
+	DX12_ID3D12Device*  d3dDevice();
 
 //	virtual void onSetNeedToRender() final;
-	virtual void onSetSwapchainFrameBufferSize(const Vec2f& newSize) final;
+	virtual void onSetSwapChainFrameBufferSize(const Vec2f& newSize) final;
 	virtual void onCommit(RenderCommandBuffer& cmdBuf) final;
 
 	void onCmd_ClearFrameBuffers(RenderCommand_ClearFrameBuffers& cmd);

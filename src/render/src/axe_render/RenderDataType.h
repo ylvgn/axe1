@@ -28,6 +28,14 @@ AXE_ENUM_CLASS(RenderPrimitiveType, u8)
 //----
 AXE_ENUM_CLASS(RenderGpuBufferType, u8)
 
+#define MonitorDisplayMode_ENUM_LIST(E) \
+	E(Unknown, ) \
+	E(SDR,) \
+	E(HDR_PQ, ) \
+	E(HDR_scRGB, ) \
+//----
+AXE_ENUM_CLASS(MonitorDisplayMode, u8)
+
 #define RenderDataType_ENUM_LIST(E) \
 	E(None,) \
 	\

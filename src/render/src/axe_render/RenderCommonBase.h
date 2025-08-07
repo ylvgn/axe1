@@ -10,6 +10,8 @@ class Material;
 class Material_CreateDesc;
 class MaterialPass;
 
+enum class MonitorDisplayMode : u8;
+
 class Renderer;
 class Renderer_CreateDesc;
 class RenderAdapterInfo;
@@ -46,7 +48,6 @@ class RenderStorageBuffer_CreateDesc;
 class RenderState;
 class RenderSubMesh;
 class RenderSwapChain;
-class RenderSwapChain_CreateDesc;
 class RenderVertexArray;
 class RenderVertexDesc;
 
@@ -93,12 +94,7 @@ public:
 	using PrimitiveType 	= RenderPrimitiveType;
 
 	using Rect2				= Rect2f;
-	using RenderContext		= RenderContext;
-	using RenderState		= RenderState;
 
-	using SamplerState		= SamplerState;
-	using Shader			= Shader;
-	using ShaderPass		= ShaderPass;
 	using SubMesh			= RenderSubMesh;
 	using SwapChain			= RenderSwapChain;
 

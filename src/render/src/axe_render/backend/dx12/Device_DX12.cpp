@@ -108,17 +108,16 @@ Device_DX12::Device_DX12(CreateDesc& desc)
 		pInfoQueue->AddStorageFilterEntries(&filter);
 
 		ComPtr<ID3D12InfoQueue1> pInfoQueue1;
-		hr = pInfoQueue.As(&pInfoQueue1);
-		AXE_DX12_THROWIF_HRESULT_ERROR(hr, _d3dDevice);
-
-		::DWORD callbackCookie = 0;
-		hr = pInfoQueue1->RegisterMessageCallback(
-			s_D3D12MessageFunc,
-			D3D12_MESSAGE_CALLBACK_FLAG_NONE,
-			this,
-			&callbackCookie
-		);
-		AXE_DX12_THROWIF_HRESULT_ERROR(hr, _d3dDevice);
+		if (pInfoQueue.As(&pInfoQueue1)) {
+			::DWORD callbackCookie = 0;
+			hr = pInfoQueue1->RegisterMessageCallback(
+				s_D3D12MessageFunc,
+				D3D12_MESSAGE_CALLBACK_FLAG_NONE,
+				this,
+				&callbackCookie
+			);
+			AXE_DX12_THROWIF_HRESULT_ERROR(hr, _d3dDevice);
+		}
 	}
 #endif
 }

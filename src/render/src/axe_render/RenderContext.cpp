@@ -40,10 +40,10 @@ void RenderContext::endRender() {
 	onEndRender();
 }
 
-void RenderContext::setSwapchainFrameBufferSize(const Vec2& newSize) {
-	if (_swapchainFrameBufferSize == newSize)
+void RenderContext::setSwapChainFrameBufferSize(const Vec2& newSize) {
+	if (_swapChainFrameBufferSize == newSize)
 		return;
-	onSetSwapchainFrameBufferSize(newSize);
+	onSetSwapChainFrameBufferSize(newSize);
 }
 
 #if 0 // no need atm

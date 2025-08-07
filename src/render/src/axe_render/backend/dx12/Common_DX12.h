@@ -11,6 +11,9 @@
 	//#include <d3d12.h> // #include <directx/d3d12.h> mismatch #define D3D12_SDK_VERSION, maybe upgrader Windows SDK. or manually dl: https://devblogs.microsoft.com/directx/directx12agility/
 	#include <dxgi1_6.h>
 
+	#ifndef D3DX12_NO_STATE_OBJECT_HELPERS
+		#define D3DX12_NO_STATE_OBJECT_HELPERS
+	#endif
 	#include <directx/d3dx12.h>
 
 	#if defined(_DEBUG)
@@ -34,33 +37,34 @@
 namespace axe {
 
 #if defined(_DEBUG)
-	using DX12_IDXGIDebug			 = IDXGIDebug1;
-	using DX12_ID3D12Debug			 = ID3D12Debug1; // ID3D12Debug6
-	using DX12_ID3D12InfoQueue		 = ID3D12InfoQueue;
+	using DX12_IDXGIDebug							= IDXGIDebug1;
+	using DX12_ID3D12Debug							= ID3D12Debug1; // ID3D12Debug6
+	using DX12_ID3D12InfoQueue						= ID3D12InfoQueue;
 #endif
 
-using DX12_IDXGIFactory				 = IDXGIFactory7; // use IDXGIFactory4 or newer
-using DX12_IDXGIAdapter				 = IDXGIAdapter4;
-using DX12_IDXGIOutput				 = IDXGIOutput6;
-using DX12_IDXGIDevice				 = IDXGIDevice;
-using DX12_IDXGISwapChain			 = IDXGISwapChain4;
+using DX12_IDXGIAdapter								= IDXGIAdapter4;
+using DX12_IDXGIDevice								= IDXGIDevice;
+using DX12_IDXGIFactory								= IDXGIFactory7; // use IDXGIFactory4 or newer
+using DX12_IDXGIOutput								= IDXGIOutput6;
+using DX12_IDXGISwapChain							= IDXGISwapChain4;
 
-using DX12_ID3D12CommandQueue		 = ID3D12CommandQueue;
-using DX12_ID3D12Device				 = ID3D12Device5;
-using DX12_ID3D12GraphicsCommandList = ID3D12GraphicsCommandList7; // ID3D12GraphicsCommandList10
-using DX12_ID3D12Resource			 = ID3D12Resource2;
-using DX12_ID3D12Fence				 = ID3D12Fence1;
-
-using DX12_ID3D12DeviceRemovedExtendedDataSettings = ID3D12DeviceRemovedExtendedDataSettings1;
+using DX12_ID3D12CommandQueue						= ID3D12CommandQueue;
+using DX12_ID3D12Device								= ID3D12Device5;
+using DX12_ID3D12DeviceRemovedExtendedDataSettings	= ID3D12DeviceRemovedExtendedDataSettings1;
+using DX12_ID3D12Fence								= ID3D12Fence1;
+using DX12_ID3D12GraphicsCommandList				= ID3D12GraphicsCommandList7; // ID3D12GraphicsCommandList10
+using DX12_ID3D12Resource							= ID3D12Resource2;
 
 class CommandQueue_DX12;
 class Context_DX12;
 class Capabilities_DX12;
 class Device_DX12;
+class DescriptorHandle_DX12;
 class Fence_DX12;
 class GpuBuffer_DX12;
 class Renderer_DX12;
 class SwapChain_DX12;
+
 
 #if 0
 #pragma mark ========= DX12Util ============
@@ -116,6 +120,9 @@ public:
 	static void setResourceCallstack(::ID3D12Object* pObject);
 	static bool getResourceCallstack(Callstack<6>& outCallstack, ::ID3D12Object* pObject);
 
+	static DXGI_FORMAT getDxColorType(ColorType type);
+	static DXGI_FORMAT getDxDataType(RenderDataType type);
+
 private:
 	static bool _checkError(::HRESULT hr) {
 		return FAILED(hr); // if got error, return true
@@ -124,7 +131,7 @@ private:
 AXE_STATIC_ASSERT_NO_MEMBER_CLASS(DX12Util);
 
 
-AXE_INLINE
+inline
 bool DX12Util::isValid(::HRESULT hr) {
 	if (_checkError(hr))
 	{
@@ -134,13 +141,67 @@ bool DX12Util::isValid(::HRESULT hr) {
 	return true;
 }
 
-AXE_INLINE
+inline
 void DX12Util::warningIfError(::HRESULT hr) {
 	if (_checkError(hr)) {
 		AXE_LOG_WARN("HRESULT(0x{:0X}): {}", hr, Win32_HRESULT_String(hr));
 	}
 }
 
+inline
+DXGI_FORMAT DX12Util::getDxColorType(ColorType type) {
+	using SRC = ColorType;
+	switch (type) {
+//		case SRC::HSBAf: return DXGI_FORMAT_R32G32B32A32_FLOAT;
+		case SRC::RGBAf: return DXGI_FORMAT_R32G32B32A32_FLOAT;
+		case SRC::RGBAh: return DXGI_FORMAT_R16G16B16A16_FLOAT;
+		case SRC::RGBAb: return DXGI_FORMAT_R8G8B8A8_UNORM;
+//		case SRC::RGBb:  
+		case SRC::RGb:	 return DXGI_FORMAT_R8G8_UNORM;
+		case SRC::Rb:	 return DXGI_FORMAT_R8_UNORM;
+//		case SRC::Ab:	 return DXGI_FORMAT_A8_UNORM;
+		case SRC::Lb:	 return DXGI_FORMAT_R8_UNORM;
+//		case SRC::Af:	 return DXGI_FORMAT_R32_FLOAT;
+		case SRC::Lf:	 return DXGI_FORMAT_R32_FLOAT;
+		case SRC::LAf:	 return DXGI_FORMAT_R32G32_FLOAT;
+		case SRC::LAb:	 return DXGI_FORMAT_R8G8_UNORM;
+	//---
+		case SRC::BC1:		return DXGI_FORMAT_BC1_UNORM;
+		case SRC::BC2:		return DXGI_FORMAT_BC2_UNORM;
+		case SRC::BC3:		return DXGI_FORMAT_BC3_UNORM;
+		case SRC::BC4:		return DXGI_FORMAT_BC4_UNORM;
+		case SRC::BC5:		return DXGI_FORMAT_BC5_UNORM;
+		case SRC::BC6h:		return DXGI_FORMAT_BC6H_UF16;
+		case SRC::BC7:		return DXGI_FORMAT_BC7_UNORM;
+	//---
+		default:
+			AXE_THROW();
+	}
+}
+
+inline
+DXGI_FORMAT DX12Util::getDxDataType(RenderDataType type) {
+	using SRC = RenderDataType;
+	switch (type) {
+		case SRC::UInt8:		return DXGI_FORMAT_R8_UNORM; break;
+		case SRC::UInt8x2:		return DXGI_FORMAT_R8G8_UNORM; break;
+//		case SRC::UInt8x3:		return DXGI_FORMAT_R8G8B8_UNORM; break; //does not support in DX11
+		case SRC::UInt8x4:		return DXGI_FORMAT_R8G8B8A8_UNORM; break;
+	//--
+		case SRC::Float16:		return DXGI_FORMAT_R16_FLOAT; break;
+		case SRC::Float16x2:	return DXGI_FORMAT_R16G16_FLOAT; break;
+//		case SRC::Float16x3:	return DXGI_FORMAT_R16G16B16_FLOAT; break; //does not support in DX11
+		case SRC::Float16x4:	return DXGI_FORMAT_R16G16B16A16_FLOAT; break;
+	//---
+		case SRC::Float32:		return DXGI_FORMAT_R32_FLOAT; break;
+		case SRC::Float32x2:	return DXGI_FORMAT_R32G32_FLOAT; break;
+		case SRC::Float32x3:	return DXGI_FORMAT_R32G32B32_FLOAT; break;
+		case SRC::Float32x4:	return DXGI_FORMAT_R32G32B32A32_FLOAT; break;
+	//---
+		default:
+			AXE_THROW();
+	}
+}
 
 #if 0
 #pragma mark ========= DX12_HRESULT_String ============

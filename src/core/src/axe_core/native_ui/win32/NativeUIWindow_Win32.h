@@ -14,11 +14,11 @@ class NativeUIWindow_Win32 : public NativeUIWindow_Base {
 public:
 	using Util = Win32Util;
 
-	LRESULT _handleNativeEvent(::HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
-	bool	_handleNativeUIMouseEvent(::HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
-	bool	_handleNativeUIKeyboardEvent(::HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
+	::LRESULT	_handleNativeEvent		(::HWND hwnd, ::UINT msg, ::WPARAM wParam, ::LPARAM lParam);
+	bool		_handleNativeUIMouseEvent	(::HWND hwnd, ::UINT msg, ::WPARAM wParam, ::LPARAM lParam);
+	bool		_handleNativeUIKeyboardEvent(::HWND hwnd, ::UINT msg, ::WPARAM wParam, ::LPARAM lParam);
 
-	static Rect2 s_win32_getWorldRect(::HWND hwnd);
+	static Rect2 _s_win32_getWorldRect(::HWND hwnd);
 
 	bool isKeyDown(KeyCode keyCode);
 
