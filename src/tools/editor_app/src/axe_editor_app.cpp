@@ -121,10 +121,15 @@ void EditorMainWindow::onCreate(CreateDesc& desc) {
 void EditorMainWindow::EventHandler::onRender(RenderContext& renderContext) {
 	AXE_RUN_ONCE(test_mesh());
 
+	auto& clientRect = renderContext.window()->clientRect();
+
 	renderContext.beginRender();
 
 	_cmdBuf.reset(&renderContext);
-	_cmdBuf.clearFrameBuffers()->setColor({ 0, 0, 0.2f, 1 });
+	_cmdBuf.setViewport(clientRect);
+	_cmdBuf.setScissorRect(clientRect);
+	_cmdBuf.clearFrameBuffers()->setColor({ 0.0f, 0.2f, 0.4f, 1.0f });
+
 	{ // draw mesh
 		for (auto& sm : _renderMesh.subMeshes())
 		{

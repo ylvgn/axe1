@@ -40,31 +40,32 @@ public:
 
 	virtual void OnResizeOrMove(const Vec2f& newSize) final;
 
-	DX12_IDXGISwapChain*  d3dSwapChain() { return _d3dSwapChain; }
-	ID3D12Resource*		  d3dRTV()		 { return _renderTargets[_curImageIdx]; }
-	ID3D12DescriptorHeap* d3dHeap()		 { return _rtvHeap; }
-
-	DescriptorHandle_DX12 d3dRTVHandle();
+	DX12_IDXGISwapChain*		d3dSwapChain()	{ return _d3dSwapChain; }
+	DX12_ID3D12Resource*		d3dRTV()		{ return _renderTargets[_curImageIdx]; }
+	DX12_ID3D12DescriptorHeap*	d3dHeap()		{ return _rtvHeap; }
+	DescriptorHandle_DX12		d3dRTVHandle();
+	DX12_ID3D12Device*			d3dDevice();
 
 	Context_DX12*		  renderContext();
-	DX12_ID3D12Device*	  d3dDevice();
 
 	void present();
 
 private:
-	void _releaseRenderTargetView();
 	void _createRenderTargetView();
+	void _releaseRenderTargetView();
+
 	void _refreshCurImageIndex();
 
 	bool _isDisplaySupportsHDR() const;
 
-	Format						 _format;
+	Format						 _format; // TODO
 
-	ComPtr<DX12_IDXGISwapChain>  _d3dSwapChain;
-	ComPtr<ID3D12Resource>		 _renderTargets[kFrameBufferCount];
+	::HANDLE _waitableEvent = nullptr;
 
-	ComPtr<ID3D12DescriptorHeap> _rtvHeap;
-	UINT						 _rtvDescriptorSize;
+	ComPtr<DX12_IDXGISwapChain>			_d3dSwapChain;
+	ComPtr<DX12_ID3D12Resource>			_renderTargets[kFrameBufferCount];
+	ComPtr<DX12_ID3D12DescriptorHeap>	_rtvHeap;
+	UINT								_rtvDescriptorSize;
 }; // SwapChain_DX12
 
 } // namespace axe

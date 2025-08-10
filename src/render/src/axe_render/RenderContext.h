@@ -16,40 +16,37 @@ class RenderContext_CreateDesc {
 public:
 	using EventHandler = RenderContext_EventHandler;
 
-//	NativeUIWindow::CreateDesc	winDesc; no need atm
-	NativeUIWindow*				window		 = nullptr;
-	EventHandler*				eventHandler = nullptr;
+	NativeUIWindow*	window		 = nullptr;
+	EventHandler*	eventHandler = nullptr;
 }; // RenderContext_CreateDesc
 
 
 class RenderContext : public RenderDeviceObject {
 	AXE_ABSTRACT_CLASS_TYPE(RenderContext, RenderDeviceObject)
-	using Vec2  = Vec2f;
-	using Rect2 = Rect2f;
 public:
 	using CreateDesc	= RenderContext_CreateDesc;
 	using EventHandler	= CreateDesc::EventHandler;
 
-	NativeUIWindow*	  window()		 { return _window; }
-	EventHandler*	  eventHandler() { return _eventHandler; }
-
-			void beginRender();
+			void   beginRender();
 	virtual void onBeginRender() {}
 
-			void endRender();
+			void   endRender();
 	virtual void onEndRender() {}
 
-			void setSwapChainFrameBufferSize(const Vec2& newSize);
-	virtual void onSetSwapChainFrameBufferSize(const Vec2& newSize) { _swapChainFrameBufferSize = newSize; }
+			void   setSwapChainFrameBufferSize(const Vec2f& newSize);
+	virtual void onSetSwapChainFrameBufferSize(const Vec2f& newSize) { _swapChainFrameBufferSize = newSize; }
 	const auto& swapChainFrameBufferSize() const { return _swapChainFrameBufferSize; }
 
-//	void setNativeViewRect(const Rect2& rect); no need atm
-//	virtual void onSetNativeViewRect(const Rect2& rect) {}; no need atm
-			void commit(RenderCommandBuffer& cmdBuf) { onCommit(cmdBuf); }
+			void   commit(RenderCommandBuffer& cmdBuf) { onCommit(cmdBuf); }
 	virtual void onCommit(RenderCommandBuffer& cmdBuf) = 0;
 
-//	void setNeedToRender(); no need atm
-	//	virtual void onSetNeedToRender() = 0; no need atm
+	NativeUIWindow*		window()		const { return _window; }
+	EventHandler*		eventHandler()	const { return _eventHandler; }
+
+#if AXE_OS_WINDOWS
+	::HWND				hwnd()			const { return _window->_hwnd; }
+#endif
+
 protected:
 	RenderContext(RenderDevice* device, CreateDesc& desc) noexcept; // please create from 'RenderDevice::createRenderContext'
 
@@ -66,20 +63,20 @@ protected:
 
 		for (auto* cmd : cmdBuf.commands()) {
 			switch (cmd->type()) {
+				AXE_MACRO_OP(SetViewport)
+				AXE_MACRO_OP(SetScissorRect)
 				AXE_MACRO_OP(ClearFrameBuffers)
-//				AXE_MACRO_OP(SetViewport)
-//				AXE_MACRO_OP(SwapBuffers)
-//				AXE_MACRO_OP(DrawCall)
-//				AXE_MACRO_OP(SetScissorRect)
+				AXE_MACRO_OP(SwapBuffers)
+				AXE_MACRO_OP(DrawCall)
 				default: AXE_THROW();
 			}
 		}
 		#undef AXE_MACRO_OP
 	}
 
-	Vec2			_swapChainFrameBufferSize{ 0, 0 };
-	NativeUIWindow* _window = nullptr;
-	EventHandler*	_eventHandler = nullptr;
+	Vec2f			_swapChainFrameBufferSize {0,0};
+	NativeUIWindow* _window			= nullptr;
+	EventHandler*	_eventHandler	= nullptr;
 }; // RenderContext
 
 } // namespace axe

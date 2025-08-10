@@ -54,6 +54,7 @@ using DX12_ID3D12DeviceRemovedExtendedDataSettings	= ID3D12DeviceRemovedExtended
 using DX12_ID3D12Fence								= ID3D12Fence1;
 using DX12_ID3D12GraphicsCommandList				= ID3D12GraphicsCommandList7; // ID3D12GraphicsCommandList10
 using DX12_ID3D12Resource							= ID3D12Resource2;
+using DX12_ID3D12DescriptorHeap						= ID3D12DescriptorHeap;
 
 class CommandQueue_DX12;
 class Context_DX12;
@@ -120,8 +121,9 @@ public:
 	static void setResourceCallstack(::ID3D12Object* pObject);
 	static bool getResourceCallstack(Callstack<6>& outCallstack, ::ID3D12Object* pObject);
 
-	static DXGI_FORMAT getDxColorType(ColorType type);
-	static DXGI_FORMAT getDxDataType(RenderDataType type);
+	static ::D3D12_PRIMITIVE_TOPOLOGY getDxPrimitiveTopology(RenderPrimitiveType t);
+	static ::DXGI_FORMAT getDxColorType(ColorType type);
+	static ::DXGI_FORMAT getDxDataType(RenderDataType type);
 
 private:
 	static bool _checkError(::HRESULT hr) {
@@ -149,7 +151,20 @@ void DX12Util::warningIfError(::HRESULT hr) {
 }
 
 inline
-DXGI_FORMAT DX12Util::getDxColorType(ColorType type) {
+::D3D12_PRIMITIVE_TOPOLOGY DX12Util::getDxPrimitiveTopology(RenderPrimitiveType t) {
+	using SRC = RenderPrimitiveType;
+	switch (t) {
+		case SRC::Points:		return D3D_PRIMITIVE_TOPOLOGY_POINTLIST;
+		case SRC::Lines:		return D3D_PRIMITIVE_TOPOLOGY_LINELIST;
+		case SRC::Triangles:	return D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+	//---
+		default:
+			AXE_THROW();
+	}
+}
+
+inline
+::DXGI_FORMAT DX12Util::getDxColorType(ColorType type) {
 	using SRC = ColorType;
 	switch (type) {
 //		case SRC::HSBAf: return DXGI_FORMAT_R32G32B32A32_FLOAT;
@@ -180,7 +195,7 @@ DXGI_FORMAT DX12Util::getDxColorType(ColorType type) {
 }
 
 inline
-DXGI_FORMAT DX12Util::getDxDataType(RenderDataType type) {
+::DXGI_FORMAT DX12Util::getDxDataType(RenderDataType type) {
 	using SRC = RenderDataType;
 	switch (type) {
 		case SRC::UInt8:		return DXGI_FORMAT_R8_UNORM; break;

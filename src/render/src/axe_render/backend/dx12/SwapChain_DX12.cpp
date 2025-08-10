@@ -40,10 +40,10 @@ void SwapChain_DX12__Format::set(MonitorDisplayMode mode) {
 
 DescriptorHandle_DX12 SwapChain_DX12::d3dRTVHandle() {
 	DescriptorHandle_DX12 h;
-	h.cpu = DescriptorHandle_DX12::NativeCpuHandle(
+	h.cpu = DescriptorHandle_DX12::CpuHandle(
 		_rtvHeap->GetCPUDescriptorHandleForHeapStart()
 		, _curImageIdx
-		,_rtvDescriptorSize
+		, _rtvDescriptorSize
 	);
 	return h;
 }
@@ -70,31 +70,33 @@ void SwapChain_DX12::present() {
 
 #if 0
 	// Signal and store when the GPU work for the frame we just flipped is finished.
-	CommandQueue* pDirectQueue = GetParent()->GetGraphicsQueue();
-	m_pPresentFence->Signal(pDirectQueue);
-
+	m_pPresentFence->Signal(renderContext()->d3dGraphicsCmdQueue(););
 	WaitForSingleObject(m_WaitableObject, INFINITE);
 #endif
 }
 
 void SwapChain_DX12::destroy() {
+	AXE_TODO("");
 }
 
 void SwapChain_DX12::OnResizeOrMove(const Vec2f& newSize) {
-	AXE_TODO("");
-	_frameBufferSize = newSize;
+	if (/* desiredFormat != _format ||*/ _frameBufferSize != newSize) {
+		_frameBufferSize = newSize;
 
-	::HRESULT hr;
-	auto* d3d12Device = d3dDevice();
+		::HRESULT hr;
+		auto* d3d12Device = d3dDevice();
 
-	_releaseRenderTargetView();
+		_releaseRenderTargetView();
 
-	auto width	= static_cast<UINT>(Math::max(8.0f, newSize.x));
-	auto height = static_cast<UINT>(Math::max(8.0f, newSize.y));
-	hr	= _d3dSwapChain->ResizeBuffers(0, width, height, DXGI_FORMAT_UNKNOWN, 0);
-	AXE_DX12_THROWIF_HRESULT_ERROR(hr, d3d12Device);
+		hr = _d3dSwapChain->ResizeBuffers(0
+										, static_cast<::UINT>(Math::max(8.0f, newSize.x))
+										, static_cast<::UINT>(Math::max(8.0f, newSize.y))
+										, DXGI_FORMAT_UNKNOWN
+										, 0);
+		AXE_DX12_THROWIF_HRESULT_ERROR(hr, d3d12Device);
 
-	_createRenderTargetView();
+		_createRenderTargetView();
+	}
 }
 
 bool SwapChain_DX12::_isDisplaySupportsHDR() const {
@@ -113,7 +115,9 @@ void SwapChain_DX12::create(Context_DX12* context) {
 	auto* dxgiFactory = renderer->dxgiFactory();
 	auto* d3d12Device = context->d3dDevice();
 
-	auto& _hwnd = context->window()->_hwnd;
+	const auto& _hwnd = context->hwnd();
+
+	AXE_ASSERT(_hwnd);
 
 	_renderContext = context;
 
@@ -129,25 +133,24 @@ void SwapChain_DX12::create(Context_DX12* context) {
 
 		ComPtr<IDXGISwapChain1> swapChain;
 		hr = dxgiFactory->CreateSwapChainForHwnd(context->d3dGraphicsCmdQueue()
-										  , _hwnd
-										  , &swapChainDesc
-										  , nullptr
-										  , nullptr
-										  , swapChain.ptrForInit());
+											   , _hwnd
+											   , &swapChainDesc
+											   , nullptr
+											   , nullptr
+											   , swapChain.ptrForInit());
 		AXE_DX12_THROWIF_HRESULT_ERROR(hr, d3d12Device);
 
 		hr = swapChain->QueryInterface(IID_PPV_ARGS(_d3dSwapChain.ptrForInit()));
 		AXE_DX12_THROWIF_HRESULT_ERROR(hr, d3d12Device);
 	}
 
-	// Create descriptor heaps.
-	{
+	{ // Create descriptor heaps.
 		// Describe and create a render target view (RTV) descriptor heap.
 		::D3D12_DESCRIPTOR_HEAP_DESC rtvHeapDesc = {};
 		rtvHeapDesc.NumDescriptors				 = kFrameBufferCount;
 		rtvHeapDesc.Type						 = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
 		rtvHeapDesc.Flags						 = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
-		hr										 = d3d12Device->CreateDescriptorHeap(&rtvHeapDesc, IID_PPV_ARGS(_rtvHeap.ptrForInit()));
+		hr = d3d12Device->CreateDescriptorHeap(&rtvHeapDesc, IID_PPV_ARGS(_rtvHeap.ptrForInit()));
 		AXE_DX12_THROWIF_HRESULT_ERROR(hr, d3d12Device);
 
 		_rtvDescriptorSize = d3d12Device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
@@ -169,7 +172,7 @@ void SwapChain_DX12::_createRenderTargetView() {
 	auto* d3d12Device = d3dDevice();
 
 	// Create frame resources.
-	::CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(_rtvHeap->GetCPUDescriptorHandleForHeapStart()); // using d3d12x.h
+	DescriptorHandle_DX12 rtvHandle(_rtvHeap->GetCPUDescriptorHandleForHeapStart());
 
 	// Create a RTV for each frame.
 	for (::UINT i = 0; i < kFrameBufferCount; ++i) {
@@ -177,7 +180,7 @@ void SwapChain_DX12::_createRenderTargetView() {
 		AXE_DX12_THROWIF_HRESULT_ERROR(hr, d3d12Device);
 
 		d3d12Device->CreateRenderTargetView(_renderTargets[i].ptr(), nullptr, rtvHandle);
-		rtvHandle.ptr += _rtvDescriptorSize;
+		rtvHandle.cpu += _rtvDescriptorSize;
 	}
 
 	_refreshCurImageIndex();

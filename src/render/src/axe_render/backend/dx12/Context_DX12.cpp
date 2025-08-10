@@ -9,64 +9,6 @@
 
 namespace axe {
 
-#if 0 // no need atm
-LRESULT WINAPI Context_DX12::s_wndProc(::HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
-	switch (msg) {
-		case WM_CREATE: {
-			auto cs = reinterpret_cast<::CREATESTRUCT*>(lParam);
-			auto* thisObj = static_cast<This*>(cs->lpCreateParams);
-			thisObj->_hwnd = hwnd;
-			::SetWindowLongPtr(hwnd, GWLP_USERDATA, reinterpret_cast<::LONG_PTR>(thisObj));
-		}break;
-
-		case WM_DESTROY: {
-			if (auto* thisObj = s_getThis(hwnd))
-			{
-				SetWindowLongPtr(hwnd, GWLP_USERDATA, reinterpret_cast<::LONG_PTR>(nullptr));
-				thisObj->_hwnd = nullptr;
-			}
-		}break;
-
-		case WM_PAINT: {
-			::PAINTSTRUCT ps;
-			::BeginPaint(hwnd, &ps);
-			if (auto* thisObj = s_getThis(hwnd)) {
-				if (thisObj->_eventHandler) {
-					thisObj->_eventHandler->render(thisObj);
-				}
-			}
-			::EndPaint(hwnd, &ps);
-			return 0;
-		}break;
-
-		case WM_SIZE: {
-			if (auto* thisObj = s_getThis(hwnd))
-			{
-				auto* win = static_cast<NativeUIWindow_Win32*>(thisObj->window());
-				win->setWorldRect(NativeUIWindow_Win32::_s_win32_getWorldRect(hwnd));
-				//AXE_DUMP_VAR(win->clientRect());
-				return 0;
-			}
-		} break;
-
-		case WM_SIZING: {
-			if (auto* thisObj = s_getThis(hwnd))
-			{
-				auto* win = static_cast<NativeUIWindow_Win32*>(thisObj->window());
-				win->setWorldRect(NativeUIWindow_Win32::_s_win32_getWorldRect(hwnd));
-			}
-		} break;
-
-		default: {
-			if (auto* thisObj = s_getThis(hwnd)) {
-				return thisObj->_window->_handleNativeEvent(hwnd, msg, wParam, lParam);
-			}
-		}break;
-	}
-	return ::DefWindowProc(hwnd, msg, wParam, lParam);
-}
-#endif
-
 DX12_ID3D12Device* Context_DX12::d3dDevice() {
 	return renderDevice()->d3dDevice();
 }
@@ -78,17 +20,9 @@ Device_DX12* Context_DX12::renderDevice() {
 Context_DX12::Context_DX12(RenderDevice* device, CreateDesc& desc)
 	: Base(device, desc)
 {
-	AXE_ASSERT(desc.window->_hwnd);
-
-//	_createWindow(desc); no use atm
-
 	::HRESULT hr;
 
 	auto* d3d12Device = d3dDevice();
-	auto* renderer	  = Util::renderer();
-	auto* dxgiFactory = renderer->dxgiFactory();
-
-	auto& _hwnd = desc.window->_hwnd;
 
 	{ // create command queue
 		::D3D12_COMMAND_QUEUE_DESC queueDesc = {};
@@ -103,22 +37,25 @@ Context_DX12::Context_DX12(RenderDevice* device, CreateDesc& desc)
 		queueDesc.Type = D3D12_COMMAND_LIST_TYPE_COMPUTE;
 		hr			   = d3d12Device->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(_computeCmdQueue.ptrForInit()));
 		AXE_DX12_THROWIF_HRESULT_ERROR(hr, d3d12Device);
-#if 0
+
+#if 0 // no use atm
 		queueDesc.Type = D3D12_COMMAND_LIST_TYPE_COPY;
 		hr			   = d3d12Device->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(_copyCmdQueue.ptrForInit()));
 		AXE_DX12_THROWIF_HRESULT_ERROR(hr, d3d12Device);
 #endif
 	}
 
-	AXE_ASSERT(_hwnd);
+	_swapChain.reset(new SwapChain_DX12());
+	_swapChain->create(this);
 
-	m_swapChain.reset(new SwapChain_DX12());
-	m_swapChain->create(this);
+	{ // disable alt+enter
+		auto* renderer	  = Util::renderer();
+		auto* dxgiFactory = renderer->dxgiFactory();
+		auto& _hwnd = desc.window->_hwnd;
+		hr = dxgiFactory->MakeWindowAssociation(_hwnd, DXGI_MWA_NO_ALT_ENTER);
+		AXE_DX12_THROWIF_HRESULT_ERROR(hr, d3d12Device);
+	}
 
-	// This sample does not support fullscreen transitions.
-	hr = dxgiFactory->MakeWindowAssociation(_hwnd, DXGI_MWA_NO_ALT_ENTER);
-	AXE_DX12_THROWIF_HRESULT_ERROR(hr, d3d12Device);
-	
 	// Create command allocator and list
 	hr = d3d12Device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(m_commandAllocator.ptrForInit()));
 	AXE_DX12_THROWIF_HRESULT_ERROR(hr, d3d12Device);
@@ -133,57 +70,7 @@ Context_DX12::Context_DX12(RenderDevice* device, CreateDesc& desc)
 	AXE_DX12_THROWIF_HRESULT_ERROR(hr, d3d12Device);
 }
 
-#if 0 // no need atm
-void Context_DX12::_createWindow(CreateDesc& desc)
-{
-	auto   hInstance  = ::GetModuleHandle(nullptr);
-	::HWND parentHwnd = desc.window ? desc.window->_hwnd : nullptr;
-
-	static const wchar_t* kClassName = L"Context_DX12";
-
-	// register window class
-	::WNDCLASSEX tmpWc		= {};
-	bool		 registered = (0 != ::GetClassInfoEx(hInstance, kClassName, &tmpWc));
-	if (!registered)
-	{
-		tmpWc.cbSize		= sizeof(tmpWc);
-		tmpWc.style			= CS_HREDRAW | CS_VREDRAW;
-		tmpWc.lpfnWndProc	= &s_wndProc;
-		tmpWc.cbClsExtra	= 0;
-		tmpWc.cbWndExtra	= 0;
-		tmpWc.hInstance		= hInstance;
-		tmpWc.hIcon			= nullptr;
-		tmpWc.hCursor		= LoadCursor(nullptr, IDC_ARROW);
-		tmpWc.hbrBackground = nullptr; //(HBRUSH)(COLOR_WINDOW+1);
-		tmpWc.lpszMenuName	= nullptr;
-		tmpWc.lpszClassName = kClassName;
-		tmpWc.hIconSm		= nullptr;
-
-		if (!::RegisterClassEx(&tmpWc))
-		{
-			AXE_THROW();
-		}
-	}
-
-	//--------
-	::DWORD dwStyle	  = parentHwnd ? WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS : WS_POPUP;
-	::DWORD dwExStyle = 0;
-	_hwnd			  = ::CreateWindowEx(dwExStyle, kClassName, kClassName, dwStyle,
-										 0, 0,
-										 //static_cast<int>(desc.window->clientRect().w), static_cast<int>(desc.window->clientRect().h),
-										 0, 0,
-										 parentHwnd, nullptr, hInstance, this);
-	if (!_hwnd)
-	{
-		AXE_THROW();
-	}
-
-	::ShowWindow(_hwnd, SW_SHOW);
-}
-#endif
-
-void Context_DX12::_test_LoadAssets()
-{
+void Context_DX12::_test_LoadAssets() {
 	using VertexT = VertexT_Color<Color4f, 1, Vertex_Pos>;
 
 	::HRESULT hr;
@@ -276,8 +163,8 @@ void Context_DX12::_test_LoadAssets()
 		// recommended. Every time the GPU needs it, the upload heap will be marshalled
 		// over. Please read up on Default Heap usage. An upload heap is used here for
 		// code simplicity and because there are very few verts to actually transfer.
-		CD3DX12_HEAP_PROPERTIES heapProps(D3D12_HEAP_TYPE_UPLOAD);
-		auto					resDesc = CD3DX12_RESOURCE_DESC::Buffer(vertexBufferSize);
+		::CD3DX12_HEAP_PROPERTIES heapProps(D3D12_HEAP_TYPE_UPLOAD);
+		auto					  resDesc = ::CD3DX12_RESOURCE_DESC::Buffer(vertexBufferSize);
 		hr = d3d12Device->CreateCommittedResource(&heapProps,
 												D3D12_HEAP_FLAG_NONE,
 												&resDesc,
@@ -315,9 +202,9 @@ void Context_DX12::_test_LoadAssets()
 			AXE_DX12_THROWIF_HRESULT_ERROR(hr, d3d12Device);
 		}
 
-		// Wait for the command list to execute; we are reusing the same command
-		// list in our main loop but for now, we just want to wait for setup to
-		// complete before continuing.
+		// Wait for the command list to execute; 
+		// we are reusing the same command list in our main loop
+		// but for now, we just want to wait for setup to complete before continuing.
 		_test_WaitForPreviousFrame();
 	}
 }
@@ -325,31 +212,8 @@ void Context_DX12::_test_LoadAssets()
 void Context_DX12::onBeginRender() {
 	AXE_RUN_ONCE(_test_LoadAssets());
 
-	// Record all the commands we need to render the scene into the command list.
-	_test_PopulateCommandList();
-
-	// Execute the command list.
-	ID3D12CommandList* ppCommandLists[] = { m_commandList.ptr() };
-	_graphicsCmdQueue->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
-
-	// Present the frame.
-	m_swapChain->present();
-
-	_test_WaitForPreviousFrame();
-}
-
-void Context_DX12::_test_PopulateCommandList() {
 	::HRESULT hr;
-	auto* d3d12Device = d3dDevice();
-
-	//  when you're trying to render to a swap chain back buffer that isn't the current back buffer
-	/*
-		D3D12 Validation Layer: ID3D12CommandQueue::ExecuteCommandLists: A command list, which writes to a swap chain back buffer,
-		may only be executed when that back buffer is the back buffer that will be presented during the next call to Present*. 
-		Such a back buffer is also referred to as the "current back buffer". 
-		Swap Chain: 0x0000015DEBF5F4C0:'Unnamed Object' - Current Back Buffer Buffer: 0x0000015DE49EC4D0:'Unnamed ID3D12Resource Object' - Attempted Write Buffer: 0x0000015DE49EB4B0:'Unnamed ID3D12Resource Object* 
-	*/
-	m_frameIndex = m_swapChain->curImageIdx(); // make sure write to swap chain back buffer index
+	auto*	  d3d12Device = d3dDevice();
 
 	// Command list allocators can only be reset when the associated
 	// command lists have finished execution on the GPU; apps should use
@@ -366,41 +230,13 @@ void Context_DX12::_test_PopulateCommandList() {
 	// Set necessary state.
 	m_commandList->SetGraphicsRootSignature(m_rootSignature.ptr());
 
-	m_viewport.TopLeftX = 0.f;
-	m_viewport.TopLeftY = 0.f;
-	m_viewport.Width	= swapChainFrameBufferSize().x;
-	m_viewport.Height	= swapChainFrameBufferSize().y;
-	m_viewport.MinDepth = 0.0f;
-	m_viewport.MaxDepth = 1.0f;
-	m_commandList->RSSetViewports(1, &m_viewport);
-
-	m_scissorRect.left	 = 0;
-	m_scissorRect.top	 = 0;
-	m_scissorRect.right	 = static_cast<::LONG>(swapChainFrameBufferSize().x);
-	m_scissorRect.bottom = static_cast<::LONG>(swapChainFrameBufferSize().y);
-	m_commandList->RSSetScissorRects(1, &m_scissorRect);
-
 	// Indicate that the back buffer will be used as a render target. (Transition back buffer to render target)
-	auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(m_swapChain->d3dRTV(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
+	auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(_swapChain->d3dRTV()
+		, D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
 	m_commandList->ResourceBarrier(1, &barrier);
 
-	//::CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(m_swapChain->d3dHeap()->GetCPUDescriptorHandleForHeapStart(), m_frameIndex, m_rtvDescriptorSize);
-	auto rtvHandle = m_swapChain->d3dRTVHandle().cpu;
+	auto rtvHandle = _swapChain->d3dRTVHandle().cpu;
 	m_commandList->OMSetRenderTargets(1, &rtvHandle, FALSE, nullptr);
-
-	// Record commands.
-	const float clearColor[] = { 0.0f, 0.2f, 0.4f, 1.0f };
-	m_commandList->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
-	m_commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-	m_commandList->IASetVertexBuffers(0, 1, &m_vertexBufferView);
-	m_commandList->DrawInstanced(3, 1, 0, 0);
-
-	// Indicate that the back buffer will now be used to present. (Transition back buffer to present)
-	barrier = CD3DX12_RESOURCE_BARRIER::Transition(m_swapChain->d3dRTV(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
-	m_commandList->ResourceBarrier(1, &barrier);
-
-	hr = m_commandList->Close();
-	AXE_DX12_THROWIF_HRESULT_ERROR(hr, d3d12Device);
 }
 
 void Context_DX12::_test_WaitForPreviousFrame() {
@@ -408,8 +244,8 @@ void Context_DX12::_test_WaitForPreviousFrame() {
 	auto* d3d12Device = d3dDevice();
 
 	// WAITING FOR THE FRAME TO COMPLETE BEFORE CONTINUING IS NOT BEST PRACTICE.
-	// This is code implemented as such for simplicity. More advanced samples
-	// illustrate how to use fences for efficient resource usage.
+	// This is code implemented as such for simplicity.
+	// More advanced samples illustrate how to use fences for efficient resource usage.
 
 	// Signal and increment the fence value.
 	const UINT64 curFenceValue = m_fenceValue;
@@ -425,19 +261,10 @@ void Context_DX12::_test_WaitForPreviousFrame() {
 		AXE_DX12_THROWIF_HRESULT_ERROR(hr, d3d12Device);
 		::WaitForSingleObject(m_fenceEvent, INFINITE);
 	}
-
-	m_frameIndex = m_swapChain->curImageIdx();
 }
-#if 0 // no need atm
-void Context_DX12::onSetNeedToRender() {
-	if (_hwnd) {
-		::RedrawWindow(_hwnd, nullptr, nullptr, RDW_INVALIDATE);
-	}
-}
-#endif
 
 void Context_DX12::onSetSwapChainFrameBufferSize(const Vec2f& newSize) {
-	m_swapChain->OnResizeOrMove(newSize);
+	_swapChain->OnResizeOrMove(newSize);
 	Base::onSetSwapChainFrameBufferSize(newSize);
 }
 
@@ -445,23 +272,84 @@ void Context_DX12::onCommit(RenderCommandBuffer& cmdBuf) {
 	_dispatch(this, cmdBuf);
 }
 
-void Context_DX12::onCmd_ClearFrameBuffers(RenderCommand_ClearFrameBuffers& cmd) {
-	#if 0 // TODO
-	auto* ctx = _renderer->d3dDeviceContext();
+void Context_DX12::onCmd_SetViewport(RenderCommand_SetViewport& cmd) {
+	auto& rect = cmd.rect;
 
+	::D3D12_VIEWPORT viewport = {};
+	viewport.TopLeftX = rect.x;
+	viewport.TopLeftY = rect.y;
+	viewport.Width	  = rect.w;
+	viewport.Height	  = rect.h;
+	viewport.MinDepth = 0.f;
+	viewport.MaxDepth = 1.f;
+	m_commandList->RSSetViewports(1, &viewport);
+}
+
+void Context_DX12::onCmd_SetScissorRect(RenderCommand_SetScissorRect& cmd) {
+	auto& rect = cmd.rect;
+
+	::D3D12_RECT scissorRect = {};
+	using DST = decltype(scissorRect.left);
+
+	scissorRect.left    = static_cast<DST>(rect.x);
+	scissorRect.top		= static_cast<DST>(rect.y);
+	scissorRect.right	= static_cast<DST>(rect.xMax());
+	scissorRect.bottom	= static_cast<DST>(rect.yMax());
+	m_commandList->RSSetScissorRects(1, &scissorRect);
+}
+
+void Context_DX12::onCmd_ClearFrameBuffers(RenderCommand_ClearFrameBuffers& cmd) {
 	// clear back buffer(color buffer)
-	if (_renderTargetView && cmd.color.has_value()) {
-		ctx->ClearRenderTargetView(_renderTargetView, cmd.color->data);
+	if (cmd.color.has_value()) {
+		auto rtvHandle = _swapChain->d3dRTVHandle();
+		m_commandList->ClearRenderTargetView(rtvHandle, cmd.color.value().data, 0, nullptr);
 	}
 
+#if 0 // TODO
 	// clear depth&stencil buffer
 	if (_depthStencilView && (cmd.depth.has_value() || cmd.stencil.has_value())) {
 		ctx->ClearDepthStencilView(_depthStencilView, D3D11_CLEAR_DEPTH, *cmd.depth, static_cast<UINT8>(*cmd.stencil));
 	}
-	#endif
+#endif
+}
+
+void Context_DX12::onCmd_SwapBuffers(RenderCommand_SwapBuffers& cmd) {
+	::HRESULT hr;
+	auto*	  d3d12Device = d3dDevice();
+
+	// Indicate that the back buffer will now be used to present. (Transition back buffer to present)
+	auto barrier = ::CD3DX12_RESOURCE_BARRIER::Transition(_swapChain->d3dRTV()
+		, D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
+	m_commandList->ResourceBarrier(1, &barrier);
+
+	hr = m_commandList->Close();
+	AXE_DX12_THROWIF_HRESULT_ERROR(hr, d3d12Device);
+	
+	// Execute the command list.
+	ID3D12CommandList* ppCommandLists[] = { m_commandList.ptr() };
+	_graphicsCmdQueue->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
+
+#if 0 // TODO
+	{
+		auto* fence = ax_type_cast_debug<axDX12Fence>(dispatcher.renderRequest->completedFence());
+		fence->addToGpu(dispatcher.cmdQueue);
+	}
+#endif
+
+	// Present the frame.
+	_swapChain->present();
+}
+
+void Context_DX12::onCmd_DrawCall(RenderCommand_DrawCall& cmd) {
+	m_commandList->IASetPrimitiveTopology(DX12Util::getDxPrimitiveTopology(cmd.primitive));
+
+	AXE_TODO("draw vertex buffer");
+	m_commandList->IASetVertexBuffers(0, 1, &m_vertexBufferView);
+	m_commandList->DrawInstanced(3, 1, 0, 0);
 }
 
 void Context_DX12::onEndRender() {
+	_test_WaitForPreviousFrame();
 }
 
 } // namespace axe
