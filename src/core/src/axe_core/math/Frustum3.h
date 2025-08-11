@@ -63,7 +63,7 @@ private:
 	void _updatePlanesFromPoints();
 }; // Frustum3
 
-using Frustum3f = Frustum3<float>;
+using Frustum3f = Frustum3< float>;
 using Frustum3d = Frustum3<double>;
 
 template<class T> inline

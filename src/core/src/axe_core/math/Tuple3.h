@@ -7,7 +7,6 @@ namespace axe {
 template<class T>
 class Tuple3 {
 public:
-
 	axeTuple_InterfaceFunctions_Impl(Tuple3, T, 3)
 	union {
 		struct { T x, y, z; };
@@ -26,7 +25,7 @@ public:
 	constexpr void setToDefaultValue() { setAll(0); }
 
 	void onFormat(fmt::format_context& ctx) const {
-		fmt::format_to(ctx.out(), "({}, {}, {})", x, y, z);
+		fmt::format_to(ctx.out(), "Tuple3({}, {}, {})", x, y, z);
 	}
 }; // Tuple3
 

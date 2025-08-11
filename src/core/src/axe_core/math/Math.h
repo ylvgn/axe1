@@ -61,11 +61,22 @@ namespace axe { namespace Math {
 	constexpr u64 alignTo(u64 n, u64 a) { return _Helper::alignTo_uint(n, a); }
 
 //--------
-	template< class T > constexpr T		NaN		()				{ return ::std::numeric_limits<T>::quiet_NaN(); }
+	template<class T>
+	struct NumLimit {
+		AXE_INLINE static constexpr T defaultValue()	{ return T(0); }
+		AXE_INLINE static constexpr T lowest()			{ return ::std::numeric_limits<T>::lowest();	 }
+		AXE_INLINE static constexpr T min()				{ return ::std::numeric_limits<T>::min();		 }
+		AXE_INLINE static constexpr T max()				{ return ::std::numeric_limits<T>::max();		 }
+		AXE_INLINE static constexpr T inf()				{ return ::std::numeric_limits<T>::infinity();	 }
+		AXE_INLINE static constexpr T nan()				{ return ::std::numeric_limits<T>::quiet_NaN();  }
+		AXE_INLINE static constexpr T hasInf()			{ return ::std::numeric_limits<T>::has_infinity; }
+	};
+
+	template< class T > constexpr T		NaN		()				{ return NumLimit<T>::nan(); }
 	template< class T > constexpr bool	isNaN	( const T& v )	{ return ::std::isnan(v); }
 	
-	template < class T > constexpr T	inf		()				{ return ::std::numeric_limits<T>::infinity(); }
-	template < class T > constexpr bool	isInf	( const T& v )	{ return ::std::numeric_limits<T>::has_infinity && v == inf<T>(); }
+	template < class T > constexpr T	inf		()				{ return NumLimit<T>::inf(); }
+	template < class T > constexpr bool	isInf	( const T& v )	{ return NumLimit<T>::hasInf() && v == inf<T>(); }
 
 //--------
 	constexpr u64 nextPow2(u64 x) {

@@ -24,32 +24,32 @@ struct Mat4_Basic_Data {
 			float zx, zy, zz, zw;
 			float wx, wy, wz, ww;
 		};
-	};
+	}; // Mat4_Basic_Data
 
 
-	AXE_INLINE explicit constexpr Mat4_Basic_Data() = default;
-	AXE_INLINE			constexpr Mat4_Basic_Data(T xx, T xy, T xz, T xw,
-												  T yx, T yy, T yz, T yw,
-												  T zx, T zy, T zz, T zw,
-												  T wx, T wy, T wz, T ww)
+	constexpr explicit	Mat4_Basic_Data() = default;
+	constexpr			Mat4_Basic_Data(T xx, T xy, T xz, T xw,
+										T yx, T yy, T yz, T yw,
+										T zx, T zy, T zz, T zw,
+										T wx, T wy, T wz, T ww)
 		: cx(xx, xy, xz, xw)
 		, cy(yx, yy, yz, yw)
 		, cz(zx, zy, zz, zw)
 		, cw(wx, wy, wz, ww)
 	{}
 
-	AXE_INLINE constexpr Mat4_Basic_Data(const Vec4& cx_, const Vec4& cy_, const Vec4& cz_, const Vec4& cw_) {
+	constexpr Mat4_Basic_Data(const Vec4& cx_, const Vec4& cy_, const Vec4& cz_, const Vec4& cw_) {
 		set(cx_, cy_, cz_, cw_);
 	}
 
-	AXE_INLINE constexpr void set(const Vec4& cx_, const Vec4& cy_, const Vec4& cz_, const Vec4& cw_) {
+	constexpr void set(const Vec4& cx_, const Vec4& cy_, const Vec4& cz_, const Vec4& cw_) {
 		cx = cx_; cy = cy_; cz = cz_; cw = cw_;
 	}
 
-	AXE_INLINE constexpr void set(T xx, T xy, T xz, T xw,
-								  T yx, T yy, T yz, T yw,
-								  T zx, T zy, T zz, T zw,
-								  T wx, T wy, T wz, T ww)
+	constexpr void set(T xx, T xy, T xz, T xw,
+					   T yx, T yy, T yz, T yw,
+					   T zx, T zy, T zz, T zw,
+					   T wx, T wy, T wz, T ww)
 	{
 		cx.set(xx, xy, xz, xw);
 		cy.set(yx, yy, yz, yw);
@@ -75,103 +75,97 @@ struct Mat4_Basic : public DATA {
 	using DATA::cw;
 	using DATA::kElementCount;
 
-	static AXE_INLINE constexpr const Mat4&	s_identity();
-	
-	static AXE_INLINE constexpr Mat4	s_translate	(const Vec3& t);
-	static AXE_INLINE constexpr Mat4	s_rotate	(const Vec3& r);
-	static AXE_INLINE constexpr Mat4	s_rotateX	(const T& rad);
-	static AXE_INLINE constexpr Mat4	s_rotateY	(const T& rad);
-	static AXE_INLINE constexpr Mat4	s_rotateZ	(const T& rad);
-	static AXE_INLINE constexpr Mat4	s_scale		(const Vec3& s);
-	static AXE_INLINE constexpr Mat4	s_shear		(const Vec3& v);
+	AXE_NODISCARD constexpr static const Mat4& s_identity();
 
-	static AXE_INLINE constexpr	Mat4	s_quat		(const Quat4& q);
+	AXE_NODISCARD constexpr static Mat4 s_translate	(const Vec3& t);
+	AXE_NODISCARD constexpr static Mat4 s_rotate	(const Vec3& r);
+	AXE_NODISCARD constexpr static Mat4 s_rotateX	(const T& rad);
+	AXE_NODISCARD constexpr static Mat4 s_rotateY	(const T& rad);
+	AXE_NODISCARD constexpr static Mat4 s_rotateZ	(const T& rad);
+	AXE_NODISCARD constexpr static Mat4 s_scale		(const Vec3& s);
+	AXE_NODISCARD constexpr static Mat4 s_shear		(const Vec3& v);
 
-	static AXE_INLINE		Mat4	s_TRS(const Vec3 & translate, const Vec3 & rotate, const Vec3 & scale);
-	static AXE_INLINE		Mat4	s_TRS(const Vec3 & translate, const Quat4& rotate, const Vec3 & scale);
-	static AXE_INLINE		Mat4	s_TS (const Vec3 & translate, const Vec3 & scale);
+	AXE_NODISCARD constexpr static Mat4 s_quat		(const Quat4& q);
 
-	static AXE_INLINE		Mat4	s_perspective	(T fovy_rad, T aspect, T zNear, T zFar);
-	static AXE_INLINE		Mat4	s_ortho			(T left, T right, T bottom, T top, T zNear, T zFar);
-	static AXE_INLINE		Mat4	s_lookAt		(const Vec3 & eye, const Vec3 & aim, const Vec3 & up);
+	AXE_NODISCARD static Mat4 s_TRS(const Vec3 & translate, const Vec3 & rotate, const Vec3 & scale);
+	AXE_NODISCARD static Mat4 s_TRS(const Vec3 & translate, const Quat4& rotate, const Vec3 & scale);
+	AXE_NODISCARD static Mat4 s_TS (const Vec3 & translate, const Vec3 & scale);
 
-	AXE_INLINE constexpr Mat4() = default;
-	AXE_INLINE constexpr Mat4(const Vec4& cx_, const Vec4& cy_, const Vec4& cz_, const Vec4& cw_)
+	AXE_NODISCARD static Mat4 s_perspective	(T fovy_rad, T aspect, T zNear, T zFar);
+	AXE_NODISCARD static Mat4 s_ortho		(T left, T right, T bottom, T top, T zNear, T zFar);
+	AXE_NODISCARD static Mat4 s_lookAt		(const Vec3 & eye, const Vec3 & aim, const Vec3 & up);
+
+	constexpr explicit Mat4() = default;
+	constexpr Mat4(const Vec4& cx_, const Vec4& cy_, const Vec4& cz_, const Vec4& cw_)
 		: DATA(cx_, cy_, cz_, cw_)
 	{}
 
-	Mat4(T xx, T xy, T xz, T xw,
+	constexpr Mat4(T xx, T xy, T xz, T xw,
 		 T yx, T yy, T yz, T yw,
 		 T zx, T zy, T zz, T zw,
-		 T wx, T wy, T wz, T ww)
-		: DATA(	xx, xy, xz, xw,
-				yx, yy, yz, yw,
-				zx, zy, zz, zw,
-				wx, wy, wz, ww)
-	{}
+		 T wx, T wy, T wz, T ww) : DATA(xx, xy, xz, xw,
+										yx, yy, yz, yw,
+										zx, zy, zz, zw,
+										wx, wy, wz, ww) {}
 
-	AXE_INLINE			Vec4& operator[](int i)			{ return _columns[i]; }
-	AXE_INLINE const	Vec4& operator[](int i) const	{ return _columns[i]; }
+			Vec4& operator[](int i)			{ return _columns[i]; }
+	const	Vec4& operator[](int i) const	{ return _columns[i]; }
 
-	AXE_INLINE Vec4 col(int i) const	{ return _columns[i]; }
-	AXE_INLINE Vec4 row(int i) const	{ return Vec4(cx[i], cy[i], cz[i], cw[i]); }
+	AXE_NODISCARD Vec4 col(int i) const	{ return _columns[i]; }
+	AXE_NODISCARD Vec4 row(int i) const	{ return Vec4(cx[i], cy[i], cz[i], cw[i]); }
 
-	AXE_INLINE void setCol(int i, const Vec4& v) { _columns[i] = v; }
-	AXE_INLINE void setRow(int i, const Vec4& v) { cx[i] = v.x; cy[i] = v.y; cz[i] = v.z; cw[i] = v.w; }
+	void setCol(int i, const Vec4& v) { _columns[i] = v; }
+	void setRow(int i, const Vec4& v) { cx[i] = v.x; cy[i] = v.y; cz[i] = v.z; cw[i] = v.w; }
 
-	AXE_INLINE Mat4 transpose() const;
+	AXE_NODISCARD Mat4 transpose() const;
 
-	T determinant3x3() const;
+	AXE_NODISCARD T determinant3x3() const;
 
-	Mat4 inverse			 () const;
-	Mat4 inverse3x3			 () const;
-	Mat4 inverse3x3Transpose () const;
+	AXE_NODISCARD Mat4 inverse() const;
+	AXE_NODISCARD Mat4 inverse3x3() const;
+	AXE_NODISCARD Mat4 inverse3x3Transpose() const;
 
-	AXE_INLINE Mat4 operator * (const Mat4& r) const;
+	AXE_NODISCARD Mat4 operator*(const Mat4& r) const;
 
-	AXE_INLINE Mat4 operator + (T s) const { Vec4 v(s,s,s,s); return Mat4(cx + v, cy + v, cz + v, cw + v); }
-	AXE_INLINE Mat4 operator - (T s) const { Vec4 v(s,s,s,s); return Mat4(cx - v, cy - v, cz - v, cw - v); }
-	AXE_INLINE Mat4 operator * (T s) const { Vec4 v(s,s,s,s); return Mat4(cx * v, cy * v, cz * v, cw * v); }
-	AXE_INLINE Mat4 operator / (T s) const { Vec4 v(s,s,s,s); return Mat4(cx / v, cy / v, cz / v, cw / v); }
+	AXE_NODISCARD Mat4 operator + (T s) const { Vec4 v(s,s,s,s); return Mat4(cx + v, cy + v, cz + v, cw + v); }
+	AXE_NODISCARD Mat4 operator - (T s) const { Vec4 v(s,s,s,s); return Mat4(cx - v, cy - v, cz - v, cw - v); }
+	AXE_NODISCARD Mat4 operator * (T s) const { Vec4 v(s,s,s,s); return Mat4(cx * v, cy * v, cz * v, cw * v); }
+	AXE_NODISCARD Mat4 operator / (T s) const { Vec4 v(s,s,s,s); return Mat4(cx / v, cy / v, cz / v, cw / v); }
 
-	AXE_INLINE void operator += (T s) { Vec4 v(s,s,s,s); cx += v; cy += v; cz += v; cw += v; }
-	AXE_INLINE void operator -= (T s) { Vec4 v(s,s,s,s); cx -= v; cy -= v; cz -= v; cw -= v; }
-	AXE_INLINE void operator *= (T s) { Vec4 v(s,s,s,s); cx *= v; cy *= v; cz *= v; cw *= v; }
-	AXE_INLINE void operator /= (T s) { Vec4 v(s,s,s,s); cx /= v; cy /= v; cz /= v; cw /= v; }
+	void operator += (T s) { Vec4 v(s,s,s,s); cx += v; cy += v; cz += v; cw += v; }
+	void operator -= (T s) { Vec4 v(s,s,s,s); cx -= v; cy -= v; cz -= v; cw -= v; }
+	void operator *= (T s) { Vec4 v(s,s,s,s); cx *= v; cy *= v; cz *= v; cw *= v; }
+	void operator /= (T s) { Vec4 v(s,s,s,s); cx /= v; cy /= v; cz /= v; cw /= v; }
 
-	AXE_INLINE bool operator == (const Mat4& r) const { return cx == r.cx && cy == r.cy && cz == r.cz && cw == r.cw; }
-	AXE_INLINE bool operator != (const Mat4& r) const { return cx != r.cx || cy != r.cy || cz != r.cz || cw != r.cw; }
+	bool operator == (const Mat4& r) const { return cx == r.cx && cy == r.cy && cz == r.cz && cw == r.cw; }
+	bool operator != (const Mat4& r) const { return cx != r.cx || cy != r.cy || cz != r.cz || cw != r.cw; }
 
-	AXE_INLINE Vec4	mulPoint	(const Vec4& v) const { return Vec4(cx * v.x + cy * v.y  + cz * v.z + cw * v.w); }
+	AXE_NODISCARD Vec4 mulPoint	(const Vec4& v) const { return Vec4(cx * v.x + cy * v.y  + cz * v.z + cw * v.w); }
 
 	// faster than mulPoint but no projection
-	AXE_INLINE Vec3 mulPoint4x3	(const Vec3& v) const { return mulPoint(Vec4(v, 1)).xyz(); }
+	AXE_NODISCARD Vec3 mulPoint4x3	(const Vec3& v) const { return mulPoint(Vec4(v, 1)).xyz(); }
 
 	// for vector (direction)
-	AXE_INLINE Vec3 mulVector	(const Vec3& v) const { return Vec3(cx.xyz() * v.x + cy.xyz() * v.y + cz.xyz() * v.z); }
+	AXE_NODISCARD Vec3 mulVector	(const Vec3& v) const { return Vec3(cx.xyz() * v.x + cy.xyz() * v.y + cz.xyz() * v.z); }
 
 	// for normal non-uniform scale
-	AXE_INLINE Vec3 mulNormal	(const Vec3& v) const {	return inverse3x3Transpose().mulVector(v); }
+	AXE_NODISCARD Vec3 mulNormal(const Vec3& v) const { return inverse3x3Transpose().mulVector(v); }
 
-	Vec3 unprojectPoint(const Vec3& screenPos, const Rect2& viewport) const {
+	AXE_NODISCARD Vec3 unprojectPoint(const Vec3& screenPos, const Rect2& viewport) const {
 		return inverse().unprojectPointFromInv(screenPos, viewport); 
 	}
 
-	Vec3 unprojectPointFromInv(const Vec3& screenPos, const Rect2& viewport) const;
+	AXE_NODISCARD Vec3 unprojectPointFromInv(const Vec3& screenPos, const Rect2& viewport) const;
 
 	void onFormat(fmt::format_context& ctx) const {
 		fmt::format_to(ctx.out(), "Mat4(\n  {},\n  {},\n  {},\n  {})", cx, cy, cz, cw);
 	}
-};
+}; // Mat4_Basic
 
 using Mat4f_Basic = Mat4_Basic<float >;
 using Mat4d_Basic = Mat4_Basic<double>;
 
 AXE_FORMATTER_T( AXE_ARGS(class T, class DATA), Mat4_Basic< AXE_ARGS(T, DATA) >)
-
-#if 0
-#pragma mark ------------------- static functions -------------------
-#endif
 
 template<class T, class DATA> AXE_INLINE constexpr
 const Mat4_Basic<T, DATA> & Mat4_Basic<T, DATA>::s_identity() {
@@ -353,18 +347,14 @@ Mat4_Basic<T, DATA> Mat4_Basic<T, DATA>::s_lookAt(const Vec3& eye, const Vec3& a
 	);
 }
 
-#if 0
-#pragma mark ------------------- instance functions -------------------
-#endif
-
-template<class T, class DATA>
-T axe::Mat4_Basic<T, DATA>::determinant3x3() const {
+template<class T, class DATA> AXE_INLINE
+T Mat4_Basic<T, DATA>::determinant3x3() const {
 	return cx.x * (cy.y * cz.z - cz.y * cy.z)
 		 - cy.x * (cx.y * cz.z - cz.y * cx.z)
 		 + cz.x * (cx.y * cy.z - cy.y * cx.z);
 }
 
-template<class T, class DATA>
+template<class T, class DATA> inline
 Mat4_Basic<T, DATA> Mat4_Basic<T, DATA>::inverse3x3() const {
 	T oneOverDeterminant = T(1) / determinant3x3();
 
@@ -391,7 +381,7 @@ Mat4_Basic<T, DATA> Mat4_Basic<T, DATA>::inverse3x3() const {
 	);
 }
 
-template<class T, class DATA>
+template<class T, class DATA> inline
 Mat4_Basic<T, DATA> Mat4_Basic<T, DATA>::inverse3x3Transpose() const {
 	T oneOverDeterminant = T(1) / determinant3x3();
 
@@ -418,7 +408,7 @@ Mat4_Basic<T, DATA> Mat4_Basic<T, DATA>::inverse3x3Transpose() const {
 	);
 }
 
-template<class T, class DATA> AXE_INLINE
+template<class T, class DATA> inline
 Mat4_Basic<T, DATA> Mat4_Basic<T, DATA>::inverse() const {
 	T coef00 = cz.z * cw.w - cw.z * cz.w;
 	T coef02 = cy.z * cw.w - cw.z * cy.w;
@@ -484,8 +474,8 @@ Mat4_Basic<T, DATA> Mat4_Basic<T, DATA>::transpose() const {
 				{ cx.w, cy.w, cz.w, cw.w });
 }
 
-template<class T, class DATA> AXE_INLINE
-Mat4_Basic<T, DATA> axe::Mat4_Basic<T, DATA>::operator*(const Mat4& r) const {
+template<class T, class DATA> inline
+Mat4_Basic<T, DATA> Mat4_Basic<T, DATA>::operator*(const Mat4& r) const {
 	Mat4 o;
 	T e0, e1, e2, e3;
 
@@ -516,8 +506,8 @@ Mat4_Basic<T, DATA> axe::Mat4_Basic<T, DATA>::operator*(const Mat4& r) const {
 	return o;
 }
 
-template<class T, class DATA> AXE_INLINE
-Vec3<T> axe::Mat4_Basic<T, DATA>::unprojectPointFromInv(const Vec3& screenPos, const Rect2& viewport) const {
+template<class T, class DATA> inline
+Vec3<T> Mat4_Basic<T, DATA>::unprojectPointFromInv(const Vec3& screenPos, const Rect2& viewport) const {
 	auto  tmp = Vec4(screenPos, 1);
 	tmp.y = viewport.h - tmp.y; // y is down
 

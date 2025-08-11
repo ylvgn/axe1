@@ -7,7 +7,6 @@ namespace axe {
 template<class T>
 class Tuple4 {
 public:
-
 	axeTuple_InterfaceFunctions_Impl(Tuple4, T, 4)
 	union {
 		struct { T x, y, z, w; };

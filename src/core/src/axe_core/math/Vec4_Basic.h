@@ -22,14 +22,14 @@ public:
 
 	axeTuple_InterfaceFunctions_Impl(Vec4_Basic, typename DATA::ElementType, 4)
 
-	constexpr static This s_zero()				{ return This(0,0,0,0); }
-	constexpr static This s_one()				{ return This(1,1,1,1); }
-	constexpr static This s_xy01(const Vec2& v)	{ return This(v.x, v.y, T(0), T(1)); }
-	constexpr static This s_xyz1(const Vec3& v)	{ return This(v.x, v.y, v.z,  T(1)); }
+	AXE_NODISCARD constexpr static This s_zero()				{ return This(0,0,0,0); }
+	AXE_NODISCARD constexpr static This s_one()					{ return This(1,1,1,1); }
+	AXE_NODISCARD constexpr static This s_xy01(const Vec2& v)	{ return This(v.x, v.y, T(0), T(1)); }
+	AXE_NODISCARD constexpr static This s_xyz1(const Vec3& v)	{ return This(v.x, v.y, v.z,  T(1)); }
 
-	constexpr static This s_inf()				{ auto v = Math::inf<T>(); return This(v); }
+	AXE_NODISCARD constexpr static This s_inf()					{ auto v = Math::inf<T>(); return This(v); }
 
-	template<class V> AXE_INLINE constexpr
+	template<class V> AXE_NODISCARD AXE_INLINE constexpr
 	static Vec4 s_cast(const V& v) { return Vec4(T(v.x), T(v.y), T(v.z), T(v.w)); }
 
 	constexpr explicit  Vec4(T v)								noexcept : DATA(v) {}
@@ -46,7 +46,18 @@ public:
 	constexpr bool equals (const This& r, const T& epsilon = Math::epsilon<T>()) const;
 	constexpr bool equals0(				  const T& epsilon = Math::epsilon<T>()) const;
 
-	constexpr This operator - ()				  const { return This(-x, -y, -z, -w); }
+	AXE_NODISCARD constexpr Vec2 xy () const { return Vec2(x,y); }
+	AXE_NODISCARD constexpr Vec2 xz () const { return Vec2(x,z); }
+	AXE_NODISCARD constexpr Vec2 yz () const { return Vec2(y,z); }
+	AXE_NODISCARD constexpr Vec3 xyz() const { return Vec3(x,y,z); }
+
+	AXE_NODISCARD Vec3 homogenize()	const { return (*this / w).xyz(); };
+	AXE_NODISCARD Vec3 toVec3()		const { return homogenize(); };
+
+	AXE_NODISCARD constexpr Tuple4<T> toTuple	() const { return Tuple4<T>(x, y, z, w); }
+				  constexpr operator Tuple4<T>	() const { return toTuple(); }
+
+	AXE_NODISCARD constexpr This operator - ()	  const { return This(-x, -y, -z, -w); }
 
 	AXE_NODISCARD This operator + (const This& r) const { return This(x + r.x, y + r.y, z + r.z, w + r.w); }
 	AXE_NODISCARD This operator - (const This& r) const { return This(x - r.x, y - r.y, z - r.z, w - r.w); }
@@ -58,29 +69,18 @@ public:
 	AXE_NODISCARD This operator * (T s) const { return This(x * s, y * s, z * s, w * s); }
 	AXE_NODISCARD This operator / (T s) const { return This(x / s, y / s, z / s, w / s); }
 
-			 void operator += (const This& r) { x += r.x; y += r.y; z += r.z; w += r.w; }
-			 void operator -= (const This& r) { x -= r.x; y -= r.y; z -= r.z; w -= r.w; }
-			 void operator *= (const This& r) { x *= r.x; y *= r.y; z *= r.z; w *= r.w; }
-			 void operator /= (const This& r) { x /= r.x; y /= r.y; z /= r.z; w /= r.w; }
+				  void operator += (const This& r) { x += r.x; y += r.y; z += r.z; w += r.w; }
+				  void operator -= (const This& r) { x -= r.x; y -= r.y; z -= r.z; w -= r.w; }
+				  void operator *= (const This& r) { x *= r.x; y *= r.y; z *= r.z; w *= r.w; }
+				  void operator /= (const This& r) { x /= r.x; y /= r.y; z /= r.z; w /= r.w; }
 
-			 void operator += (T s) { x += s; y += s; z += s; w += s; }
-			 void operator -= (T s) { x -= s; y -= s; z -= s; w -= s; }
-			 void operator *= (T s) { x *= s; y *= s; z *= s; w *= s; }
-			 void operator /= (T s) { x /= s; y /= s; z /= s; w /= s; }
+				  void operator += (T s) { x += s; y += s; z += s; w += s; }
+				  void operator -= (T s) { x -= s; y -= s; z -= s; w -= s; }
+				  void operator *= (T s) { x *= s; y *= s; z *= s; w *= s; }
+				  void operator /= (T s) { x /= s; y /= s; z /= s; w /= s; }
 
-			 bool operator == (const This& r) const { return x == r.x && y == r.y && z == r.z && w == r.w; }
-			 bool operator != (const This& r) const { return !(this->operator==(r)); }
-
-	AXE_NODISCARD constexpr Vec2 xy () const { return Vec2(x,y); }
-	AXE_NODISCARD constexpr Vec2 xz () const { return Vec2(x,z); }
-	AXE_NODISCARD constexpr Vec2 yz () const { return Vec2(y,z); }
-	AXE_NODISCARD constexpr Vec3 xyz() const { return Vec3(x,y,z); }
-
-	AXE_NODISCARD Vec3 homogenize()	const { return (*this / w).xyz(); };
-	AXE_NODISCARD Vec3 toVec3()		const { return homogenize(); };
-
-	AXE_NODISCARD constexpr Tuple4<T> toTuple	() const			 { return Tuple4<T>(x, y, z, w); }
-				  constexpr operator Tuple4<T>	() const			 { return toTuple(); }
+				  bool operator == (const This& r) const { return x == r.x && y == r.y && z == r.z && w == r.w; }
+				  bool operator != (const This& r) const { return !(this->operator==(r)); }
 
 	void onFormat(fmt::format_context& ctx) const {
 		fmt::format_to(ctx.out(), "({}, {}, {}, {})", x, y, z, w);

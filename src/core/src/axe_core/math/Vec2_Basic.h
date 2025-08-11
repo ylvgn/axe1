@@ -16,77 +16,76 @@ struct Vec2_Basic : public DATA {
 	using DATA::y;
 	using DATA::data;
 
-	AXE_INLINE constexpr static   This s_zero()		{ return This( 0, 0); }
-	AXE_INLINE constexpr static   This s_one()		{ return This( 1, 1); }
+	AXE_NODISCARD constexpr static This s_zero()	{ return This( 0, 0); }
+	AXE_NODISCARD constexpr static This s_one()		{ return This( 1, 1); }
 
-	AXE_INLINE constexpr static   This s_up()		{ return This( 0, 1); }
-	AXE_INLINE constexpr static   This s_down()		{ return This( 0,-1); }
-	AXE_INLINE constexpr static   This s_right()	{ return This( 1, 0); }
-	AXE_INLINE constexpr static   This s_left()		{ return This(-1, 0); }
+	AXE_NODISCARD constexpr static This s_up()		{ return This( 0, 1); }
+	AXE_NODISCARD constexpr static This s_down()	{ return This( 0,-1); }
+	AXE_NODISCARD constexpr static This s_right()	{ return This( 1, 0); }
+	AXE_NODISCARD constexpr static This s_left()	{ return This(-1, 0); }
 
-	AXE_INLINE constexpr static   This s_inf()		{ auto v = Math::inf<T>(); return This(v); }
+	AXE_NODISCARD constexpr static This s_inf()		{ auto v = Math::inf<T>(); return This(v); }
 
-	AXE_INLINE constexpr explicit Vec2(T v)					{ DATA::setAll(v); }
-	AXE_INLINE constexpr	      Vec2(T x_, T y_)			{ DATA::set(x_, y_); }
-	AXE_INLINE constexpr	      Vec2(const Tuple2<T>& v)	{ DATA::set(v); }
+	template<class V> AXE_NODISCARD AXE_INLINE constexpr
+	static This s_cast(const V& v) { return This(T(v.x), T(v.y)); }
 
-	AXE_INLINE constexpr void setToDefaultValue()			{ DATA::set(0,0); }
-	AXE_INLINE constexpr bool isAll(const T& v)		 const  { return equals(This(v)); }
+	constexpr explicit	Vec2(T v)					noexcept : DATA(v) {}
+	constexpr			Vec2(T x_, T y_)			noexcept { DATA::set(x_, y_); }
+	constexpr			Vec2(const Tuple2<T>& v)	noexcept { DATA::set(v); }
 
-	AXE_INLINE constexpr bool equals (const This& r, const T& epsilon = Math::epsilon<T>()) const;
-	AXE_INLINE constexpr bool equals0(				 const T& epsilon = Math::epsilon<T>()) const;
+	constexpr void setToDefaultValue()			{ DATA::set(0,0); }
+	constexpr bool isAll(const T& v)		 const  { return equals(This(v)); }
 
-	AXE_INLINE constexpr This operator - ()				 const { return This(-x, -y); }
+	constexpr bool equals (const This& r, const T& epsilon = Math::epsilon<T>()) const;
+	constexpr bool equals0(				  const T& epsilon = Math::epsilon<T>()) const;
 
-	AXE_INLINE			 This operator + (const This& r) const { return This(x + r.x, y + r.y); }
-	AXE_INLINE			 This operator - (const This& r) const { return This(x - r.x, y - r.y); }
-	AXE_INLINE			 This operator * (const This& r) const { return This(x * r.x, y * r.y); }
-	AXE_INLINE			 This operator / (const This& r) const { return This(x / r.x, y / r.y); }
+	AXE_NODISCARD T	magnitude()		const { return Math::sqrt(sqrMagnitude()); }
+	AXE_NODISCARD T	sqrMagnitude()	const { return x * x + y * y; }
 
-	AXE_INLINE			 This operator + (T s) const { return This(x + s, y + s); }
-	AXE_INLINE			 This operator - (T s) const { return This(x - s, y - s); }
-	AXE_INLINE			 This operator * (T s) const { return This(x * s, y * s); }
-	AXE_INLINE			 This operator / (T s) const { return This(x / s, y / s); }
+	AXE_NODISCARD T	length()	const { return magnitude(); }
+	AXE_NODISCARD T	sqrLength() const { return sqrMagnitude(); }
 
-	AXE_INLINE			 void operator += (const This& r) { x += r.x; y += r.y; }
-	AXE_INLINE			 void operator -= (const This& r) { x -= r.x; y -= r.y; }
-	AXE_INLINE			 void operator *= (const This& r) { x *= r.x; y *= r.y; }
-	AXE_INLINE			 void operator /= (const This& r) { x /= r.x; y /= r.y; }
+	AXE_NODISCARD T	distance	(const This& r)	const { return (*this - r).length(); }
+	AXE_NODISCARD T	sqrDistance	(const This& r)	const { return (*this - r).sqrLength(); }
 
-	AXE_INLINE			 void operator += (T s) { x += s; y += s; }
-	AXE_INLINE			 void operator -= (T s) { x -= s; y -= s; }
-	AXE_INLINE			 void operator *= (T s) { x *= s; y *= s; }
-	AXE_INLINE			 void operator /= (T s) { x /= s; y /= s; }
+	AXE_NODISCARD constexpr This yx() const { return This(y, x); }
 
-	AXE_INLINE constexpr bool operator == (const This& r) const { return x == r.x && y == r.y; }
-	AXE_INLINE constexpr bool operator != (const This& r) const { return x != r.x || y != r.y; }
+	AXE_NODISCARD constexpr Tuple2<T> toTuple() const { return Tuple2<T>(x, y); }
 
-	AXE_NODISCARD AXE_INLINE T		magnitude()		const { return Math::sqrt(sqrMagnitude()); }
-	AXE_NODISCARD AXE_INLINE T		sqrMagnitude()	const { return x * x + y * y; }
+	AXE_NODISCARD constexpr This operator-() const { return This(-x, -y); }
 
-	AXE_NODISCARD AXE_INLINE T		length()	const { return magnitude(); }
-	AXE_NODISCARD AXE_INLINE T		sqrLength() const { return sqrMagnitude(); }
+	AXE_NODISCARD This operator + (const This& r) const { return This(x + r.x, y + r.y); }
+	AXE_NODISCARD This operator - (const This& r) const { return This(x - r.x, y - r.y); }
+	AXE_NODISCARD This operator * (const This& r) const { return This(x * r.x, y * r.y); }
+	AXE_NODISCARD This operator / (const This& r) const { return This(x / r.x, y / r.y); }
 
-	AXE_NODISCARD AXE_INLINE T		distance	(const This& r)	const { return (*this - r).length(); }
-	AXE_NODISCARD AXE_INLINE T		sqrDistance	(const This& r)	const { return (*this - r).sqrLength(); }
+	AXE_NODISCARD This operator + (T s) const { return This(x + s, y + s); }
+	AXE_NODISCARD This operator - (T s) const { return This(x - s, y - s); }
+	AXE_NODISCARD This operator * (T s) const { return This(x * s, y * s); }
+	AXE_NODISCARD This operator / (T s) const { return This(x / s, y / s); }
 
-	AXE_NODISCARD AXE_INLINE constexpr This	yx() const { return This(y, x); }
+				  void operator += (const This& r) { x += r.x; y += r.y; }
+				  void operator -= (const This& r) { x -= r.x; y -= r.y; }
+				  void operator *= (const This& r) { x *= r.x; y *= r.y; }
+				  void operator /= (const This& r) { x /= r.x; y /= r.y; }
+
+				  void operator += (T s) { x += s; y += s; }
+				  void operator -= (T s) { x -= s; y -= s; }
+				  void operator *= (T s) { x *= s; y *= s; }
+				  void operator /= (T s) { x /= s; y /= s; }
+
+	constexpr bool operator == (const This& r) const { return x == r.x && y == r.y; }
+	constexpr bool operator != (const This& r) const { return x != r.x || y != r.y; }
+
+	constexpr void operator=		(const Tuple2<T>& v) { DATA::set(v.x, v.y); }
+	constexpr operator Tuple2<T>	() const			 { return toTuple(); }
 
 	void onFormat(fmt::format_context& ctx) const {
 		fmt::format_to(ctx.out(), "({}, {})", x, y);
 	}
 
-				  AXE_INLINE constexpr void operator=		(const Tuple2<T>& v) { DATA::set(v.x, v.y); }
-	AXE_NODISCARD AXE_INLINE constexpr Tuple2<T> toTuple	() const			 { return Tuple2<T>(x, y); }
-				  AXE_INLINE constexpr operator Tuple2<T>	() const			 { return toTuple(); }
-
-	template<class V> AXE_INLINE constexpr
-	static This s_cast(const V& v) { return This(static_cast<ElementType>(v.x),
-												 static_cast<ElementType>(v.y));
-	}
-
 #if AXE_OS_WINDOWS
-	AXE_INLINE constexpr explicit Vec2(const POINT& v) { DATA::set((T)v.x, (T)v.y); }
+	constexpr explicit Vec2(const ::POINT& v) noexcept { DATA::set((T)v.x, (T)v.y); }
 #endif // AXE_OS_WINDOWS
 };
 
@@ -95,10 +94,6 @@ using Vec2d_Basic = Vec2_Basic<double>;
 
 AXE_FORMATTER_T( AXE_ARGS(class T, class DATA), Vec2_Basic< AXE_ARGS(T, DATA) >)
 
-
-#if 0
-#pragma mark ------------------- instance functions -------------------
-#endif
 
 template<class T, class DATA> AXE_INLINE constexpr
 bool Vec2_Basic<T, DATA>::equals(const This& r, const T& epsilon) const {
@@ -112,9 +107,6 @@ bool Vec2_Basic<T, DATA>::equals0(const T& epsilon) const {
 		&& Math::equals0(y, epsilon);
 }
 
-#if 0
-#pragma mark ------------------- global functions -------------------
-#endif
 
 namespace Math {
 

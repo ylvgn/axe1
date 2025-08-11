@@ -303,6 +303,7 @@ public:
 
 	using Base::begin;
 	using Base::end;
+	using Base::kMaxSize;
 
 	Vector() = default;
 	Vector(::std::initializer_list<T> ilist)					noexcept : Base(ilist) {}

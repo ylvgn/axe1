@@ -27,20 +27,20 @@ public:
 	constexpr void set(T v)					   noexcept { x = v; y = v; z = v; w = v; }
 	constexpr void set(T x_, T y_, T z_, T w_) noexcept { x=x_; y=y_; z=z_; w=w_; }
 
-	static	Quat4	s_identity() { return Quat4(0,0,0,1); }
-	static	Quat4	s_angleAxis(T rad, const Vec3& axis);
+	AXE_NODISCARD static Quat4 s_identity() { return Quat4(0,0,0,1); }
+	AXE_NODISCARD static Quat4 s_angleAxis(T rad, const Vec3& axis);
 
-			T	 angle() const { return Math::acos(w) * T(2); }
-			Vec3 axis () const;
+	T	 angle() const { return Math::acos(w) * T(2); }
+	Vec3 axis () const;
 
-	static	Quat4 s_euler(const Vec3& r);
-	static	Quat4 s_eulerX(T rad)	{ T s, c; Math::sincos(rad * T(0.5), s, c); return Quat4(s,0,0,c); }
-	static	Quat4 s_eulerY(T rad)	{ T s, c; Math::sincos(rad * T(0.5), s, c); return Quat4(0,s,0,c); }
-	static	Quat4 s_eulerZ(T rad)	{ T s, c; Math::sincos(rad * T(0.5), s, c); return Quat4(0,0,s,c); }
+	AXE_NODISCARD static Quat4 s_euler(const Vec3& r);
+	AXE_NODISCARD static Quat4 s_eulerX(T rad)	{ T s, c; Math::sincos(rad * T(0.5), s, c); return Quat4(s,0,0,c); }
+	AXE_NODISCARD static Quat4 s_eulerY(T rad)	{ T s, c; Math::sincos(rad * T(0.5), s, c); return Quat4(0,s,0,c); }
+	AXE_NODISCARD static Quat4 s_eulerZ(T rad)	{ T s, c; Math::sincos(rad * T(0.5), s, c); return Quat4(0,0,s,c); }
 
-	static	Quat4 s_eulerDegX(T deg) { return s_eulerX(Math::radians(deg)); }
-	static	Quat4 s_eulerDegY(T deg) { return s_eulerY(Math::radians(deg)); }
-	static	Quat4 s_eulerDegZ(T deg) { return s_eulerZ(Math::radians(deg)); }
+	AXE_NODISCARD static Quat4 s_eulerDegX(T deg) { return s_eulerX(Math::radians(deg)); }
+	AXE_NODISCARD static Quat4 s_eulerDegY(T deg) { return s_eulerY(Math::radians(deg)); }
+	AXE_NODISCARD static Quat4 s_eulerDegZ(T deg) { return s_eulerZ(Math::radians(deg)); }
 
 	void  setEuler(const Vec3& r)	{ *this = s_euler(r); }
 	void setEulerX(T rad)			{ *this = s_eulerX(rad); }
@@ -56,8 +56,8 @@ public:
 	T	eulerY() const;
 	T	eulerZ() const;
 
-	Quat4 conjugate() const;
-	Quat4 inverse() const;
+	AXE_NODISCARD Quat4 conjugate() const;
+	AXE_NODISCARD Quat4 inverse() const;
 
 	T dot(const Quat4& r) const { return (x * r.x + y * r.y) + (z * r.z + w * r.w); }
 

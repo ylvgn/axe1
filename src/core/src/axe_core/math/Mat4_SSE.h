@@ -20,4 +20,4 @@ using Mat4d_SSE = Mat4_SSE<double>;
 
 AXE_FORMATTER_T(class T, Mat4_SSE<T>)
 
-}
+} // namespace axe

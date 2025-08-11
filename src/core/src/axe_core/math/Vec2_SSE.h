@@ -15,13 +15,14 @@ struct alignas(alignof(M)) Vec2_SSE_Data {
 		M _m;
 	};
 
-	AXE_INLINE explicit constexpr Vec2_SSE_Data(T x_, T y_) : x(x_), y(y_) {}
-	AXE_INLINE			constexpr Vec2_SSE_Data(const Tuple2<T>& v) : x(x_), y(y_) {}
+	constexpr explicit	Vec2_SSE_Data(T v)					noexcept : x(v), y(v) {}
+	constexpr explicit	Vec2_SSE_Data(T x_, T y_)			noexcept : x(x_), y(y_) {}
+	constexpr			Vec2_SSE_Data(const Tuple2<T>& v)	noexcept : x(x_), y(y_) {}
 
-	AXE_INLINE void set(const Tuple2<T>& v)		  { set(v.x, v.y);  }
-	AXE_INLINE void set(T x_, T y_)				  { x = x_; y = y_; }
-	AXE_INLINE void setAll(const T& v)			  { set(v,v); }
-};
+	void set(const Tuple2<T>& v)	{ set(v.x, v.y);  }
+	void set(T x_, T y_)			{ x = x_; y = y_; }
+	void setAll(const T& v)			{ set(v,v); }
+}; // Vec2_SSE_Data
 
 using Vec2d_SSE_Data = Vec2_SSE_Data<double, __m128d>; // SSE
 
@@ -52,4 +53,4 @@ template<> AXE_INLINE Vec2d_SSE Vec2d_SSE::operator - (const Vec2& r) const { re
 template<> AXE_INLINE Vec2d_SSE Vec2d_SSE::operator * (const Vec2& r) const { return Vec2_SSE_make(_mm_mul_pd(_m, r._m)); }
 template<> AXE_INLINE Vec2d_SSE Vec2d_SSE::operator / (const Vec2& r) const { return Vec2_SSE_make(_mm_div_pd(_m, r._m)); }
 
-}
+} // namespace axe

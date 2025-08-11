@@ -175,7 +175,7 @@ void Renderer_DX12::_getHardwareAdapterBasicInfo() {
 			Util::convert(desktopCoordinates, outputDesc.DesktopCoordinates);
 
 			AXE_LOG("    Monitor {} - {}x{}\n"
-					"		 Virtual Screen Pos: ({}, {})\n"
+					"        Virtual Screen Pos: ({}, {})\n"
 					"        HDR: {}\n"
 					"        BPP: {}\n"
 					"        Min Lum: {}\n"

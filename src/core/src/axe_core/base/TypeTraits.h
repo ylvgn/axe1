@@ -17,8 +17,7 @@ namespace axe {
 //+----------------------------------------------+
 #if 0
 #pragma mark------------ integral_constant --------------
-// integral_constant: This is a C++11 standard utility class.
-// https://en.cppreference.com/w/cpp/types/integral_constant.html
+// integral_constant: https://en.cppreference.com/w/cpp/types/integral_constant.html
 #endif
 template <class T, T constValue>
 struct integral_constant {
@@ -150,8 +149,7 @@ template <bool B, class T, class F> using conditional_t = typename conditional<B
 //+----------------------------------------------+
 #if 0
 #pragma mark------------ conjunction --------------
-// conjunction: This is a C++17 standard utility class.
-// http://en.cppreference.com/w/cpp/types/conjunction
+// conjunction: http://en.cppreference.com/w/cpp/types/conjunction
 #endif
 template <class...>
 struct conjunction : true_type {};
@@ -167,8 +165,7 @@ template <typename... Bn> inline constexpr bool conjunction_v = conjunction<Bn..
 
 #if 0
 #pragma mark------------ disjunction --------------
-// disjunction: This is a C++17 standard utility class.
-// http://en.cppreference.com/w/cpp/types/disjunction
+// disjunction: http://en.cppreference.com/w/cpp/types/disjunction
 #endif
 template <class...>
 struct disjunction : false_type {};

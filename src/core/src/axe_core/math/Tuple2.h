@@ -39,7 +39,6 @@ namespace axe {
 template<class T>
 class Tuple2 {
 public:
-
 	axeTuple_InterfaceFunctions_Impl(Tuple2, T, 2)
 
 	union {
@@ -59,7 +58,7 @@ public:
 	constexpr void setToDefaultValue() { setAll(0); }
 
 	void onFormat(fmt::format_context& ctx) const {
-		fmt::format_to(ctx.out(), "({}, {})", x, y);
+		fmt::format_to(ctx.out(), "Tuple2({}, {})", x, y);
 	}
 }; // Tuple2
 

@@ -7,7 +7,7 @@ namespace axe {
 template<class T, class M>
 struct alignas(alignof(M)) Vec3_SSE_Data {
 	axeTuple_InterfaceFunctions_Impl(Vec3_SSE_Data, T, 3)
-	using RegisterType	= M;
+	using RegisterType = M;
 
 	union {
 		struct { T x, y, z, _unused_padding; };
@@ -15,13 +15,14 @@ struct alignas(alignof(M)) Vec3_SSE_Data {
 		M _m;
 	};
 
-	AXE_INLINE explicit constexpr Vec3_SSE_Data(T x_, T y_, T z_) : x(x_), y(y_), z(z_) {}
-	AXE_INLINE			constexpr Vec3_SSE_Data(const Tuple3<T>& v) : x(x_), y(y_), z(z_) {}
+	constexpr explicit	Vec3_SSE_Data(T v)					noexcept : x(v), y(v), z(v) {}
+	constexpr explicit	Vec3_SSE_Data(T x_, T y_, T z_)		noexcept : x(x_), y(y_), z(z_) {}
+	constexpr			Vec3_SSE_Data(const Tuple3<T>& v)	noexcept : x(x_), y(y_), z(z_) {}
 
-	AXE_INLINE void set(T x_, T y_, T z_)		{ x = x_; y = y_; z = z_; }
-	AXE_INLINE void set(const Tuple3<T>& v)		{ set(v.x, v.y, v.z); }
-	AXE_INLINE void setAll(const T& v)			{ set(v,v,v); }
-};
+	void set(T x_, T y_, T z_)		{ x = x_; y = y_; z = z_; }
+	void set(const Tuple3<T>& v)	{ set(v.x, v.y, v.z); }
+	void setAll(const T& v)			{ set(v,v,v); }
+}; // Vec3_SSE_Data
 
 using Vec3f_SSE_Data = Vec3_SSE_Data< float,  __m128>; // SSE
 using Vec3d_SSE_Data = Vec3_SSE_Data<double, __m256d>; // AVX
