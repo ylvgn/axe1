@@ -8,10 +8,10 @@ template<class T> using Vec3_Basic_Data = Tuple3<T>;
 
 template<class T, class DATA = Vec3_Basic_Data<T> >
 struct Vec3_Basic : public DATA {
-	using Vec3 = Vec3_Basic;
 	using Vec2 = Vec2<T>;
 
 	axeTuple_InterfaceFunctions_Impl(Vec3_Basic, typename DATA::ElementType, 3)
+	using Vec3 = This;
 
 	using DATA::x; // require this on gcc/clang, otherwise the fullname `DATA::x` is needed instead of `x`
 	using DATA::y;
@@ -38,11 +38,11 @@ struct Vec3_Basic : public DATA {
 	template<class V> AXE_NODISCARD AXE_INLINE constexpr
 	static This s_cast(const V& v) { return This(T(v.x), T(v.y), T(v.z)); }
 
-	constexpr explicit	Vec3(T v)								noexcept : DATA(v) {}
-	constexpr			Vec3(T x_, T y_, T z_)					noexcept { DATA::set(x_,  y_,  z_); }
-	constexpr			Vec3(const Vec2& v, const T& z_)		noexcept { DATA::set(v.x, v.y, z_); }
-	constexpr			Vec3(const Tuple2<T>& v, const T& z_)	noexcept { DATA::set(v.x, v.y, z_); }
-	constexpr			Vec3(const Tuple3<T>& v)				noexcept { DATA::set(v); }
+	constexpr explicit	Vec3_Basic(T v)								noexcept : DATA(v) {}
+	constexpr			Vec3_Basic(T x_, T y_, T z_)				noexcept { DATA::set(x_,  y_,  z_); }
+	constexpr			Vec3_Basic(const Vec2& v, const T& z_)		noexcept { DATA::set(v.x, v.y, z_); }
+	constexpr			Vec3_Basic(const Tuple2<T>& v, const T& z_)	noexcept { DATA::set(v.x, v.y, z_); }
+	constexpr			Vec3_Basic(const Tuple3<T>& v)				noexcept { DATA::set(v); }
 
 	constexpr void setToDefaultValue()		{ DATA::set(0,0,0); }
 	constexpr bool isAll (const T& v) const	{ return equals(This(v)); }
@@ -65,12 +65,12 @@ struct Vec3_Basic : public DATA {
 	AXE_NODISCARD constexpr This normal	 ()	const { T m = magnitude(); return Math::equals0(m) ? s_zero() : (*this / m); }
 				  constexpr void normalize() { *this = normal(); }
 
-	AXE_NODISCARD constexpr Vec3 xyz() const { return Vec3(x, y, z); }
-	AXE_NODISCARD constexpr Vec3 xzy() const { return Vec3(x, z, y); }
-	AXE_NODISCARD constexpr Vec3 yxz() const { return Vec3(y, x, z); }
-	AXE_NODISCARD constexpr Vec3 yzx() const { return Vec3(y, z, x); }
-	AXE_NODISCARD constexpr Vec3 zxy() const { return Vec3(z, x, y); }
-	AXE_NODISCARD constexpr Vec3 zyx() const { return Vec3(z, y, x); }
+	AXE_NODISCARD constexpr This xyz() const { return This(x, y, z); }
+	AXE_NODISCARD constexpr This xzy() const { return This(x, z, y); }
+	AXE_NODISCARD constexpr This yxz() const { return This(y, x, z); }
+	AXE_NODISCARD constexpr This yzx() const { return This(y, z, x); }
+	AXE_NODISCARD constexpr This zxy() const { return This(z, x, y); }
+	AXE_NODISCARD constexpr This zyx() const { return This(z, y, x); }
 
 	AXE_NODISCARD constexpr Vec2 xy () const { return Vec2(x, y); }
 	AXE_NODISCARD constexpr Vec2 xz () const { return Vec2(x, z); }
@@ -103,8 +103,12 @@ struct Vec3_Basic : public DATA {
 				  void operator *= (T s) { x *= s; y *= s; z *= s; }
 				  void operator /= (T s) { x /= s; y /= s; z /= s; }
 
-	constexpr bool operator == (const This & r) const { return x == r.x && y == r.y && z == r.z; }
-	constexpr bool operator != (const This & r) const { return x != r.x || y != r.y || z != r.z; }
+	constexpr bool operator == (const This & r) const {
+		AXE_GCC_WARNING_PUSH_AND_DISABLE("-Wfloat-equal")
+		return x == r.x && y == r.y && z == r.z;
+		AXE_GCC_WARNING_POP()
+	}
+	constexpr bool operator != (const This & r) const { return !(this->operator==(r)); }
 
 	constexpr void operator=		(const Tuple3<T>& v) { DATA::set(v.x, v.y, v.z); }
 	constexpr operator Tuple3<T>	() const			 { return toTuple(); }

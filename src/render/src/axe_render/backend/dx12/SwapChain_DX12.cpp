@@ -30,7 +30,7 @@ void SwapChain_DX12__Format::set(MonitorDisplayMode mode) {
 		case SRC::HDR_scRGB:{ colorSpaceFormat = DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709;	 swapChainFormat = DXGI_FORMAT_R16G16B16A16_FLOAT; } break;
 	//---
 		default:
-			AXE_THROW();
+			AXE_THROW;
 	}
 }
 

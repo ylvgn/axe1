@@ -101,7 +101,7 @@ void File::rename(StrView src, StrView dst) {
 	UtfUtil::convert(dstW, dst);
 
 	if ( 0 != ::_wrename(srcW.c_str(), dstW.c_str() ) ) {
-		throw AXE_ERROR("::_wrename {}->{} error", src, dst);
+		AXE_THROW_ERROR("::_wrename {}->{} error", src, dst);
 	}
 }
 
@@ -110,7 +110,7 @@ void File::remove(StrView filename) {
 	UtfUtil::convert(pathW, filename);
 	int ret = ::DeleteFile(pathW.c_str());
 	if (!ret)
-		throw AXE_ERROR("::DeleteFile({}) error: {}", filename, ::WSAGetLastError());
+		AXE_THROW_ERROR("::DeleteFile({}) error: {}", filename, ::WSAGetLastError());
 }
 
 #else
@@ -134,7 +134,7 @@ void File::rename(StrView src, StrView dst) {
 
 	auto ret = ::rename(srcA.c_str(), dstA.c_str() );
 	if ( ret != 0 ) {
-		throw AXE_ERROR("rename file {}->{}", src, dst);
+		AXE_THROW_ERROR("rename file {}->{}", src, dst);
 	}
 }
 

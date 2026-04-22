@@ -143,8 +143,7 @@ endfunction()
 
 function(axe_source_group src_path src_files)
 	foreach(FILE ${src_files})
-		#get_filename_component(PARENT_DIR "${FILE}" PATH)
-		axe_dirname(PARENT_DIR ${FILE})
+		axe_dirname(PARENT_DIR ${FILE}) #get_filename_component(PARENT_DIR "${FILE}" PATH)
 		file(RELATIVE_PATH PARENT_DIR ${src_path} ${PARENT_DIR})
 		string(REPLACE "/" "\\" GROUP "${PARENT_DIR}")
 		set(GROUP "${GROUP}")
@@ -152,64 +151,185 @@ function(axe_source_group src_path src_files)
 	endforeach()
 endfunction()
 
-function(axe_set_target_warning_level target_name)
+function(axe_set_warning_level target_name)
 	if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
-		target_compile_options(${target_name} PRIVATE /WX)     #warning treated as error
-		target_compile_options(${target_name} PRIVATE /W4)     #warning level 4
+		# message("axe_set_warning_level MSVC")
+		
+		# DynamicDebugging
+		if(CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
+			target_link_options(${target_name} PRIVATE /dynamicdeopt)
+			target_link_options(${target_name} PRIVATE /INCREMENTAL:NO)
+		endif()		
+		
+		# target_compile_options(${target_name} PRIVATE /Bt)	# show Build Timing
+		target_compile_options(${target_name} PRIVATE /utf-8) 	# execution_character_set - otherwise std::format wouldn't check format in compile time for "char"
+		target_compile_options(${target_name} PRIVATE /WX)    	#warning treated as error
+		target_compile_options(${target_name} PRIVATE /W4)   	#warning level 4
+#		target_compile_options(${target_name} PRIVATE /Wall)   	#warning level all
+		target_compile_options(${target_name} PRIVATE /we6244)  #warning C6244: local declaration of <variable> hides previous declaration
+		target_compile_options(${target_name} PRIVATE /we6246)  #warning C6246: Local declaration of <variable> hides declaration of same name in outer scope
+#		target_compile_options(${target_name} PRIVATE /Zp16)    # struct alignment
+		
+		# re-enable warning disabled by default to level 4
+		# VS2017 or later
+		target_compile_options(${target_name} PRIVATE /w45038)  # data member 'member1' will be initialized after data member 'member2'
+		target_compile_options(${target_name} PRIVATE /w45039)  # 'function': pointer or reference to potentially throwing function passed to extern C function under -EHc. Undefined behavior may occur if this function throws an exception.
+		target_compile_options(${target_name} PRIVATE /w45041)  # 'member-name': out-of-line definition for constexpr static data member is not needed and is deprecated in C++17
+		target_compile_options(${target_name} PRIVATE /w45042)  # 'function': function declarations at block scope cannot be specified 'inline' in standard C++; remove 'inline' specifier 
+#		target_compile_options(${target_name} PRIVATE /w45045)  # Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+
+		# VS2019 or later
+		target_compile_options(${target_name} PRIVATE /w45052)  # Keyword 'keyword-name' was introduced in C++ version and requires use of the 'option' command-line option
+		target_compile_options(${target_name} PRIVATE /w45204)  # A class with virtual functions has non-virtual trivial destructor
+		target_compile_options(${target_name} PRIVATE /w45214)  # applying 'keyword' to an operand with a volatile qualified type is deprecated in C++20
+		target_compile_options(${target_name} PRIVATE /w45215)  # 'function-parameter' a function parameter with a volatile qualified type is deprecated in C++20
+		target_compile_options(${target_name} PRIVATE /w45216)  # 'return-type' a volatile qualified return type is deprecated in C++20
+		target_compile_options(${target_name} PRIVATE /w45217)  # a structured binding declaration that includes volatile is deprecated in C++20
+		target_compile_options(${target_name} PRIVATE /w45219)  # implicit conversion from 'type-1' to 'type-2', possible loss of data
+		target_compile_options(${target_name} PRIVATE /w45220)  # 'member': a non-static data member with a volatile qualified type no longer implies that compiler generated copy/move constructors and copy/move assignment operators are not trivial
+		target_compile_options(${target_name} PRIVATE /w45233)  # explicit lambda capture 'identifier' is not used
+		target_compile_options(${target_name} PRIVATE /w45240)  # attribute-name': attribute is ignored in this syntactic position  
+		target_compile_options(${target_name} PRIVATE /w45243)  # 'type-name': using incomplete class 'class-name' can cause potential one definition rule violation due to ABI limitation
+		target_compile_options(${target_name} PRIVATE /w45245)  # 'function': unreferenced function with internal linkage has been removed
+		target_compile_options(${target_name} PRIVATE /w45246)  # 'member': the initialization of a subobject should be wrapped in braces
+		target_compile_options(${target_name} PRIVATE /w45247)  # Section 'section-name' is reserved for C++ dynamic initialization. Manually creating the section will interfere with C++ dynamic initialization and may lead to undefined behavior
+		target_compile_options(${target_name} PRIVATE /w45248)  # Section 'section-name' is reserved for C++ dynamic initialization. Variable manually put into the section may be optimized out and its order relative to compiler generated dynamic initializers is unspecified
+		
+		# VS2022 or later
+		target_compile_options(${target_name} PRIVATE /w45249)  # 'bitfield' of type 'enumeration_name' has named enumerators with values that cannot be represented in the given bit field width of 'bitfield_width'
+		target_compile_options(${target_name} PRIVATE /w45250)  # 'function_name': intrinsic function not declared.
+		target_compile_options(${target_name} PRIVATE /w45251)  # segment-name changed after including header 
+		target_compile_options(${target_name} PRIVATE /w45254)  # language feature 'terse static assert' requires compiler flag '/std:c++17
+		target_compile_options(${target_name} PRIVATE /w45256)  # 'enumeration': a non-defining declaration of an enumeration with a fixed underlying type is only permitted as a standalone declaration
+		target_compile_options(${target_name} PRIVATE /w45258)  # explicit capture of 'symbol' is not required for this use
+		target_compile_options(${target_name} PRIVATE /w45259)  # 'specialized-type': explicit specialization requires 'template <>'
+		target_compile_options(${target_name} PRIVATE /w45262)  # implicit fall-through occurs here; are you missing a break statement? Use [[fallthrough]] when a break statement is intentionally omitted between cases
+		target_compile_options(${target_name} PRIVATE /w45263)  # calling 'std::move' on a temporary object prevents copy elision
+		target_compile_options(${target_name} PRIVATE /w45264)  # 'variable-name': 'const' variable is not used
+		target_compile_options(${target_name} PRIVATE /w45266)  # 'const' qualifier on return type has no effect
+#		target_compile_options(${target_name} PRIVATE /w45267)  # definition of implicit copy constructor/assignment operator for 'type' is deprecated because it has a user-provided assignment operator/copy constructor
+
+		# disable warning
 		target_compile_options(${target_name} PRIVATE /wd4100) #warning C4100: unreferenced formal parameter in function
-		target_compile_options(${target_name} PRIVATE /wd4201) #warning C4201: nonstandard extension used: nameless struct/union
 		target_compile_options(${target_name} PRIVATE /wd4127) #warning C4127: conditional expression is constant
+		target_compile_options(${target_name} PRIVATE /wd4201) #warning C4201: nonstandard extension used: nameless struct/union
+		target_compile_options(${target_name} PRIVATE /wd4251) #Warning C4251 : needs to have dll-interface to be used by clients
 		target_compile_options(${target_name} PRIVATE /wd4275) #warning C4275: non dll-interface class 'std::runtime_error' used as base for dll-interface class 'fmt::v10::format_error'
+		target_compile_options(${target_name} PRIVATE /wd4702) #warning C4702: unreachable code (seems vc has bug when handle if constexpr() )
+		target_compile_options(${target_name} PRIVATE /wd4714) #Warning C4714 : function marked as __forceinline not inlined
 		target_compile_options(${target_name} PRIVATE /wd5072) #warning C5072: Address Sanitizer(ASAN) enabled without debug information emission.
 	else()
 	  	target_compile_options(${target_name} PRIVATE -Wall -Wextra -Wpedantic -Werror)
 	endif()
 endfunction()
 
-function(axe_set_target_unity_build_mode target_name)
+function(axe_set_unity_build_mode target_name)
 	set_target_properties(${target_name} PROPERTIES
 							UNITY_BUILD ON
 							UNITY_BUILD_MODE BATCH
 							UNITY_BUILD_BATCH_SIZE 16)
 endfunction()
 
-function(axe_add_library target_name src_path)
-	file(GLOB_RECURSE src_files
-		"${src_path}/src/*.*"
-	)	
-	axe_source_group(${src_path} "${src_files}")
+function(axe_target_source_from_folder target_name src_path)
+	get_target_property(target_type ${target_name} TYPE)
+
+	file(GLOB_RECURSE all_files  "${src_path}/src/*.*")
+	file(GLOB_RECURSE h_files    "${src_path}/src/*.h")
+	file(GLOB_RECURSE cpp_files  "${src_path}/src/*.cpp")
 	
-	add_library(${target_name} ${src_files})	
-	target_precompile_headers(${target_name} PUBLIC src/${target_name}-pch.h)
-	target_include_directories(${target_name} PUBLIC src)
-	axe_set_target_warning_level(${target_name})
-	axe_set_target_unity_build_mode(${target_name})
+	if(CMAKE_CXX_STANDARD EQUAL 20)
+		file(GLOB_RECURSE cppm_files "${src_path}/src/*.cppm")
+	endif()
+
+	axe_source_group(${src_path} "${all_files}")
+
+	set(other_files ${all_files})
+	list(REMOVE_ITEM other_files ${cpp_files} ${h_files})
+
+	target_sources(${target_name} PRIVATE ${h_files})
+	target_sources(${target_name} PRIVATE ${cpp_files})
+	target_sources(${target_name} PRIVATE ${other_files})
+
+	if(CMAKE_CXX_STANDARD EQUAL 20)
+		if ("${target_type}" STREQUAL "INTERFACE_LIBRARY")
+		else()
+			target_sources(${target_name} PUBLIC 
+				FILE_SET cxx_modules 
+				TYPE CXX_MODULES 
+				FILES ${cppm_files})
+		endif()
+	endif()
+
+	if(CMAKE_GENERATOR STREQUAL Xcode)
+		set_source_files_properties(${cpp_files} PROPERTIES LANGUAGE OBJCXX)
+	endif()
+
 endfunction()
 
-function(axe_add_dynamic_library target_name src_path)
-	file(GLOB_RECURSE src_files
-		"${src_path}/src/*.*"
-	)	
-	axe_source_group(${src_path} "${src_files}")
-	
-	add_library(${target_name} SHARED ${src_files})	
-	target_precompile_headers(${target_name} PUBLIC src/${target_name}-pch.h)
+function(axe_target_set_header_only_common_properties target_name)
+endfunction()
+
+function(axe_target_set_common_properties target_name)
+	axe_target_set_header_only_common_properties(${target_name})
+
+	axe_set_warning_level(${target_name})
+	axe_set_unity_build_mode(${target_name})
+
+	target_compile_definitions(${target_name} PUBLIC -DAXE_BUILD_${target_name})
+	target_compile_definitions(${target_name} PUBLIC 
+		$<$<CONFIG:Debug>:AXE_BUILD_CONFIG_Debug>
+		$<$<CONFIG:MinSizeRel>:AXE_BUILD_CONFIG_MinSizeRel>
+		$<$<CONFIG:Release>:AXE_BUILD_CONFIG_Release>
+		$<$<CONFIG:RelWithDebInfo>:AXE_BUILD_CONFIG_RelWithDebInfo>
+	)
+
+	target_precompile_headers(${target_name} PRIVATE src/${target_name}-pch.h)
+
+	target_compile_definitions(${target_name} PUBLIC -DUNICODE -D_UNICODE)
+endfunction()
+
+# ----------------------- add build target start ----------------------
+
+function(axe_add_header_only_library target_name src_path)
+	add_library(${target_name} INTERFACE)
+	axe_target_source_from_folder(${target_name} ${src_path})
+
+	target_include_directories(${target_name} INTERFACE src)
+	axe_target_set_header_only_common_properties(${target_name})
+endfunction()
+
+function(axe_add_library target_name src_path)
+	add_library(${target_name} STATIC)
+	axe_target_source_from_folder(${target_name} ${src_path})
 	target_include_directories(${target_name} PUBLIC src)
-	axe_set_target_warning_level(${target_name})
-	axe_set_target_unity_build_mode(${target_name})
+	axe_target_set_common_properties(${target_name})
+endfunction()
+
+function(axe_add_dynamic_library target_name src_path)	
+	add_library(${target_name} SHARED)
+	axe_target_source_from_folder(${target_name} ${src_path})
+	target_include_directories(${target_name} PUBLIC src)
+	axe_target_set_common_properties(${target_name})
 endfunction()
 
 function(axe_add_executable target_name src_path)
-	file(GLOB_RECURSE src_files
-		"${src_path}/src/*.*"
-	)
-	axe_source_group(${src_path} "${src_files}")
-
-	add_executable(${target_name} ${src_files})
-	target_precompile_headers(${target_name} PUBLIC src/${target_name}-pch.h)
-	axe_set_target_warning_level(${target_name})
-	axe_set_target_unity_build_mode(${target_name})
+	add_executable(${target_name})
+	axe_target_source_from_folder(${target_name} ${src_path})
+	target_include_directories(${target_name} PRIVATE src)
+	axe_target_set_common_properties(${target_name})
 endfunction()
+
+function(axe_add_gui_executable target_name src_path)
+	add_executable(${target_name} WIN32)
+	axe_target_source_from_folder(${target_name} ${src_path})
+
+	set(APP_ICON_RESOURCE_WINDOWS "${CMAKE_CURRENT_SOURCE_DIR}/src/AppIcon.rc")
+	set_target_properties(${target_name} PROPERTIES COMPILE_FLAGS "-D_QWE_GUI_EXECUTABLE")
+
+	target_include_directories(${target_name} PRIVATE src)
+	axe_target_set_common_properties(${target_name})
+endfunction()
+# ----------------------- add build target end ----------------------
 
 # ----------------------- vcpkg helper function start ----------------------
 function(axe_vcpkg_find_python out_var_name require_python_version)

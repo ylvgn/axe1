@@ -3,6 +3,7 @@
 cd %~dp0
 
 @set triplets=x64-windows
+@set s_triplets=%triplets%-static
 @set VCPKG_ROOT=externals\_vcpkg
 @set vcpkg=%VCPKG_ROOT%\vcpkg
 
@@ -14,7 +15,7 @@ call %VCPKG_ROOT%\bootstrap-vcpkg.bat
 %vcpkg% install eastl:%triplets% --recurse
 %vcpkg% install nlohmann-json:%triplets% --recurse
 %vcpkg% install libpng:%triplets% --recurse
-%vcpkg% install mozjpeg:%triplets% --recurse
+%vcpkg% install libjpeg-turbo:%triplets% --recurse
 %vcpkg% install vcpkg-tool-ninja:%triplets% --recurse
 %vcpkg% install tracy:%triplets% --recurse
 %vcpkg% install imgui[docking-experimental]:%triplets% --recurse

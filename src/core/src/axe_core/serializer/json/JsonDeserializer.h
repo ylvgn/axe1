@@ -39,14 +39,14 @@ protected:
 	void toValue(V& v) {
 		auto& cur = _stack.back();
 		if (cur->is_null())
-			throw AXE_ERROR("value is null");
+			AXE_THROW_ERROR("value is null");
 		v = *cur;
 	}
 
 	StrView toStrView() {
 		auto& cur = _stack.back();
 		if (!cur->is_string())
-			throw AXE_ERROR("string expected");
+			AXE_THROW_ERROR("string expected");
 		auto* str = cur->get_ptr<Json::string_t*>();
 		return StrView(str->data(), str->size());
 	}
@@ -60,21 +60,21 @@ protected:
 	void toEnum(V& v) {
 		auto s = toStrView();
 		if (!enumTryParse(v, s)) {
-			throw AXE_ERROR("error parse enum {}", s);
+			AXE_THROW_ERROR("error parse enum {}", s);
 		}
 	}
 
 	void beginObject() {
 		auto& cur = _stack.back();
 		if (!cur->is_object()) {
-			throw AXE_ERROR("is not object");
+			AXE_THROW_ERROR("is not object");
 		}
 	}
 
 	void endObject() {
 		auto& cur = _stack.back();
 		if (!cur->is_object()) {
-			throw AXE_ERROR("endObject");
+			AXE_THROW_ERROR("endObject");
 		}
 	}
 
@@ -82,7 +82,7 @@ protected:
 	void toObjectMember(const char* name, V& v) {
 		auto& cur = _stack.back();
 		if(!cur->is_object())
-			throw AXE_ERROR("not object member");
+			AXE_THROW_ERROR("not object member");
 
 		auto& memberValue = cur->operator[](name);
 		_stack.emplace_back(&memberValue);
@@ -93,7 +93,7 @@ protected:
 	size_t beginArray() {
 		auto& cur = _stack.back();
 		if (!cur->is_array())
-			throw AXE_ERROR("is not array");
+			AXE_THROW_ERROR("is not array");
 
 		auto* arr = cur->get_ptr<Json::array_t*>();
 		return arr->size();
@@ -102,18 +102,18 @@ protected:
 	void endArray() {
 		auto& cur = _stack.back();
 		if (!cur->is_array())
-			throw AXE_ERROR("endArray");
+			AXE_THROW_ERROR("endArray");
 	}
 
 	template<class V>
 	void toArrayElement(size_t index, V& v) {
 		auto& cur = _stack.back();
 		if (!cur->is_array())
-			throw AXE_ERROR("not array elemnt");
+			AXE_THROW_ERROR("not array elemnt");
 
 		auto* arr = cur->get_ptr<Json::array_t*>();
 		if (index >= arr->size())
-			throw AXE_ERROR("array out of range");
+			AXE_THROW_ERROR("array out of range");
 
 		auto& elementValue = arr->at(index);
 		_stack.emplace_back(&elementValue);

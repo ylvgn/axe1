@@ -25,7 +25,7 @@ public:
 			}
 
 			void reset() { _tickCount = _getTick(); }
-			double get() const { return static_cast<double>(_tickCount) / _freq; }
+			double get() const { return static_cast<double>(_tickCount) / double(_freq); }
 		private:
 			u64 _getTick() {
 				::LARGE_INTEGER v;

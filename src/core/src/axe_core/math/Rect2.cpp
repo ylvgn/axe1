@@ -7,8 +7,8 @@ namespace axe {
 #ifndef AXE_MATH_USE_SSE
 	#error
 #else
-	template Rect2<int>;
-	template Rect2<float>;
+	template class Rect2<int>;
+	template class Rect2<float>;
 #endif
 
 } // namespace axe

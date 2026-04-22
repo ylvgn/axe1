@@ -16,7 +16,7 @@ struct alignas(alignof(M)) Vec4_SSE_Data {
 
 	constexpr explicit  Vec4_SSE_Data(T v)					  noexcept : x(v), y(v), z(v), w(v) {}
 	constexpr explicit	Vec4_SSE_Data(T x_, T y_, T z_, T w_) noexcept : x(x_), y(y_), z(z_), w(w_) {}
-	constexpr			Vec4_SSE_Data(const Tuple4<T>& v)	  noexcept : x(x_), y(y_), z(z_), w(w_) {}
+	constexpr			Vec4_SSE_Data(const Tuple4<T>& v)	  noexcept : x(v.x), y(v.y), z(v.z), w(v.w) {}
 
 	void set(T x_, T y_, T z_, T w_) { x = x_; y = y_; z = z_; w = w_; }
 	void set(const Tuple4<T>& v)	 { set(v.x, v.y, v.z, v.w); }

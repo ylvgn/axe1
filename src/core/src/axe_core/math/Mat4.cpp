@@ -10,8 +10,8 @@ namespace axe {
 	template Mat4_SSE<float>;
 	template Mat4_SSE<double>;
 #else
-	template Mat4_Basic<float>;
-	template Mat4_Basic<double>;
+	template struct Mat4_Basic<float>;
+	template struct Mat4_Basic<double>;
 #endif
 
 } // namespace axe

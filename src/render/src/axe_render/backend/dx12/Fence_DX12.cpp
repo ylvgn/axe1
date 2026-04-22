@@ -36,12 +36,12 @@ void Fence_DX12::create(Device_DX12* device) {
 
 	_onGpuCompletedEvent = ::CreateEvent(nullptr, false, false, L"DX12 Fence Event");
 	if (!_onGpuCompletedEvent)
-		AXE_THROW();
+		AXE_THROW;
 }
 
 void Fence_DX12::destroy() {
 	if (_d3dFence && !onCheckCompleted()) {
-		AXE_THROW();
+		AXE_THROW;
 	}
 	if (_onGpuCompletedEvent) {
 		::CloseHandle(_onGpuCompletedEvent);
@@ -54,7 +54,7 @@ void Fence_DX12::destroy() {
 
 bool Fence_DX12::onCheckCompleted() {
 	if (!_d3dFence)
-		AXE_THROW();
+		AXE_THROW;
 	return _signaled <= _d3dFence->GetCompletedValue();
 }
 
@@ -133,7 +133,7 @@ void FencePool_DX12::Fence::gpuSignal(::ID3D12CommandQueue* d3dCmdQueue) {
 
 bool FencePool_DX12::Fence::onCheckCompleted() {
 	if (!_d3dFence)
-		AXE_THROW();
+		AXE_THROW;
 	return _signaled == 0 || _d3dFence->GetCompletedValue() > 0;
 }
 

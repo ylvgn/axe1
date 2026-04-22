@@ -17,7 +17,7 @@ const char* CommandLine_Param::assignment() const {
 		case SRC::Space:		return " ";
 		case SRC::Equals:		return "=";
 		case SRC::ColonEquals:	return ":=";
-		default: throw AXE_ERROR("unsupported CommandLine_ParamAssignment");
+		default: AXE_THROW_ERROR("unsupported CommandLine_ParamAssignment");
 	}
 }
 

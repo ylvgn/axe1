@@ -69,10 +69,6 @@ class StaticClass {
 };
 AXE_STATIC_ASSERT_NO_MEMBER_CLASS(StaticClass);
 
-class StaticAbstructClass abstract : StaticClass {
-	virtual void _cannotCreateInstance_() = 0;
-};
-
 class NonCopyable {
 	NonCopyable		(const NonCopyable&) = delete;
 	void operator=	(const NonCopyable&) = delete;
@@ -104,6 +100,11 @@ using f32		 = float;
 using f64		 = double;
 using f128		 = long double;
 
+using Byte		 = u8;
+using Int		 = i64;
+using UInt		 = u64;
+using Float		 = f64;
+
 using StrLiteral = const char*;
 
 using Char8		 = char; // char8_t: require c++20
@@ -120,6 +121,21 @@ AXE_STATIC_ASSERT(sizeof(u8)  == 1);
 AXE_STATIC_ASSERT(sizeof(u16) == 2);
 AXE_STATIC_ASSERT(sizeof(u32) == 4);
 AXE_STATIC_ASSERT(sizeof(u64) == 8);
+
+#if AXE_CPLUSPLUS_20
+// consteval - only construct from compile time and ensure the lifespan is permanent
+consteval Int axe_consteval_Int(size_t v) {
+	Int o = static_cast<Int>(v);
+	if (o < 0) throw std::exception("axe_consteval_Int");
+	return o;
+}
+#endif
+
+constexpr Int axe_constexpr_Int(size_t v) {
+	Int o = static_cast<Int>(v);
+	if (o < 0) throw std::exception("axe_constexpr_Int");
+	return o;
+}
 
 } // namespace axe
 
@@ -232,7 +248,8 @@ template <class Rep> AXE_INLINE void axe_sleep(Rep milliseconds) {
 
 namespace axe {
 
-template<class T> AXE_INLINE constexpr typename underlying_type_t<T> enumInt(T  value) { return static_cast<typename underlying_type_t<T>>(value); }
+template<class T> using Type_EnumInt = typename ::std::underlying_type_t<T>;
+template<class T> AXE_INLINE constexpr typename Type_EnumInt<T> enumInt(T  value) { return static_cast<Type_EnumInt<T>>(value); }
 
 template<class T> AXE_INLINE constexpr typename underlying_type_t_reference<T>		 enumIntRef(      T& value) { return *reinterpret_cast<underlying_type_t_pointer<T>>(&value); }
 template<class T> AXE_INLINE constexpr typename underlying_type_t_const_reference<T> enumIntRef(const T& value) { return *reinterpret_cast<underlying_type_t_const_pointer<T>>(&value); }
@@ -380,13 +397,14 @@ template<class T> using StrViewT_Base = typename ::eastl::basic_string_view<T>;
 template<class T>
 class StrViewT : public StrViewT_Base<T> { // immutable string view
 	using Base			= typename StrViewT_Base<T>;
-	using size_type		= typename Base::size_type;
 	using const_pointer = typename Base::const_pointer;
 
 	using Base::mnCount;
 	using Base::mpBegin;
 
 public:
+	using size_type	= typename Base::size_type;
+
 						constexpr StrViewT() = default;
 						constexpr StrViewT(const StrViewT& other)				 noexcept : Base(other) {}
 						constexpr StrViewT(const T* s)							 noexcept : Base(s) {}
@@ -449,7 +467,7 @@ public:
 	using Type = typename ::eastl::basic_string<T>;
 };
 
-template<class T, size_t N, bool bEnableOverflow = true>
+template<class T, size_t N, bool bEnableOverflow /*= true*/>
 class StringT : public StringT_Base<T, N, bEnableOverflow>::Type {
 	using This = StringT;
 	using Base = typename StringT_Base<T, N, bEnableOverflow>::Type;
@@ -604,17 +622,28 @@ template<size_t N> using String_ = StringA_<N>;
 using TempString = TempStringA;
 
 template<size_t N> struct CharBySize;
-template<> struct CharBySize<1> { using Type = Char8; };
-template<> struct CharBySize<2> { using Type = Char16; };
-template<> struct CharBySize<4> { using Type = Char32; };
+template<> struct CharBySize<AXE_SIZEOF(Char8)>  { using Type = Char8; };
+template<> struct CharBySize<AXE_SIZEOF(Char16)> { using Type = Char16; };
+template<> struct CharBySize<AXE_SIZEOF(Char32)> { using Type = Char32; };
 
-class WCharUtil {
+using CharW_Native = typename CharBySize<AXE_SIZEOF(CharW)>::Type;
+
+struct WCharUtil {
 	WCharUtil() = delete;
-public:
+
 	using Char = typename CharBySize<sizeof(CharW)>::Type;
-	Char  toChar(CharW c) { return static_cast<Char>(c); }
-	CharW toWChar(Char c) { return static_cast<CharW>(c); }
+
+	 Char  toChar(CharW c) { return static_cast< Char>(c); }
+	CharW toWChar(Char  c) { return static_cast<CharW>(c); }
 };
+
+AXE_INLINE			CharW_Native	CharW_toNative(      CharW   v) { return static_cast<           CharW_Native  >(v); }
+AXE_INLINE			CharW_Native&	CharW_toNative(      CharW&  v) { return reinterpret_cast<      CharW_Native& >(v); }
+AXE_INLINE			CharW_Native*	CharW_toNative(      CharW*  v) { return reinterpret_cast<      CharW_Native* >(v); }
+AXE_INLINE			CharW_Native**	CharW_toNative(      CharW** v) { return reinterpret_cast<      CharW_Native**>(v); }
+AXE_INLINE	const	CharW_Native&	CharW_toNative(const CharW&  v) { return reinterpret_cast<const CharW_Native& >(v); }
+AXE_INLINE	const	CharW_Native*	CharW_toNative(const CharW*  v) { return reinterpret_cast<const CharW_Native* >(v); }
+AXE_INLINE	const	CharW_Native**	CharW_toNative(const CharW** v) { return reinterpret_cast<const CharW_Native**>(v); }
 
 inline StrView8  StrView_c_str(const Char8  * s) { return s ? StrView8 (s, strlen(s))	  : StrView8 (); }
 inline StrView16 StrView_c_str(const Char16 * s) { return s ? StrView16(s, charStrlen(s)) : StrView16(); }
@@ -733,7 +762,6 @@ private:
 			}
 		}
 	};
-	
 }; // Tuple
 
 template <class... ARGS> AXE_NODISCARD
@@ -766,14 +794,36 @@ auto Tuple_join(const TUPLE0& t0, const TUPLE1& t1) {
 namespace eastl {
 	// kind of EASTL/tuple.h
 	template <class... Ts>
-	struct tuple_size<::axe::Tuple<Ts...> > : public integral_constant<size_t, sizeof...(Ts)> {};
+	struct tuple_size<::axe::Tuple<Ts...> > : public eastl::integral_constant<size_t, sizeof...(Ts)> {};
 
 	template <size_t I, class... Ts>
-	struct tuple_element<I, ::axe::Tuple<Ts...> > : public tuple_element<I, ::axe::Tuple<Ts...>> { };
+	struct tuple_element<I, ::axe::Tuple<Ts...> > : public eastl::tuple_element<I, ::axe::Tuple<Ts...>> {};
 } // namespace eastl
 
 
 #include "../string/Fmt.h"
+
+template<>
+struct fmt::formatter<axe::StrViewA> {
+	static auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
+	static auto format(const axe::StrViewA& v, fmt::format_context& ctx) {
+		auto it = *ctx.out();
+		for (const auto& c : v) {
+			it = c;
+			it++;
+		}
+		return ctx.out();
+	}
+};
+
+template<class T>
+struct fmt::formatter<T, typename ::axe::enable_if_t<::axe::is_enum_v<T>, char>> {
+	static auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
+	static auto format(const T& v, fmt::format_context& ctx) {
+		using namespace axe;
+		return formatter<StrView>::format(StrView_c_str(enumStr(v)), ctx);
+	}
+};
 
 namespace axe {
 
@@ -793,11 +843,31 @@ public:
 	const char* func = "";
 	int			line = 0;
 }; // SrcLoc
-AXE_FORMATTER(SrcLoc)
 
-AXE_FORMATTER_T(class... ARGS, Tuple<ARGS...>)
+// AXE_FORMATTER(SrcLoc) vs2026 issue ???
+// AXE_FORMATTER_T(class... ARGS, Tuple<ARGS...>) vs2026 issue ???
 
 } // namespace axe
+
+
+template<>
+struct fmt::formatter<::axe::SrcLoc> {
+	static auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
+	static auto format(const ::axe::SrcLoc& v, fmt::format_context& ctx) {
+		v.onFormat(ctx);
+		return ctx.out();
+	}
+};
+
+template<class... ARGS>
+struct fmt::formatter<::axe::Tuple<ARGS...>> {
+	static auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
+	static auto format(const ::axe::Tuple<ARGS...>& v, fmt::format_context& ctx) {
+		v.onFormat(ctx);
+		return ctx.out();
+	}
+};
+
 
 AXE_INLINE
 std::ostream& operator<<(std::ostream& s, const axe::SrcLoc& loc) {
@@ -806,6 +876,88 @@ std::ostream& operator<<(std::ostream& s, const axe::SrcLoc& loc) {
 }
 
 #include "Error.h"
+
+//---- safecast
+namespace axe {
+
+template <class T, class ENABLE = void>
+struct Type_IntOrEnumInt_T { using Type = T; }; 
+
+template <class T>
+struct Type_IntOrEnumInt_T<T, axe::enable_if_t< axe::is_enum_v<T> >> {
+	using Type = underlying_type_t<T>;
+}; 
+
+template<class T> using Type_IntOrEnumInt = typename Type_IntOrEnumInt_T<T>::Type;
+
+template<class DST, class SRC> AXE_INLINE
+constexpr bool axe_try_safe_assign_(DST& dst, const SRC& src) noexcept {
+	if constexpr (is_same_v<remove_cv_t<DST>, remove_cv_t<SRC>>) {
+		dst = src;
+		return true;
+	} else if constexpr (is_floating_point_v<SRC> && is_floating_point_v<DST>) {
+		// float -> float
+		dst = static_cast<DST>(src);
+		return true;
+	} else if constexpr (is_integral_v<SRC> && is_floating_point_v<DST>) {
+		// int -> float
+		dst = static_cast<DST>(src);
+		return true;
+	} else if constexpr (is_floating_point_v<SRC> && is_integral_v<DST>) {
+		// float -> int
+		using DST_LIMIT = std::numeric_limits<DST>;
+		using FLOAT_TYPE = SRC;
+		if (src < static_cast<FLOAT_TYPE>(DST_LIMIT::lowest())) { AXE_ASSERT(false); return false; }
+		if (src > static_cast<FLOAT_TYPE>(DST_LIMIT::max()   )) { AXE_ASSERT(false); return false; }
+		dst = static_cast<DST>(src);
+		return true;
+	} else {
+		// enum/int -> enum/int
+		using DST_INT = Type_IntOrEnumInt<DST>;
+		using SRC_INT = Type_IntOrEnumInt<SRC>;
+		
+		if (!::eastl::in_range<DST_INT>(static_cast<SRC_INT>(src))) {
+			AXE_ASSERT(false);
+			return false;
+		}
+		dst = static_cast<DST>(src);
+		return true;
+	}
+}
+
+template<class DST, class SRC> AXE_INLINE
+constexpr void axe_try_safe_assign(DST& dst, const SRC& src) {
+	if constexpr (is_same_v<remove_cv_t<DST>, remove_cv_t<SRC>>) {
+		dst = src;
+	} else {
+		if (false == axe_try_safe_assign_<DST>(dst, src)) {
+			throw Error_SafeCast(AXE_LOC);
+		}
+	}
+}
+
+template<class SRC>
+struct axe_static_cast_from {
+	SRC& src;
+	constexpr axe_static_cast_from(SRC& src_) : src(src_) {}
+	template <typename DST>	constexpr operator DST() const { return static_cast<DST>(src); }
+};
+
+
+// this cast can over come function pointer to void*
+template<class DST, class SRC> AXE_INLINE
+constexpr DST axe_bit_cast(const SRC& src) {
+	// std::bit_cast needs c++20, so use union work around
+	union Wrap {
+		constexpr Wrap(const SRC& src_) : src(src_) {}
+		DST dst;
+		SRC src;
+	};
+	static_assert(sizeof(DST) == sizeof(SRC));
+	return Wrap(src).dst;
+}
+
+} // namespace axe
 
 //---- others
 namespace axe {

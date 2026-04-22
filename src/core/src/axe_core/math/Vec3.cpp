@@ -10,8 +10,8 @@ namespace axe {
 	template Vec3_SSE<float>;
 	template Vec3_SSE<double>;
 #else
-	template Vec3_Basic<float>;
-	template Vec3_Basic<double>;
+	template struct Vec3_Basic<float>;
+	template struct Vec3_Basic<double>;
 #endif
 
 template<> const TypeInfo* TypeOf<Vec3f>() {

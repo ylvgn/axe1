@@ -55,7 +55,7 @@ const VertexLayout* VertexLayoutManager::getLayout(VertexType type) {
 VertexLayout* VertexLayoutManager::_createLayout(VertexType type) {
 	auto* p = getLayout(type);
 	if (p) {
-		throw AXE_ERROR("duplicated layout");
+		AXE_THROW_ERROR("duplicated layout");
 	}
 	return &_table[type];
 }

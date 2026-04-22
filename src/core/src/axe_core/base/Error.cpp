@@ -45,9 +45,15 @@ bool Error::s_validate(StrView funcName, StrView filename, int lineNumber, bool 
 	return false;
 }
 
-Error::Error(const SrcLoc& loc, StrView msg)
+Error::Error(const SrcLoc& loc)
 	: _loc(loc)
-	, _msg(msg)
+{
+	_assert();
+}
+
+Error::Error(StrView msg, const SrcLoc& loc)
+	: _msg(msg)
+	, _loc(loc)
 {
 	_assert();
 }

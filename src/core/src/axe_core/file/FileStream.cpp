@@ -65,13 +65,13 @@ void FileStream::open(StrView filename, FileMode mode, FileAccess access, FileSh
 	if (_fd == kInvalid()) {
 		::DWORD err = ::GetLastError();
 		switch( err ) {
-			case ERROR_FILE_NOT_FOUND:		throw AXE_ERROR("file not found");
-			case ERROR_PATH_NOT_FOUND:		throw AXE_ERROR("path not found");
-			case ERROR_FILE_EXISTS:			throw AXE_ERROR("file doesn't exists");
-			case ERROR_ALREADY_EXISTS:		throw AXE_ERROR("file already exists");
-			case ERROR_ACCESS_DENIED:		throw AXE_ERROR("access denied");
-			case ERROR_SHARING_VIOLATION:	throw AXE_ERROR("sharing violation");
-			default:						throw AXE_ERROR("open file error");
+			case ERROR_FILE_NOT_FOUND:		AXE_THROW_ERROR("file not found");
+			case ERROR_PATH_NOT_FOUND:		AXE_THROW_ERROR("path not found");
+			case ERROR_FILE_EXISTS:			AXE_THROW_ERROR("file doesn't exists");
+			case ERROR_ALREADY_EXISTS:		AXE_THROW_ERROR("file already exists");
+			case ERROR_ACCESS_DENIED:		AXE_THROW_ERROR("access denied");
+			case ERROR_SHARING_VIOLATION:	AXE_THROW_ERROR("sharing violation");
+			default:						AXE_THROW_ERROR("open file error");
 		}
 	}
 }
@@ -80,7 +80,7 @@ void FileStream::close() {
 	if (!isOpened()) return;
 	BOOL ret = ::CloseHandle(_fd);
 	if (!ret)
-		throw AXE_ERROR("::CloseHandle");
+		AXE_THROW_ERROR("::CloseHandle");
 
 	_fd = kInvalid();
 }
@@ -90,7 +90,7 @@ void FileStream::readBytes(Span<u8> data) {
 	if (data.size() <= 0)
 		return;
 	if (data.size() >= UINT32_MAX)
-		throw AXE_ERROR("file size too large");
+		AXE_THROW_ERROR("file size too large");
 
 	auto dwSize = static_cast<::DWORD>(data.size());
 	::DWORD result;
@@ -98,9 +98,9 @@ void FileStream::readBytes(Span<u8> data) {
 	if (!ret) {
 		::DWORD e = ::GetLastError();
 		switch (e) {
-			case ERROR_LOCK_VIOLATION: throw AXE_ERROR("file lock violation");
+			case ERROR_LOCK_VIOLATION: AXE_THROW_ERROR("file lock violation");
 		}
-		throw AXE_ERROR("::ReadFile");
+		AXE_THROW_ERROR("::ReadFile");
 	}
 }
 
@@ -110,13 +110,13 @@ void FileStream::writeBytes(ByteSpan data) {
 	if (data.size() <= 0)
 		return;
 	if (data.size() >= UINT32_MAX)
-		throw AXE_ERROR("file size too large");
+		AXE_THROW_ERROR("file size too large");
 
 	auto dwSize = static_cast<::DWORD>(data.size());
 	::DWORD result;
 	BOOL ret = ::WriteFile(_fd, data.data(), dwSize, &result, nullptr);
 	if (!ret)
-		throw AXE_ERROR("::WriteFile");
+		AXE_THROW_ERROR("::WriteFile");
 }
 
 FileSize FileStream::fileSize() {
@@ -125,7 +125,7 @@ FileSize FileStream::fileSize() {
 	::DWORD high = 0;
 	::DWORD low  = ::GetFileSize(_fd, &high);
 	if (low == INVALID_FILE_SIZE)
-		throw AXE_ERROR("::GetFileSize");
+		AXE_THROW_ERROR("::GetFileSize");
 
 	auto fileSize = static_cast<FileSize>(high) << 32 | low;
 	return fileSize;
@@ -148,7 +148,7 @@ FileSize FileStream::getPos() {
 	::LONG high = 0;
 	::LONG low  = ::SetFilePointer(_fd, 0, &high, FILE_CURRENT);
 	if (low < 0 || high < 0)
-		throw AXE_ERROR("get file pos");
+		AXE_THROW_ERROR("get file pos");
 	auto pos = static_cast<FileSize>(low) | static_cast<FileSize>(high) << 32;
 	return pos;
 }
@@ -190,26 +190,26 @@ void FileStream::open(StrView filename, FileMode mode, FileAccess access, FileSh
 		case FileMode::CreateNew: 		access_flags |= O_CREAT | O_EXCL; break;
 		case FileMode::OpenExists:		break;
 		case FileMode::OpenOrCreate: 	access_flags |= O_CREAT; break;
-		default: throw AXE_ERROR("unknown file mode");
+		default: AXE_THROW_ERROR("unknown file mode");
 	}
 
 	switch (access) {
 		case FileAccess::Read:		access_flags |= O_RDONLY;	break;
 		case FileAccess::ReadWrite:	access_flags |= O_RDWR;		break;
 		case FileAccess::WriteOnly:	access_flags |= O_WRONLY;	break;
-		default: throw AXE_ERROR("unknown file access");
+		default: AXE_THROW_ERROR("unknown file access");
 	}
 
 	AXE_ASSERT(_fd == kInvalid);
 	_fd = ::open(_filename.c_str(), access_flags, mode_flags);
 	if (_fd == kInvalid()) {
 		switch (errno) {
-			case EACCES:	throw AXE_ERROR("cannot access file");
-			case EEXIST:	throw AXE_ERROR("file doesn't exists");
-			case ENFILE:	throw AXE_ERROR("too many files open in system");
-			case EMFILE:	throw AXE_ERROR("too many files open");
-			case ENOENT:	throw AXE_ERROR("no such file or directory");
-			default:		throw AXE_ERROR("unknown open file error");
+			case EACCES:	AXE_THROW_ERROR("cannot access file");
+			case EEXIST:	AXE_THROW_ERROR("file doesn't exists");
+			case ENFILE:	AXE_THROW_ERROR("too many files open in system");
+			case EMFILE:	AXE_THROW_ERROR("too many files open");
+			case ENOENT:	AXE_THROW_ERROR("no such file or directory");
+			default:		AXE_THROW_ERROR("unknown open file error");
 		}
 	}
 }
@@ -223,7 +223,7 @@ void FileStream::close() {
 void FileStream::flush() {
 	if (!isOpened()) return;
 	int b = ::fsync(_fd);
-	if (b != 0) throw AXE_ERROR("file flush");
+	if (b != 0) AXE_THROW_ERROR("file flush");
 }
 
 FileSize FileStream::fileSize() {
@@ -231,15 +231,15 @@ FileSize FileStream::fileSize() {
 	off64_t cur, tmp;
 	
 	cur = ::lseek64(_fd, 0, SEEK_CUR);
-	if (cur == -1) throw AXE_ERROR("file size");
+	if (cur == -1) AXE_THROW_ERROR("file size");
 
 	tmp = ::lseek64(_fd, 0, SEEK_END);
-	if (tmp == -1) throw AXE_ERROR("file size");
+	if (tmp == -1) AXE_THROW_ERROR("file size");
 
 	FileSize outSize = static_cast<FileSize>(tmp);
 
 	tmp = ::lseek64(_fd, 0, SEEK_SET);
-	if (tmp == -1) throw AXE_ERROR("file size");
+	if (tmp == -1) AXE_THROW_ERROR("file size");
 
 	return outSize;
 }
@@ -251,7 +251,7 @@ void FileStream::setFileSize(FileSize newSize) {
 
 	off64_t o = newSize;
 	if (0 != ftruncate64( _fd, o ))
-		throw AXE_ERROR("setFileSize");
+		AXE_THROW_ERROR("setFileSize");
 
 	if (oldPos < newSize)
 		setPos( oldPos );
@@ -261,7 +261,7 @@ FileSize FileStream::getPos() {
 	_ensure_fd();
 	off64_t tmp = 0;
 	off64_t ret = ::lseek64(_fd, tmp, SEEK_SET);
-	if (ret == -1) throw AXE_ERROR("get file pos");
+	if (ret == -1) AXE_THROW_ERROR("get file pos");
 	return static_cast<FileSize>(ret);
 }
 
@@ -269,25 +269,25 @@ void FileStream::setPos(FileSize pos) {
 	_ensure_fd();
 	off64_t tmp = static_cast<off64_t>(pos);
 	off64_t ret = ::lseek64(_fd, tmp, SEEK_SET);
-	if (ret == -1) throw AXE_ERROR("set file pos");
+	if (ret == -1) AXE_THROW_ERROR("set file pos");
 }
 
 void FileStream::setPosFromEnd(FileSize pos) {
 	_ensure_fd();
 	off64_t tmp = static_cast<off64_t>(pos);
 	off64_t ret = ::lseek64(_fd, tmp, SEEK_END);
-	if (ret == -1) throw AXE_ERROR("set file pos from end");
+	if (ret == -1) AXE_THROW_ERROR("set file pos from end");
 }
 
 void FileStream::readBytes(Span<u8> data) {
 	_ensure_fd();
 	if (reqSize <= 0) return 0;
 	auto ret = ::read(_fd, data.data(), reqSize);
-	if (ret <= 0) throw AXE_ERROR("file read");
+	if (ret <= 0) AXE_THROW_ERROR("file read");
 
 	size_t result = static_cast<size_t>(ret);
 	if (result != data.size())
-		throw AXE_ERROR("file read");
+		AXE_THROW_ERROR("file read");
 }
 
 void FileStream::writeBytes(ByteSpan data) {
@@ -295,11 +295,11 @@ void FileStream::writeBytes(ByteSpan data) {
 
 	if (data.size() <= 0) return 0;
 	auto ret = ::write(_fd, data.data(), data.size());
-	if (ret <= 0) throw AXE_ERROR("error write file");
+	if (ret <= 0) AXE_THROW_ERROR("error write file");
 
 	size_t result = static_cast<size_t>(ret);
 	if (result != data.size())
-		throw AXE_ERROR("file read");
+		AXE_THROW_ERROR("file read");
 }
 
 #endif

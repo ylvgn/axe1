@@ -16,7 +16,7 @@ Span<const Tuple3f> EditMeshUtil::subPos(const EditMesh& src, size_t count, size
 
 	const T* p = src.pos.begin() + offset;
 	if (p + count > src.pos.end()) {
-		throw AXE_ERROR("out of range");
+		AXE_THROW_ERROR("out of range");
 	}
 	return Span<const T>(p, count);
 }
@@ -26,7 +26,7 @@ Span<const u32> EditMeshUtil::subIndices(const EditMesh& src, size_t count, size
 
 	const T* p = src.indices.begin() + offset;
 	if (p + count > src.indices.end()) {
-		throw AXE_ERROR("out of range");
+		AXE_THROW_ERROR("out of range");
 	}
 	return Span<const T>(p, count);
 }

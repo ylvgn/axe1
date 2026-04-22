@@ -6,7 +6,7 @@ namespace axe {
 
 template<class T>
 class Rect2 {
-	using This = typename Rect2<T>;
+	using This = Rect2<T>;
 public:
 	using ElementType = T;
 	using Vec2		  = Vec2<T>;
@@ -64,7 +64,11 @@ public:
 	AXE_NODISCARD constexpr Rect2<T> intersects		(const Rect2& r) const;
 	AXE_NODISCARD constexpr Rect2<T> unionWith		(const Rect2& r) const;
 
-	constexpr bool operator == (const This& r) const { return x == r.x && y == r.y && w == r.w && h == r.h; }
+	constexpr bool operator == (const This& r) const {
+		AXE_GCC_WARNING_PUSH_AND_DISABLE("-Wfloat-equal")
+		return x == r.x && y == r.y && w == r.w && h == r.h;
+		AXE_GCC_WARNING_POP()
+	}
 	constexpr bool operator != (const This& r) const { return !(this->operator==(r)); }
 
 	AXE_NODISCARD constexpr Rect2 operator-() const { return Rect2(-x, -y, -w, -h); }

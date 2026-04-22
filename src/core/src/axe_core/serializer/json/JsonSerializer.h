@@ -54,14 +54,14 @@ protected:
 	void toValue(const V& v) {
 		auto& cur = _stack.back();
 		if (!cur->is_null())
-			throw AXE_ERROR("already contains value");
+			AXE_THROW_ERROR("already contains value");
 		*cur = v;
 	}
 
 	void toStrView(StrView v) {
 		auto& cur = _stack.back();
 		if (!cur->is_null())
-			throw AXE_ERROR("already contains value");
+			AXE_THROW_ERROR("already contains value");
 		*cur = "";
 		auto* dst = cur->get_ptr<Json::string_t*>();
 		dst->assign(v.begin(), v.end());
@@ -75,21 +75,21 @@ protected:
 	void beginObject() {
 		auto& cur = _stack.back();
 		if (!cur->is_null())
-			throw AXE_ERROR("already contains value");
+			AXE_THROW_ERROR("already contains value");
 		*cur = Json::object();
 	}
 
 	void endObject() {
 		auto& cur = _stack.back();
 		if (!cur->is_object())
-			throw AXE_ERROR("end object");
+			AXE_THROW_ERROR("end object");
 	}
 
 	template<class V>
 	void toObjectMember(const char* name, V& v) {
 		auto& obj = _stack.back();
 		if (!obj->is_object())
-			throw AXE_ERROR("not inside object");
+			AXE_THROW_ERROR("not inside object");
 
 		auto& memberValue = obj->operator[](name);
 		_stack.emplace_back(&memberValue);
@@ -100,14 +100,14 @@ protected:
 	void beginArray() {
 		auto& cur = _stack.back();
 		if (!cur->is_null())
-			throw AXE_ERROR("already contains value");
+			AXE_THROW_ERROR("already contains value");
 		*cur = Json::array();
 	}
 
 	void resizeArray(size_t size) {
 		auto& cur = _stack.back();
 		if (!cur->is_array())
-			throw AXE_ERROR("not inside array");
+			AXE_THROW_ERROR("not inside array");
 
 		auto* arr = cur->get_ptr<Json::array_t*>();
 		arr->resize(size);
@@ -116,18 +116,18 @@ protected:
 	void endArray() {
 		auto& cur = _stack.back();
 		if (!cur->is_array())
-			throw AXE_ERROR("end array");
+			AXE_THROW_ERROR("end array");
 	}
 
 	template<class V>
 	void toArrayElement(size_t index, V& v) {
 		auto& cur = _stack.back();
 		if (!cur->is_array())
-			throw AXE_ERROR("not inside array");
+			AXE_THROW_ERROR("not inside array");
 
 		auto* arr = cur->get_ptr<Json::array_t*>();
 		if (index >= arr->size())
-			throw AXE_ERROR("array index out of array");
+			AXE_THROW_ERROR("array index out of array");
 		auto& elementValue = arr->at(index);
 		_stack.emplace_back(&elementValue);
 		io(v);

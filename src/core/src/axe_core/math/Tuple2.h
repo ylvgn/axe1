@@ -10,9 +10,9 @@ private: \
 	using This = AXE_T; \
 public: \
 	using ElementType = ELEMENT_TYPE; \
-	static const size_t kElementCount = COUNT; \
+	static constexpr size_t kElementCount = COUNT; \
 	\
-	constexpr explicit This() = default; \
+	constexpr AXE_T() = default; \
 	\
 			ElementType& operator[]	(int i)			{ return at(i); } \
 	const	ElementType& operator[]	(int i)	const	{ return at(i); } \
@@ -28,7 +28,7 @@ public: \
 	\
 	template<class V> constexpr void setByCast(const V& v) { *this = s_cast(v); } \
 private: \
-	static constexpr bool s_inBound		(int i)		{ return i >= 0 && i < kElementCount; } \
+	static constexpr bool s_inBound		(int i)		{ return i >= 0 && static_cast<size_t>(i) < kElementCount; } \
 	static constexpr void s_checkBound	(int i)		{ if (!s_inBound(i)) throw std::out_of_range(__FILE__); } \
 public: \
 //----

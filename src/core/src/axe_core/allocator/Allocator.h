@@ -1,5 +1,6 @@
 #pragma once
 
+//----- Global namespace
 #if !EASTL_DLL
 // If building a regular library and not building EASTL as a DLL...
 // It is expected that the application define the following
@@ -36,26 +37,10 @@ AXE_INLINE void* operator new[](size_t		numBytes
 	return p;
 }
 
-AXE_INLINE void* operator new(size_t numBytes) {
-	auto* p = ::malloc(numBytes);
-	AXE_TracyAlloc(p, numBytes);
-	return p;
-}
-AXE_INLINE void operator delete(void* p) noexcept {
-	AXE_TracyFree(p);
-	::free(p);
-}
-
-AXE_INLINE void* operator new[](size_t numBytes) {
-	auto* p = ::malloc(numBytes);
-	AXE_TracyAlloc(p, numBytes);
-	return p;
-}
-
-AXE_INLINE void  operator delete[](void* p) noexcept {
-	AXE_TracyFree(p);
-	::free(p);
-}
+void* operator new(size_t numBytes);
+void operator delete(void* p) noexcept;
+void* operator new[](size_t numBytes);
+void operator delete[](void* p) noexcept;
 #endif // !EASTL_DLL
 
 

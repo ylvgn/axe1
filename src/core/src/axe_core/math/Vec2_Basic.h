@@ -8,9 +8,8 @@ template<class T> using Vec2_Basic_Data = Tuple2<T>;
 
 template<class T, class DATA = Vec2_Basic_Data<T> >
 struct Vec2_Basic : public DATA {
-	using Vec2 = Vec2_Basic;
-
 	axeTuple_InterfaceFunctions_Impl(Vec2_Basic, typename DATA::ElementType, 2)
+	using Vec2 = This;
 
 	using DATA::x; // require this on gcc/clang, otherwise the fullname `DATA::x` is needed instead of `x`
 	using DATA::y;
@@ -29,9 +28,9 @@ struct Vec2_Basic : public DATA {
 	template<class V> AXE_NODISCARD AXE_INLINE constexpr
 	static This s_cast(const V& v) { return This(T(v.x), T(v.y)); }
 
-	constexpr explicit	Vec2(T v)					noexcept : DATA(v) {}
-	constexpr			Vec2(T x_, T y_)			noexcept { DATA::set(x_, y_); }
-	constexpr			Vec2(const Tuple2<T>& v)	noexcept { DATA::set(v); }
+	constexpr explicit	Vec2_Basic(T v)					noexcept : DATA(v) {}
+	constexpr			Vec2_Basic(T x_, T y_)			noexcept { DATA::set(x_, y_); }
+	constexpr			Vec2_Basic(const Tuple2<T>& v)	noexcept { DATA::set(v); }
 
 	constexpr void setToDefaultValue()			{ DATA::set(0,0); }
 	constexpr bool isAll(const T& v)		 const  { return equals(This(v)); }
@@ -74,8 +73,12 @@ struct Vec2_Basic : public DATA {
 				  void operator *= (T s) { x *= s; y *= s; }
 				  void operator /= (T s) { x /= s; y /= s; }
 
-	constexpr bool operator == (const This& r) const { return x == r.x && y == r.y; }
-	constexpr bool operator != (const This& r) const { return x != r.x || y != r.y; }
+	constexpr bool operator == (const This& r) const {
+		AXE_GCC_WARNING_PUSH_AND_DISABLE("-Wfloat-equal")
+		return x == r.x && y == r.y;
+		AXE_GCC_WARNING_POP()
+	}
+	constexpr bool operator != (const This& r) const { return !(this->operator==(r)); }
 
 	constexpr void operator=		(const Tuple2<T>& v) { DATA::set(v.x, v.y); }
 	constexpr operator Tuple2<T>	() const			 { return toTuple(); }
@@ -85,7 +88,7 @@ struct Vec2_Basic : public DATA {
 	}
 
 #if AXE_OS_WINDOWS
-	constexpr explicit Vec2(const ::POINT& v) noexcept { DATA::set((T)v.x, (T)v.y); }
+	constexpr explicit Vec2_Basic(const ::POINT& v) noexcept { DATA::set(T(v.x), T(v.y)); }
 #endif // AXE_OS_WINDOWS
 };
 

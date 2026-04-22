@@ -18,9 +18,9 @@ const TypeInfo* RenderDevice::s_getType() {
 }
 
 RenderDevice_CreateDesc::RenderDevice_CreateDesc() noexcept
-	: VSync(true)
+	: adapterInfo(nullptr) 
+	, VSync(true)
 	, useWarpDeviceFallback(false)
-	, adapterInfo(nullptr)
 {
 
 #if AXE_OS_WINDOWS

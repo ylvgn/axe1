@@ -69,7 +69,7 @@ void AppBase::executableFilenameTo(STR& out) {
 	pathW.resizeToLocalBufSize();
 	auto requiredSize = ::GetModuleFileName(nullptr, pathW.data(), MAX_PATH);
 	if (!requiredSize)
-		throw AXE_ERROR("::GetModuleFileName error: {}", ::WSAGetLastError());
+		AXE_THROW_ERROR("::GetModuleFileName error: {}", ::WSAGetLastError());
 	pathW.resize(requiredSize);
 	UtfUtil::convert(out, pathW);
 	out.replaceChars('\\', '/');

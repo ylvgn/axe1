@@ -162,7 +162,7 @@ void Directory::_appendGetFileSystemEntries(Vector<Entry>& result, StrView path,
 
 	AXE_TODO("exceed the MAX_PATH limits TODO: https://learn.microsoft.com/en-us/windows/win32/fileio/naming-a-file");
 	if (pathA.size() >= MAX_PATH) {
-		throw AXE_ERROR("path too long: path={}\nsize={}", pathA, pathA.size());
+		AXE_THROW_ERROR("path too long: path={}\nsize={}", pathA, pathA.size());
 	}
 	UtfUtil::convert(pathW, pathA);
 
@@ -170,7 +170,7 @@ void Directory::_appendGetFileSystemEntries(Vector<Entry>& result, StrView path,
 	Directory_Win32Handle h(::FindFirstFileEx(pathW.c_str(), FindExInfoBasic, &data, FindExSearchNameMatch, NULL, 0));
 
 	if (!h.isValid())
-		throw AXE_ERROR("::FindFirstFileEx INVALID_HANDLE_VALUE: path={}\n", path);
+		AXE_THROW_ERROR("::FindFirstFileEx INVALID_HANDLE_VALUE: path={}\n", path);
 
 	do {
 		auto filename = StrView_c_str(data.cFileName);
@@ -197,7 +197,7 @@ void Directory::_appendGetFileSystemEntries(Vector<Entry>& result, StrView path,
 
 	auto errorCode = ::WSAGetLastError();
 	if (errorCode != ERROR_NO_MORE_FILES) {
-		throw AXE_ERROR("unknown error: path={}\n", path);
+		AXE_THROW_ERROR("unknown error: path={}\n", path);
 	}
 }
 
@@ -211,7 +211,7 @@ Directory::_create(StrView dir) {
 	UtfUtil::convert(dirA, dir);
 	auto ret = ::mkdir(dirA.c_str(), 0755);
 	if (ret != 0)
-		throw AXE_ERROR("::mkdir({}) error", dirA.c_str());
+		AXE_THROW_ERROR("::mkdir({}) error", dirA.c_str());
 }
 
 bool Directory::exists(StrView dir) {

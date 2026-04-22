@@ -50,11 +50,11 @@ CondVar::Impl::Impl() {
 
 	_signalEvent = ::CreateEvent(NULL, FALSE, FALSE, NULL);
 	if (!_signalEvent)
-		AXE_THROW();
+		AXE_THROW;
 
 	_broadcastEvent = ::CreateEvent(NULL, TRUE, FALSE, NULL);
 	if (!_broadcastEvent)
-		AXE_THROW();
+		AXE_THROW;
 }
 
 CondVar::Impl::~Impl() {
@@ -158,7 +158,7 @@ bool CondVar::timedWait(Locked& locked, int waitMilliseconds) {
 
 	timespec ts;
 	if (clock_gettime(CLOCK_REALTIME, &ts) < 0) {
-		AXE_THROW();
+		AXE_THROW;
 	}
 
 	ts.tv_sec  += waitMilliseconds / 1000;
@@ -168,7 +168,7 @@ bool CondVar::timedWait(Locked& locked, int waitMilliseconds) {
 	switch (ret) {
 		case 0:			return true;
 		case ETIMEDOUT: return false;
-		case EINVAL: AXE_THROW();
+		case EINVAL: AXE_THROW;
 	}
 	return false;
 }

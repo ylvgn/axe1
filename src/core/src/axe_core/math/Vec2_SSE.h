@@ -17,7 +17,7 @@ struct alignas(alignof(M)) Vec2_SSE_Data {
 
 	constexpr explicit	Vec2_SSE_Data(T v)					noexcept : x(v), y(v) {}
 	constexpr explicit	Vec2_SSE_Data(T x_, T y_)			noexcept : x(x_), y(y_) {}
-	constexpr			Vec2_SSE_Data(const Tuple2<T>& v)	noexcept : x(x_), y(y_) {}
+	constexpr			Vec2_SSE_Data(const Tuple2<T>& v)	noexcept : x(v.x), y(v.y) {}
 
 	void set(const Tuple2<T>& v)	{ set(v.x, v.y);  }
 	void set(T x_, T y_)			{ x = x_; y = y_; }

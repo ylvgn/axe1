@@ -4,13 +4,16 @@
 
 namespace axe {
 
+AXE_VC_WARNING_PUSH()
+AXE_VC_WARNING_DISABLE(5204) // warning C5204: class has virtual functions, but its trivial destructor is not virtual; instances of objects derived from this class may not be destructed correctly
 class RenderContext_EventHandler {
 public:
 	void render(RenderContext* ctx);
 
+
 	virtual void onRender(RenderContext& ctx) {};
 }; // RenderContext_EventHandler
-
+AXE_VC_WARNING_POP()
 
 class RenderContext_CreateDesc {
 public:
@@ -68,7 +71,7 @@ protected:
 				AXE_MACRO_OP(ClearFrameBuffers)
 				AXE_MACRO_OP(SwapBuffers)
 				AXE_MACRO_OP(DrawCall)
-				default: AXE_THROW();
+				default: AXE_THROW;
 			}
 		}
 		#undef AXE_MACRO_OP

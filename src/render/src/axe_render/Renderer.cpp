@@ -21,7 +21,7 @@ Renderer* Renderer::s_create(CreateDesc& desc) {
 			case RendererApi::DX12: p = new Renderer_DX12(desc); break;
 		#endif
 	//---
-		default: AXE_THROW();
+		default: AXE_THROW;
 	}
 
 	AXE_ASSERT(p->_adapterInfos.size() > 0);

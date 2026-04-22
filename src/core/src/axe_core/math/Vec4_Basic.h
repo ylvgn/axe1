@@ -7,9 +7,7 @@ namespace axe {
 template<class T> using Vec4_Basic_Data = Tuple4<T>;
 
 template<class T, class DATA = Vec4_Basic_Data<T> >
-class Vec4_Basic : public DATA {
-public:
-	using Vec4 = Vec4_Basic;
+struct Vec4_Basic : public DATA {
 
 	using DATA::x; // require this on gcc/clang, otherwise the fullname `Data::x` is needed instead of `x`
 	using DATA::y;
@@ -21,6 +19,7 @@ public:
 	using Vec2 = Vec2<T>;
 
 	axeTuple_InterfaceFunctions_Impl(Vec4_Basic, typename DATA::ElementType, 4)
+	using Vec4 = This;
 
 	AXE_NODISCARD constexpr static This s_zero()				{ return This(0,0,0,0); }
 	AXE_NODISCARD constexpr static This s_one()					{ return This(1,1,1,1); }
@@ -30,13 +29,13 @@ public:
 	AXE_NODISCARD constexpr static This s_inf()					{ auto v = Math::inf<T>(); return This(v); }
 
 	template<class V> AXE_NODISCARD AXE_INLINE constexpr
-	static Vec4 s_cast(const V& v) { return Vec4(T(v.x), T(v.y), T(v.z), T(v.w)); }
+	static This s_cast(const V& v) { return This(T(v.x), T(v.y), T(v.z), T(v.w)); }
 
-	constexpr explicit  Vec4(T v)								noexcept : DATA(v) {}
-	constexpr			Vec4(T x_, T y_, T z_, T w_)			noexcept { DATA::set( x_,  y_,  z_, w_); }
-	constexpr			Vec4(const Vec3& v, const T& w_)		noexcept { DATA::set(v.x, v.y, v.z, w_); }
-	constexpr			Vec4(const Tuple3<T>& v, const T& w_)	noexcept { DATA::set(v.x, v.y, v.z, w_); }
-	constexpr			Vec4(const Tuple4<T>& v)				noexcept { DATA::set(v); }
+	constexpr explicit  Vec4_Basic(T v)								noexcept : DATA(v) {}
+	constexpr			Vec4_Basic(T x_, T y_, T z_, T w_)			noexcept { DATA::set( x_,  y_,  z_, w_); }
+	constexpr			Vec4_Basic(const Vec3& v, const T& w_)		noexcept { DATA::set(v.x, v.y, v.z, w_); }
+	constexpr			Vec4_Basic(const Tuple3<T>& v, const T& w_)	noexcept { DATA::set(v.x, v.y, v.z, w_); }
+	constexpr			Vec4_Basic(const Tuple4<T>& v)				noexcept { DATA::set(v); }
 
 	constexpr void operator=(const Tuple4<T>& v) noexcept { DATA::set(v.x, v.y, v.z, v.w); }
 
@@ -51,8 +50,8 @@ public:
 	AXE_NODISCARD constexpr Vec2 yz () const { return Vec2(y,z); }
 	AXE_NODISCARD constexpr Vec3 xyz() const { return Vec3(x,y,z); }
 
-	AXE_NODISCARD Vec3 homogenize()	const { return (*this / w).xyz(); };
-	AXE_NODISCARD Vec3 toVec3()		const { return homogenize(); };
+	AXE_NODISCARD Vec3 homogenize()	const { return (*this / w).xyz(); }
+	AXE_NODISCARD Vec3 toVec3()		const { return homogenize(); }
 
 	AXE_NODISCARD constexpr Tuple4<T> toTuple	() const { return Tuple4<T>(x, y, z, w); }
 				  constexpr operator Tuple4<T>	() const { return toTuple(); }
@@ -79,7 +78,11 @@ public:
 				  void operator *= (T s) { x *= s; y *= s; z *= s; w *= s; }
 				  void operator /= (T s) { x /= s; y /= s; z /= s; w /= s; }
 
-				  bool operator == (const This& r) const { return x == r.x && y == r.y && z == r.z && w == r.w; }
+				  bool operator == (const This& r) const {
+					  AXE_GCC_WARNING_PUSH_AND_DISABLE("-Wfloat-equal")
+					  return x == r.x && y == r.y && z == r.z && w == r.w;
+					  AXE_GCC_WARNING_POP()
+				  }
 				  bool operator != (const This& r) const { return !(this->operator==(r)); }
 
 	void onFormat(fmt::format_context& ctx) const {

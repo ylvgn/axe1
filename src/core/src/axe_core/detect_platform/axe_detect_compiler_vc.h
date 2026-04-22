@@ -36,22 +36,22 @@
 #define	AXE_FUNC_NAME_SZ			__FUNCTION__
 #define AXE_FUNC_FULLNAME_SZ		__FUNCSIG__
 
-#define AXE_DEPRECATED			__declspec(deprecated)
-
 #define AXE_COMPILER_VER _MSVC_LANG
 
 #if AXE_CPLUSPLUS_14
-	#define AXE_DEPRECATED [[deprecated]]
+	#define AXE_DEPRECATED [[deprecated]] // __declspec(deprecated)
 #else
 	#define AXE_DEPRECATED
 #endif
 
 #if AXE_CPLUSPLUS_17
-	#define AXE_FALLTHROUGH	//	[[fallthrough]]
+	#define AXE_FALLTHROUGH		[[fallthrough]]
 	#define AXE_NODISCARD		[[nodiscard]]
+	#define AXE_IF_CONSTEXPR	if constexpr
 #else
 	#define AXE_FALLTHROUGH
 	#define AXE_NODISCARD
+	#define AXE_IF_CONSTEXPR	if
 #endif
 
 //#define AXE_ALIGN(N)				__declspec(align(N)) 

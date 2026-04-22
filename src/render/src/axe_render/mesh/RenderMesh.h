@@ -124,7 +124,7 @@ VertexT* RenderSubMesh::vertex(int i) {
 template<class VertexT> inline
 VertexT* RenderSubMesh::_vertex(size_t offset) {
 	if (offset < 0 || offset >= _vertexData.size())
-		throw AXE_ERROR("out of range");
+		AXE_THROW_ERROR("out of range");
 
 	void* buf = _vertexData.data() + offset;
 	auto* res = new (buf) VertexT();

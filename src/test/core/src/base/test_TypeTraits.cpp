@@ -619,13 +619,17 @@ struct Test_TypeTraits__is_arithmetic : public UnitTestBase {
 #if 0
 #pragma mark------------ _test_TypeTraits_Helper --------------
 #endif
-struct _test_TypeTraits_Helper : public StaticAbstructClass {
+struct _test_TypeTraits_Helper {
+
+	_test_TypeTraits_Helper() = delete;
 
 	#if 0
 	#pragma mark------------ Core --------------
 	#endif
-	struct Core : public StaticAbstructClass
+	struct Core
 	{
+		Core() = delete;
+
 		static void test_integral_constant() {
 			AXE_TEST_CASE(Test_TypeTraits__integral_constant, test1());
 			AXE_TEST_CASE(Test_TypeTraits__integral_constant, test2());
@@ -635,8 +639,10 @@ struct _test_TypeTraits_Helper : public StaticAbstructClass {
 	#if 0
 	#pragma mark------------ Relationships and property queries --------------
 	#endif
-	struct RelationshipsAndPropertyQueries : public StaticAbstructClass
+	struct RelationshipsAndPropertyQueries
 	{
+		RelationshipsAndPropertyQueries() = delete;
+
 		static void test_extent()
 		{
 			AXE_TEST_CASE(Test_TypeTraits__extent, test());
@@ -646,8 +652,10 @@ struct _test_TypeTraits_Helper : public StaticAbstructClass {
 	#if 0
 	#pragma mark------------ Type categories --------------
 	#endif
-	struct TypeCategories : public StaticAbstructClass
+	struct TypeCategories
 	{
+		TypeCategories() = delete;
+
 		static void test_is_const() {
 			AXE_TEST_CASE(Test_TypeTraits__is_const, test());
 		}
@@ -689,7 +697,9 @@ struct _test_TypeTraits_Helper : public StaticAbstructClass {
 	#if 0
 	#pragma mark------------ Type transformations --------------
 	#endif
-	struct TypeTransformations : public StaticAbstructClass {
+	struct TypeTransformations {
+		TypeTransformations() = delete;
+
 		static void test_enable_if() {
 			AXE_TEST_CASE(Test_TypeTraits__enable_if, test());
 		}

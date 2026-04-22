@@ -10,8 +10,8 @@ namespace axe {
 	template Vec2_SSE<float>;
 	template Vec2_SSE<double>;
 #else
-	template Vec2_Basic<float>;
-	template Vec2_Basic<double>;
+	template struct Vec2_Basic<float>;
+	template struct Vec2_Basic<double>;
 #endif
 
 } // namespace axe

@@ -9,6 +9,9 @@
 	// TODO
 #endif
 
+AXE_VC_WARNING_PUSH()
+AXE_VC_WARNING_DISABLE(5039) // warning C5039: pointer or reference to potentially throwing function passed to 'extern "C"' function under -EHc. Undefined behavior may occur if this function throws an exception.
+
 namespace axe {
 
 Thread::Thread() noexcept {
@@ -55,10 +58,10 @@ void Thread::_create(CreateDesc& desc) {
 	auto stackSize = static_cast<SIZE_T>(desc.stackSize);
 
 	if (stackSize < 0)
-		AXE_THROW();
+		AXE_THROW;
 
 	if (_threadId)
-		AXE_THROW();
+		AXE_THROW;
 
 	_entry = desc.entry;
 
@@ -161,3 +164,5 @@ void* Thread::s_proc(void* p) {
 #endif
 
 } // namespace axe
+
+AXE_VC_WARNING_POP()

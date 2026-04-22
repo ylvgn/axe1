@@ -61,13 +61,14 @@ struct Mat4_Basic_Data {
 
 template<class T, class DATA = Mat4_Basic_Data<T> >
 struct Mat4_Basic : public DATA {
-	using Mat4	= Mat4_Basic;
 	using Vec4	= typename DATA::Vec4;
 	using Vec3	= Vec3<T>;
 	using Rect2	= Rect2<T>;
 	using Quat4	= Quat4<T>;
 
 	using ElementType	= typename DATA::ElementType;
+	using This			= Mat4_Basic<T, DATA>;
+	using Mat4			= This;
 
 	using DATA::cx;
 	using DATA::cy;
@@ -95,12 +96,12 @@ struct Mat4_Basic : public DATA {
 	AXE_NODISCARD static Mat4 s_ortho		(T left, T right, T bottom, T top, T zNear, T zFar);
 	AXE_NODISCARD static Mat4 s_lookAt		(const Vec3 & eye, const Vec3 & aim, const Vec3 & up);
 
-	constexpr explicit Mat4() = default;
-	constexpr Mat4(const Vec4& cx_, const Vec4& cy_, const Vec4& cz_, const Vec4& cw_)
+	constexpr explicit Mat4_Basic() = default;
+	constexpr Mat4_Basic(const Vec4& cx_, const Vec4& cy_, const Vec4& cz_, const Vec4& cw_)
 		: DATA(cx_, cy_, cz_, cw_)
 	{}
 
-	constexpr Mat4(T xx, T xy, T xz, T xw,
+	constexpr Mat4_Basic(T xx, T xy, T xz, T xw,
 		 T yx, T yy, T yz, T yw,
 		 T zx, T zy, T zz, T zw,
 		 T wx, T wy, T wz, T ww) : DATA(xx, xy, xz, xw,

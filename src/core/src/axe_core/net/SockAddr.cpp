@@ -9,7 +9,7 @@ IPv4::IPv4(u8 v0, u8 v1, u8 v2, u8 v3) {
 
 void IPv4::resolve(StrView hostname) {
 	if (!tryResolve(hostname))
-		throw AXE_ERROR("resolve");
+		AXE_THROW_ERROR("resolve");
 }
 
 bool IPv4::tryResolve(StrView hostname) {
@@ -32,7 +32,7 @@ u16 SockAddr::port() const {
 	switch (family()) {
 		case Family::IPv4: return ntohs(_addr_in.sin_port);
 		case Family::IPv6: return ntohs(_addr_in6.sin6_port);
-		default: throw AXE_ERROR("");
+		default: AXE_THROW_ERROR("");
 	}
 }
 
@@ -50,7 +50,7 @@ void SockAddr::setFamily(Family f) {
 
 void SockAddr::resolve(StrView hostname, u16 port, Family family) {
 	if (!tryResolve(hostname, port, family))
-		throw AXE_ERROR("resolve hostname");
+		AXE_THROW_ERROR("resolve hostname");
 }
 
 bool SockAddr::tryResolve(StrView hostname, u16 port, Family family) {

@@ -100,7 +100,7 @@ int Socket::appendRecv(CONTAINER & buf, size_t bytesToRecv, int flags) {
 	auto oldSize = buf.size();
 	auto newSize = oldSize + bytesToRecv;
 	if (newSize < oldSize)
-		throw AXE_ERROR("appendRecv newSize < oldSize");
+		AXE_THROW_ERROR("appendRecv newSize < oldSize");
 
 	buf.resize(newSize);
 	int ret = 0;

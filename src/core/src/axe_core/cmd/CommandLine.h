@@ -16,26 +16,26 @@ struct CommandLine_Param {
 	using This = CommandLine_Param;
 	using Assignment = CommandLine_ParamAssignment;
 
-	This() noexcept = delete;
+	CommandLine_Param() noexcept = delete;
 
-	This(StrView  name) noexcept : opName(name) {}
-	This(StrViewW name) noexcept { UtfUtil::convert(opName, name); }
+	CommandLine_Param(StrView  name) noexcept : opName(name) {}
+	CommandLine_Param(StrViewW name) noexcept { UtfUtil::convert(opName, name); }
 
-	This(StrView name, i8&  v) noexcept : opName(name) { StringUtil::tryParse(opValue, v); }
-	This(StrView name, i16& v) noexcept : opName(name) { StringUtil::tryParse(opValue, v); }
-	This(StrView name, i32& v) noexcept : opName(name) { StringUtil::tryParse(opValue, v); }
-	This(StrView name, i64& v) noexcept : opName(name) { StringUtil::tryParse(opValue, v); }
+	CommandLine_Param(StrView name, i8&  v) noexcept : opName(name) { StringUtil::tryParse(opValue, v); }
+	CommandLine_Param(StrView name, i16& v) noexcept : opName(name) { StringUtil::tryParse(opValue, v); }
+	CommandLine_Param(StrView name, i32& v) noexcept : opName(name) { StringUtil::tryParse(opValue, v); }
+	CommandLine_Param(StrView name, i64& v) noexcept : opName(name) { StringUtil::tryParse(opValue, v); }
 
-	This(StrView name, u8&  v) noexcept : opName(name) { StringUtil::tryParse(opValue, v); }
-	This(StrView name, u16& v) noexcept : opName(name) { StringUtil::tryParse(opValue, v); }
-	This(StrView name, u32& v) noexcept : opName(name) { StringUtil::tryParse(opValue, v); }
-	This(StrView name, u64& v) noexcept : opName(name) { StringUtil::tryParse(opValue, v); }
+	CommandLine_Param(StrView name, u8&  v) noexcept : opName(name) { StringUtil::tryParse(opValue, v); }
+	CommandLine_Param(StrView name, u16& v) noexcept : opName(name) { StringUtil::tryParse(opValue, v); }
+	CommandLine_Param(StrView name, u32& v) noexcept : opName(name) { StringUtil::tryParse(opValue, v); }
+	CommandLine_Param(StrView name, u64& v) noexcept : opName(name) { StringUtil::tryParse(opValue, v); }
 
-	This(StrView name, f32& v) noexcept : opName(name) { StringUtil::tryParse(opValue, v); }
-	This(StrView name, f64& v) noexcept : opName(name) { StringUtil::tryParse(opValue, v); }
+	CommandLine_Param(StrView name, f32& v) noexcept : opName(name) { StringUtil::tryParse(opValue, v); }
+	CommandLine_Param(StrView name, f64& v) noexcept : opName(name) { StringUtil::tryParse(opValue, v); }
 
-	This(StrView name, StrView  v) noexcept : opName(name) { opValue.assign(v.data(), v.size()); }
-	This(StrView name, StrViewW v) noexcept : opName(name) { UtfUtil::convert(opValue, v); }
+	CommandLine_Param(StrView name, StrView  v) noexcept : opName(name) { opValue.assign(v.data(), v.size()); }
+	CommandLine_Param(StrView name, StrViewW v) noexcept : opName(name) { UtfUtil::convert(opValue, v); }
 
 	void opNameW(StringW& out)				const { UtfUtil::convert(out, opName);  }
 	void opValueW(StringW& out)				const { UtfUtil::convert(out, opValue); }

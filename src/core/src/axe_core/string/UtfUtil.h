@@ -4,9 +4,9 @@
 
 namespace axe {
 
-class UtfUtil {
+struct UtfUtil {
 	UtfUtil() = delete;
-public:
+
 	template<class DST, class SRC> static void convert(DST& dst, const SRC& src);
 
 	template<class SRC>	static String  toString	(SRC& src) { String  o; convert(o, src); return o; }
@@ -49,6 +49,8 @@ private:
 		_encodeUtf(reinterpret_cast<STR&>(dst), v);
 	}
 }; // UtfUtil
+
+AXE_GCC_WARNING_PUSH_AND_DISABLE("-Wunsafe-buffer-usage")
 
 template<size_t N> AXE_INLINE
 void UtfUtil::_encodeUtf(String8_<N>& dst, uint32_t v) {
@@ -186,14 +188,14 @@ uint32_t UtfUtil::_decodeUtf(const Char8* & src, const Char8* end) {
 	}
 
 	if ((v & 0xE0U) == 0xC0U) {
-		if (src + 2 > end) throw AXE_ERROR("");
+		if (src + 2 > end) AXE_THROW;
 		o += (uint8_t(*src) & 0x1FU) << 6; ++src;
 		o += (uint8_t(*src) & 0x3FU);      ++src;
 		return o;
 	}
 
 	if ((v & 0xF0U) == 0xE0U) {
-		if (src + 3 > end) throw AXE_ERROR("");
+		if (src + 3 > end) AXE_THROW;
 		o += (uint8_t(*src) & 0x0FU) << 12; ++src;
 		o += (uint8_t(*src) & 0x3FU) << 6;  ++src;
 		o += (uint8_t(*src) & 0x3FU);       ++src;
@@ -201,7 +203,7 @@ uint32_t UtfUtil::_decodeUtf(const Char8* & src, const Char8* end) {
 	}
 
 	if ((v & 0xF8U) == 0xF0U) {
-		if (src + 4 > end) throw AXE_ERROR("");
+		if (src + 4 > end) AXE_THROW;
 		o += (uint8_t(*src) & 0x07U) << 18; ++src;
 		o += (uint8_t(*src) & 0x3FU) << 12; ++src;
 		o += (uint8_t(*src) & 0x3FU) << 6;  ++src;
@@ -210,7 +212,7 @@ uint32_t UtfUtil::_decodeUtf(const Char8* & src, const Char8* end) {
 	}
 
 	if ((v & 0xFCU) == 0xF8U) {
-		if (src + 5 > end) throw AXE_ERROR("");
+		if (src + 5 > end) AXE_THROW;
 		o += (uint8_t(*src) & 0x03U) << 24; ++src;
 		o += (uint8_t(*src) & 0x3FU) << 18; ++src;
 		o += (uint8_t(*src) & 0x3FU) << 12; ++src;
@@ -219,7 +221,7 @@ uint32_t UtfUtil::_decodeUtf(const Char8* & src, const Char8* end) {
 	}
 
 	if ((v & 0xFEU) == 0xFCU) {
-		if (src + 6 > end) throw AXE_ERROR("");
+		if (src + 6 > end) AXE_THROW;
 		o += (uint8_t(*src) & 0x01U) << 30; ++src;
 		o += (uint8_t(*src) & 0x3FU) << 24; ++src;
 		o += (uint8_t(*src) & 0x3FU) << 18; ++src;
@@ -241,7 +243,7 @@ uint32_t UtfUtil::_decodeUtf(const Char16*& src, const Char16* end) {
 	auto v = static_cast<uint16_t>(*src);
 
 	if (v >= 0xD800U && v < 0xDBFFU) {
-		if( src+2 > end ) throw AXE_ERROR("");
+		if( src+2 > end ) AXE_THROW;
 		uint32_t a = static_cast<uint16_t>(*src); ++src;
 		uint32_t b = static_cast<uint16_t>(*src); ++src;
 		return ((a - 0xD800U) << 10) | (b - 0xDC00U);
@@ -258,10 +260,9 @@ uint32_t UtfUtil::_decodeUtf(const Char32*& src, const Char32* end) {
 
 AXE_INLINE
 uint32_t UtfUtil::_decodeUtf(const CharW*& src, const CharW* end) {
-	using C = WCharUtil::Char;
-	const auto* & s = reinterpret_cast<const C* &>(src);
-	const auto*   e = reinterpret_cast<const C*  >(end);
-	return _decodeUtf(s, e);
+	return _decodeUtf(*CharW_toNative(&src), CharW_toNative(end));
 }
+
+AXE_GCC_WARNING_POP()
 
 } // namespace axe

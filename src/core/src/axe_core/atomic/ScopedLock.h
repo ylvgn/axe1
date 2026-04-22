@@ -1,5 +1,7 @@
 #pragma once
 
+#include <axe_core/base/axe_base.h>
+
 namespace axe {
 
 class ScopedLock_LockedAlready {};
@@ -46,7 +48,9 @@ public:
 		return _isLocked;
 	}
 #else
-	struct _interalTryLockHelper : public StaticAbstructClass {
+	struct _interalTryLockHelper {
+		_interalTryLockHelper() = delete;
+
 		template <typename... MUTEXES>
 		static int std_try_lock(Tuple<MUTEXES*...>& mtxes) {
 			return s_tryLock(mtxes, IndexSequenceFor<MUTEXES...>{});

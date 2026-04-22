@@ -87,7 +87,10 @@ void Renderer_DX12::Helper::forEachDXGIAdapter(ForEachDXGIAdapterHandler func) {
 
 	for (::UINT i = 0;; ++i) {
 		ComPtr<IDXGIAdapter> dxgiAdapter;
-		hr = dxgiFactory->EnumAdapterByGpuPreference(i, gpuPreference, IID_PPV_ARGS(dxgiAdapter.ptrForInit()));
+		hr = dxgiFactory->EnumAdapterByGpuPreference(i
+			, gpuPreference
+			, IID_PPV_ARGS(dxgiAdapter.ptrForInit())
+		);
 
 		if (DXGI_ERROR_NOT_FOUND == hr)
 			break;
@@ -108,7 +111,6 @@ void Renderer_DX12::Helper::forEachDXGIAdapter(ForEachDXGIAdapterHandler func) {
 void Renderer_DX12::_getHardwareAdapterBasicInfo() {
 	Helper::forEachDXGIAdapter([this](IDXGIAdapter* dxgiAdapter) {
 		::HRESULT hr;
-		static const auto kToMegaByte = 1.0f / Math::MSizeInBytes<SIZE_T>();
 
 		ComPtr<DX12_IDXGIAdapter> adapter;
 		hr = dxgiAdapter->QueryInterface(IID_PPV_ARGS(adapter.ptrForInit()));
@@ -137,6 +139,7 @@ void Renderer_DX12::_getHardwareAdapterBasicInfo() {
 		UtfUtil::convert(adapterInfo.adapterName, desc.Description);
 		adapterInfo.memorySize = desc.DedicatedVideoMemory;
 
+		using MemoryT = decltype(desc.DedicatedVideoMemory);
 		AXE_LOG("DX12 Adapter = {}\n"
 				"    SubSysId = {}\n"
 				"    Revision = {}\n"
@@ -154,9 +157,9 @@ void Renderer_DX12::_getHardwareAdapterBasicInfo() {
 			  , desc.VendorId
 			  , desc.DeviceId
 			  , desc.AdapterLuid
-			  , desc.DedicatedVideoMemory  * kToMegaByte
-			  , desc.DedicatedSystemMemory * kToMegaByte
-			  , desc.SharedSystemMemory    * kToMegaByte
+			  , desc.DedicatedVideoMemory  / Math::MSizeInBytes<MemoryT>()
+			  , desc.DedicatedSystemMemory / Math::MSizeInBytes<MemoryT>()
+			  , desc.SharedSystemMemory    / Math::MSizeInBytes<MemoryT>()
 			  , enumInt(desc.Flags)
 		);
 

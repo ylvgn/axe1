@@ -86,7 +86,7 @@ void RenderMesh::create(const EditMesh& src) {
 
 	_vertexLayout = VertexLayoutManager::s_instance()->getLayout(vertexType);
 	if (!_vertexLayout) {
-		AXE_THROW();
+		AXE_THROW;
 	}
 
 	setSubMeshCount(1);
@@ -164,8 +164,8 @@ void RenderMesh::createSphere(float radius, int nU, int nV) {
 	{
 		for (int u = 0; u <= nU; ++u)
 		{
-			float theta = u / float(nU) * PI;
-			float phi   = v / float(nV) * PI * 2;
+			float theta = float(u) / float(nU) * PI;
+			float phi   = float(v) / float(nV) * PI * 2;
 
 			int index = u + (nU + 1) * v;
 
@@ -189,8 +189,8 @@ void RenderMesh::createSphere(float radius, int nU, int nV) {
 			tangent.normalize();
 
 			// texture coordinates
-			texCoord[1] = u / float(nU);
-			texCoord[0] = v / float(nV);
+			texCoord[1] = float(u) / float(nU);
+			texCoord[0] = float(v) / float(nV);
 
 			src.pos[index] = vertex;
 			src.normal[index] = normal;
@@ -249,8 +249,8 @@ void RenderMesh::createRadialGrid(float gridSize, int nU, int nV) {
 	{
 		for (int u = 0; u <= nU; ++u)
 		{
-			float dx = u / float(nU);
-			float dy = v / float(nV);
+			float dx = float(u) / float(nU);
+			float dy = float(v) / float(nV);
 
 			float r = gridSize * dx * dx;
 
@@ -263,8 +263,8 @@ void RenderMesh::createRadialGrid(float gridSize, int nU, int nV) {
 			vertex.y = 0.f;
 			vertex.z = r * Math::sin(PI2 * dy);
 
-			texCoord[1] = u / float(nU);
-			texCoord[0] = v / float(nV);
+			texCoord[1] = float(u) / float(nU);
+			texCoord[0] = float(v) / float(nV);
 
 			src.pos[index]	   = vertex;
 			src.uv[0][index]   = texCoord;
@@ -345,7 +345,7 @@ void RenderSubMesh::setIndexCount(size_t ic) {
 	switch (_indexType) {
 		case SRC::UInt16: _indexData.resize(ic * sizeof(u16) / sizeof(T)); break;
 		case SRC::UInt32: _indexData.resize(ic * sizeof(u32) / sizeof(T)); break;
-		default: throw AXE_ERROR("unsupported indexType {}", _indexType);
+		default: AXE_THROW_ERROR("unsupported indexType {}", _indexType);
 	}
 }
 
@@ -378,7 +378,7 @@ void RenderSubMesh::setIndexData(const Span<const u16> indexData) {
 			_setIndexData<DST_T, SRC_T>(indexData);
 		} break;
 	//---
-		default: throw AXE_ERROR("setIndexData unsupported indexType");
+		default: AXE_THROW_ERROR("setIndexData unsupported indexType");
 	}
 }
 
@@ -401,7 +401,7 @@ void RenderSubMesh::setIndexData(const Span<const u32> indexData) {
 			_indexData.assign(byteSpan.begin(), byteSpan.end());
 		} break;
 	//---
-		default: throw AXE_ERROR("setIndexData unsupported indexType");
+		default: AXE_THROW_ERROR("setIndexData unsupported indexType");
 	}
 }
 

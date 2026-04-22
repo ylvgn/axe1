@@ -2,6 +2,8 @@
 
 namespace axe { namespace Math {
 
+	template<class T> AXE_NODISCARD T abs(const T& v) { return v < 0 ? -v : v; }
+
 	template<class T> constexpr T max(const T& a, const T& b) { return a > b ? a : b; }
 	template<class T> constexpr T min(const T& a, const T& b) { return a < b ? a : b; }
 
@@ -194,8 +196,6 @@ namespace axe { namespace Math {
 #pragma mark ----------------
 #endif
 
-	template<class T> AXE_NODISCARD T abs(const T& v) { return v < 0 ? -v : v; }
-
 	template<class T> constexpr T	 epsilon();
 	template<>		  constexpr int	 epsilon<int >() { return 0; }
 	template<>		  constexpr f32	 epsilon<f32 >() { return FLT_EPSILON; }
@@ -215,7 +215,7 @@ namespace axe { namespace Math {
 	AXE_INLINE T	lerp(T a, T b, T w ) { return (1-w)*a + w*b; }
 
 	template<class T, class ENABLE = enable_if_t< is_integral_v<T> > > AXE_NODISCARD
-	AXE_INLINE T	lerp(T a, T b, double w ) {
+	AXE_INLINE T	lerp(T a, T b, double w) {
 		double a_ = static_cast<double>(a);
 		double b_ = static_cast<double>(b);
 		return static_cast<T>(lerp<double>(a_, b_, w));
@@ -223,7 +223,7 @@ namespace axe { namespace Math {
 
 	template<> AXE_NODISCARD
 	AXE_INLINE float lerp(const float& a, const float& b, const double& w) {
-		return static_cast<float>((1 - w) * a + w * b);
+		return static_cast<float>((double(1) - w) * double(a) + w * double(b));
 	}
 
 	//---------
@@ -240,33 +240,27 @@ namespace axe { namespace Math {
 	#if AXE_CPU_FEATURE_SSE2
 		return _mm_cvtss_f32(_mm_rsqrt_ss(_mm_set_ss(n)));
 	#else // https://en.wikipedia.org/wiki/Fast_inverse_square_root
-		uint32_t i;
-		float x2, y;
-		const float threehalfs = 1.5f;
-
-		x2 = n * 0.5f;
-		y = n;
-		i = *reinterpret_cast<uint32_t *>(&y);
-		i = 0x5F375A86UL - (i >> 1);
-		y = *reinterpret_cast<float *>(&i);
-		y = y * (threehalfs - (x2 * y * y));
-		//	y  = y * ( threehalfs - ( x2 * y * y ) );   // 2nd iteration, this can be removed
+		constexpr float three_half = 1.5f;
+		float x2	= n * 0.5f;
+		float y		= n;
+		u32 i		= axe_bit_cast<u32>(y);		// *reinterpret_cast<uint32_t *>(&y);
+		i			= 0x5F375A86UL - (i >> 1);
+		y			= axe_bit_cast<float>(i);   // *reinterpret_cast<float *>(&i);
+		y			= y * (three_half - (x2 * y * y));
+		//	y  = y * ( three_half - ( x2 * y * y ) );   // 2nd iteration, this can be removed
 		return y;
 	#endif // AXE_CPU_FEATURE_SSE2
 	}
 
 	AXE_NODISCARD AXE_INLINE double rsqrt_fast(double n) {
-		uint64_t i;
-		double x2, y;
-		const float threehalfs = 1.5;
-
-		x2 = n * 0.5f;
-		y = n;
-		i = *reinterpret_cast<uint64_t *>(&y);
-		i = 0x5FE6EB50C7B537A9ULL - (i >> 1);
-		y = *reinterpret_cast<double *>(&i);
-		y = y * (threehalfs - (x2 * y * y));
-		//	y  = y * ( threehalfs - ( x2 * y * y ) );   // 2nd iteration, this can be removed
+		constexpr double three_half = 1.5;
+		double x2	= n * 0.5;
+		double y	= n;
+		u64	i		= axe_bit_cast<u64>(y);		// *reinterpret_cast<uint64_t *>(&y);
+		i			= 0x5FE6EB50C7B537A9ULL - (i >> 1);
+		y			= axe_bit_cast<double>(i);  // *reinterpret_cast<double *>(&i);
+		y			= y * (three_half - (x2 * y * y));
+		//	y  = y * ( three_half - ( x2 * y * y ) );   // 2nd iteration, this can be removed
 		return y;
 	}
 

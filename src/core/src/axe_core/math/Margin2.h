@@ -6,7 +6,7 @@ namespace axe {
 
 template<class T>
 class Margin2 {
-	using This = typename Margin2<T>;
+	using This = Margin2<T>;
 public:
 	using ElementType = T;
 	using Vec2		  = Vec2<T>;

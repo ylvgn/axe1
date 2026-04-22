@@ -107,7 +107,7 @@ private:
 
 AXE_INLINE const u8* BinDeserializer::advance(size_t n) {
 	if (remain() < n) {
-		throw AXE_ERROR("BinDeserializer out of range");
+		AXE_THROW_ERROR("BinDeserializer out of range");
 	}
 	const u8* old = _cur;
 	_cur += n;
@@ -136,7 +136,7 @@ void BinDeserializer::_io_vary_unsigned(T& value) {
 		if((t & 0x80) == 0) return;
 		bit += 7;
 		if( bit > sizeof(T) * 8 ) {
-			throw AXE_ERROR("BinDeserializer out of range");
+			AXE_THROW_ERROR("BinDeserializer out of range");
 		}
 	}
 }

@@ -100,7 +100,6 @@ AXE_ENUM_CLASS(MonitorDisplayMode, u8)
 //----
 AXE_ENUM_CLASS(RenderDataType, u8)
 
-
 class RenderDataTypeUtil : public StaticClass {
 public:
 	using DataType = RenderDataType;
@@ -273,7 +272,7 @@ u16 RenderDataTypeUtil::sizeInBytes(DataType t) {
 		case DataType::Boolx4Array:	return 0;
 	//---
 		default:
-			throw AXE_ERROR("unsupported render data type = {}", t);
+			AXE_THROW_ERROR("unsupported render data type = {}", t);
 	}
 }
 
@@ -334,7 +333,7 @@ u16 RenderDataTypeUtil::elementCount(DataType t) {
 			return 4;
 	//---
 		default:
-			throw AXE_ERROR("unsupported render data type = {}", t);
+			AXE_THROW_ERROR("unsupported render data type = {}", t);
 	}
 }
 

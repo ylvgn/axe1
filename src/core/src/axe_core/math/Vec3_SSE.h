@@ -17,7 +17,7 @@ struct alignas(alignof(M)) Vec3_SSE_Data {
 
 	constexpr explicit	Vec3_SSE_Data(T v)					noexcept : x(v), y(v), z(v) {}
 	constexpr explicit	Vec3_SSE_Data(T x_, T y_, T z_)		noexcept : x(x_), y(y_), z(z_) {}
-	constexpr			Vec3_SSE_Data(const Tuple3<T>& v)	noexcept : x(x_), y(y_), z(z_) {}
+	constexpr			Vec3_SSE_Data(const Tuple3<T>& v)	noexcept : x(v.x), y(v.y), z(v.z) {}
 
 	void set(T x_, T y_, T z_)		{ x = x_; y = y_; z = z_; }
 	void set(const Tuple3<T>& v)	{ set(v.x, v.y, v.z); }

@@ -8,10 +8,10 @@ class FileStream : NonCopyable {
 public:
 #if AXE_OS_WINDOWS
 	using NativeFd = ::HANDLE;
-	static const NativeFd kInvalid() { return INVALID_HANDLE_VALUE; }
+	static NativeFd kInvalid() { return INVALID_HANDLE_VALUE; }
 #else
 	using NativeFd = int;
-	static const NativeFd kInvalid() { return -1; }
+	static NativeFd kInvalid() { return -1; }
 #endif
 
 	~FileStream() { close(); }
@@ -41,7 +41,7 @@ public:
 	NativeFd nativeFd() { return _fd; }
 
 private:
-	void _ensure_fd() { if (_fd == kInvalid()) throw AXE_ERROR("invalid file handle"); }
+	void _ensure_fd() { if (_fd == kInvalid()) AXE_THROW_ERROR("invalid file handle"); }
 
 	String _filename;
 

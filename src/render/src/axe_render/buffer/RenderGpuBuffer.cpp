@@ -22,7 +22,7 @@ void RenderGpuBuffer::create(CreateDesc& desc) {
 
 void RenderGpuBuffer::uploadToGpu(ByteSpan data, size_t offset) {
 	if (data.size() + offset > _desc.bufferSize) {
-		throw AXE_ERROR("out of range");
+		AXE_THROW_ERROR("out of range");
 	}
 	onUploadToGpu(data, offset);
 }

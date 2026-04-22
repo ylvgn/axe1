@@ -6,7 +6,7 @@ Socket::PlatformInit::PlatformInit() {
 #if AXE_OS_WINDOWS
 	WSADATA	wsad;
 	if (WSAStartup(WINSOCK_VERSION, &wsad) != 0) {
-		throw AXE_ERROR("WSAStartup");
+		AXE_THROW_ERROR("WSAStartup");
 	}
 #endif
 }
@@ -38,7 +38,7 @@ void Socket::createUDP() {
 
 	_sock = ::socket(AF_INET, SOCK_DGRAM, 0);
 	if (_sock == kInvalidHandle) {
-		throw AXE_ERROR("createUDP");
+		AXE_THROW_ERROR("createUDP");
 	}
 }
 
@@ -48,7 +48,7 @@ void Socket::createTCP() {
 
 	_sock = ::socket(AF_INET, SOCK_STREAM, 0);
 	if (_sock == kInvalidHandle) {
-		throw AXE_ERROR("createTCP");
+		AXE_THROW_ERROR("createTCP");
 	}
 }
 
@@ -65,7 +65,7 @@ void Socket::_setsockopt(int level, int optname, const void* optval, SockLen opt
 
 	int ret = ::setsockopt(_sock, level, optname, (const char*)optval, optlen );
 	if (ret != 0)
-		throw AXE_ERROR("setsockopt");
+		AXE_THROW_ERROR("setsockopt");
 }
 
 void Socket::bind(StrView hostname, uint16_t port) {
@@ -79,7 +79,7 @@ void Socket::bind(const SockAddr& addr) {
 
 	int ret = ::bind(_sock, &addr._addr, sizeof(addr._addr));
 	if (ret != 0) {
-		throw AXE_ERROR("bind");
+		AXE_THROW_ERROR("bind");
 	}
 }
 
@@ -88,7 +88,7 @@ void Socket::listen(int backlog) {
 
 	int ret = ::listen(_sock, backlog);
 	if (ret != 0) {
-		throw AXE_ERROR("listen");
+		AXE_THROW_ERROR("listen");
 	}
 }
 
@@ -106,7 +106,7 @@ bool Socket::connect(const SockAddr& addr) {
 		if (e == EINPROGRESS) // connect in non-blocking mode
 			return false;
 #endif
-		throw AXE_ERROR("connect");
+		AXE_THROW_ERROR("connect");
 	}
 	return true;
 }
@@ -130,7 +130,7 @@ bool Socket::accept(Socket & acceptedSocket) {
 
 int Socket::sendto(const SockAddr& addr, ByteSpan data) {
 	if (data.size() > kIntMax)
-		throw AXE_ERROR("send dataSize is too big");
+		AXE_THROW_ERROR("send dataSize is too big");
 
 	int ret =::sendto(_sock, reinterpret_cast<const char*>(data.data()), static_cast<int>(data.size()), 0, &addr._addr, sizeof(addr._addr));
 	return ret;
@@ -139,7 +139,7 @@ int Socket::sendto(const SockAddr& addr, ByteSpan data) {
 int Socket::send(ByteSpan data) {
 	if (!isValid()) return 0;
 	if (data.size() > kIntMax)
-		throw AXE_ERROR("send dataSize is too big");
+		AXE_THROW_ERROR("send dataSize is too big");
 
 	int ret =::send(_sock, reinterpret_cast<const char*>(data.data()), static_cast<int>(data.size()), 0);
 	return ret;
@@ -151,12 +151,12 @@ size_t Socket::availableBytesToRead() {
 #ifdef _WIN32
 	u_long n = 0;
 	if (0 != ::ioctlsocket(_sock, FIONREAD, &n))
-		throw AXE_ERROR("availableBytesToRead");
+		AXE_THROW_ERROR("availableBytesToRead");
 	return static_cast<size_t>(n);
 #else
 	int n = 0;
 	if (0 != ::ioctl(_sock, FIONREAD, &n))
-		throw AXE_ERROR("availableBytesToRead");
+		AXE_THROW_ERROR("availableBytesToRead");
 	return static_cast<size_t>(n);
 #endif
 }
@@ -187,11 +187,11 @@ void Socket::setNonBlocking(bool b)
 #ifdef _WIN32
 	u_long v = b ? 1 : 0;
 	if (0 != ::ioctlsocket(_sock, FIONBIO, &v))
-		throw AXE_ERROR("setNonBlocking");
+		AXE_THROW_ERROR("setNonBlocking");
 #else
 	long v = b ? 1 : 0;
 	if (0 != ::ioctl(_sock, FIONBIO, &v))
-		throw AXE_ERROR("setNonBlocking");
+		AXE_THROW_ERROR("setNonBlocking");
 #endif
 }
 

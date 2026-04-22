@@ -51,13 +51,21 @@ inline
 Pair<StrView, StrView> StringUtil::splitByChar(StrView view, StrView seperators) {
 	auto* s = view.begin();
 	auto* e = view.end();
+	StrView::size_type l0, l1;
+
+	AXE_GCC_WARNING_PUSH_AND_DISABLE("-Wunsafe-buffer-usage")
 	for (auto* p = s; p < e; ++p) {
 		if (hasChar(seperators, *p)) {
-			auto r0 = StrView(s,   p-s);
-			auto r1 = StrView(p+1, e-p-1);
+
+			axe_try_safe_assign(l0, p - s);
+			auto r0 = StrView(s,   l0);
+
+			axe_try_safe_assign(l1, e - p - 1);
+			auto r1 = StrView(p+1, l1);
 			return {r0, r1};
 		}
 	}
+	AXE_GCC_WARNING_POP()
 	return { view, StrView() };
 }
 
@@ -75,19 +83,28 @@ inline
 StrView StringUtil::trimChar(StrView view, StrView charList) {
 	auto* p = view.begin();
 	auto* e = view.end();
+	AXE_GCC_WARNING_PUSH_AND_DISABLE("-Wunsafe-buffer-usage")
 	for ( ; p < e; ++p) {
 		if (!hasChar(charList, *p))
 			break;
 	}
-	return StrView(p, e-p);
+	AXE_GCC_WARNING_POP()
+	StrView::size_type n;
+	axe_try_safe_assign(n, e - p);
+	return StrView(p, n);
 }
 
 constexpr inline
 const char* StringUtil::extractFromPrefix(const char* src, const char* prefix) {
-	if (!src || !prefix) return "";
+	if (!src || !prefix)
+		return "";
+
+	AXE_GCC_WARNING_PUSH_AND_DISABLE("-Wunsafe-buffer-usage")
 	auto srcLen = charStrlen(src);
 	auto prefixLen = charStrlen(prefix);
-	if (srcLen < prefixLen) return "";
+	if (srcLen < prefixLen)
+		return "";
+
 	auto* p = src;
 	auto* q = prefix;
 	auto* qed = prefix + prefixLen;
@@ -96,6 +113,7 @@ const char* StringUtil::extractFromPrefix(const char* src, const char* prefix) {
 		++p; ++q;
 	}
 	return p;
+	AXE_GCC_WARNING_POP()
 }
 
 } // namespace axe
@@ -103,22 +121,11 @@ const char* StringUtil::extractFromPrefix(const char* src, const char* prefix) {
 
 AXE_INLINE
 std::ostream& operator<<(std::ostream& s, const axe::StrView& v) {
-	s.write(v.data(), v.size());
+	::std::streamsize n;
+	::axe::axe_try_safe_assign(n, v.size());
+	s.write(v.data(), n);
 	return s;
 }
-
-template<>
-struct fmt::formatter<axe::StrViewA> {
-	static auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
-	static auto format(const axe::StrViewA& v, fmt::format_context& ctx) {
-		auto it = *ctx.out();
-		for (const auto& c : v) {
-			it = c;
-			it++;
-		}
-		return ctx.out();
-	}
-};
 
 template<>
 struct fmt::formatter<axe::StrViewW> {

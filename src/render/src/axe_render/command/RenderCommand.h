@@ -25,20 +25,21 @@ public:
 
 	RenderCommand(Type type) noexcept
 		: _type(type)
-	#if defined(_DEBUG)
+#if defined(_DEBUG)
 		, debugLoc(AXE_LOC)
-	#endif
+#endif
 	{}
 
 	virtual ~RenderCommand() = default;
 
 	Type type() const { return _type; }
 
+private:
+	Type _type = Type::None;
+public:
 #if defined(_DEBUG)
 	SrcLoc debugLoc;
 #endif
-private:
-	Type _type = Type::None;
 }; // RenderCommand
 
 

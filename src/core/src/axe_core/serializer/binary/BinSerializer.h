@@ -97,7 +97,7 @@ void BinSerializer::_io_vary_unsigned(T& value) {
 		tmp >>= 7;
 		if (tmp == 0) return;
 	}
-	throw AXE_ERROR("BinSerializer::_io_vary_unsigned");
+	AXE_THROW_ERROR("BinSerializer::_io_vary_unsigned");
 }
 
 template<class U, class T> AXE_INLINE

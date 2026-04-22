@@ -2,6 +2,8 @@
 
 #if AXE_RENDER_HAS_DX12
 
+#include "Common_DX12.h"
+
 namespace axe {
 
 template<class NATIVE_HANDLE>

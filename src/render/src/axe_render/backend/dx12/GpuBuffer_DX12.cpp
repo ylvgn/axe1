@@ -17,8 +17,8 @@ const TypeInfo* GpuBuffer_DX12::s_getType() {
 }
 
 void GpuBuffer_DX12::onCreate(CreateDesc& desc)  {
-	//if (desc.bufferSize <= 0)	throw AXE_ERROR("buffer size = 0");
-	//if (desc.stride <= 0)		throw AXE_ERROR("stride == 0");
+	//if (desc.bufferSize <= 0)	AXE_THROW_ERROR("buffer size = 0");
+	//if (desc.stride <= 0)		AXE_THROW_ERROR("stride == 0");
 
 	//::D3D12_BUFFER_DESC bd = {};
 	//bd.ByteWidth = Util::castUINT(Math::alignTo(desc.bufferSize, decltype(desc.bufferSize)(16)));
@@ -47,12 +47,12 @@ void GpuBuffer_DX12::onCreate(CreateDesc& desc)  {
 	//	}break;
 	////---
 	//	default:
-	//		throw AXE_ERROR("unsupported gpu buffer type: {}", desc.type);
+	//		AXE_THROW_ERROR("unsupported gpu buffer type: {}", desc.type);
 	//}
 
 	//if (bd.MiscFlags == D3D12_RESOURCE_MISC_BUFFER_STRUCTURED) {
 	//	if (bd.ByteWidth != Math::alignTo(bd.ByteWidth, bd.StructureByteStride)) {
-	//		throw AXE_ERROR("ByteWidth({}) must be an exact multiple of the StructureByteStride({})", bd.ByteWidth, bd.StructureByteStride);
+	//		AXE_THROW_ERROR("ByteWidth({}) must be an exact multiple of the StructureByteStride({})", bd.ByteWidth, bd.StructureByteStride);
 	//	}
 	//}
 

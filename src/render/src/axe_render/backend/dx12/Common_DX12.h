@@ -159,7 +159,7 @@ inline
 		case SRC::Triangles:	return D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 	//---
 		default:
-			AXE_THROW();
+			AXE_THROW;
 	}
 }
 
@@ -190,7 +190,7 @@ inline
 		case SRC::BC7:		return DXGI_FORMAT_BC7_UNORM;
 	//---
 		default:
-			AXE_THROW();
+			AXE_THROW;
 	}
 }
 
@@ -214,7 +214,7 @@ inline
 		case SRC::Float32x4:	return DXGI_FORMAT_R32G32B32A32_FLOAT; break;
 	//---
 		default:
-			AXE_THROW();
+			AXE_THROW;
 	}
 }
 

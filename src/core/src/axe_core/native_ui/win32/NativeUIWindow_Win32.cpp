@@ -154,7 +154,7 @@ void NativeUIWindow_Win32::onCreate(CreateDesc& desc) {
 	bool registered = (0 != ::GetClassInfoEx(hInstance, kClassName, &tmpWc));
 	if (!registered) {
 		if (!::RegisterClassEx(&wc)) {
-			throw AXE_ERROR("error RegisterClassEx");
+			AXE_THROW_ERROR("error RegisterClassEx");
 		}
 	}
 
@@ -174,7 +174,7 @@ void NativeUIWindow_Win32::onCreate(CreateDesc& desc) {
 						   nullptr, nullptr, hInstance, this);
 
 	if (!_hwnd) {
-		throw AXE_ERROR("cannot create native window");
+		AXE_THROW_ERROR("cannot create native window");
 	}
 
 	setWorldRect(_s_win32_getWorldRect(_hwnd));

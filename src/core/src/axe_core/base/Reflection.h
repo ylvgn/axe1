@@ -7,13 +7,12 @@
 	AXE_INLINE static This* s_instance() { return static_cast<This*>(Base::s_instance()); }
 //----
 
-
 #define AXE_RTTI_CLASS_COMMON__NOBASE_IMPL(T) \
 private:\
 	using This = T; \
 public: \
 	static const TypeInfo* s_getType(); \
-	inline virtual const TypeInfo* getType() const { return s_getType(); } \
+	AXE_INLINE virtual const TypeInfo* getType() const { return s_getType(); } \
 //----
 
 #define AXE_RTTI_CLASS_COMMON__BASE_IMPL(T, BASE) \
@@ -22,7 +21,7 @@ private:\
 	using Base = BASE; \
 public: \
 	static const TypeInfo* s_getType(); \
-	inline virtual const TypeInfo* getType() const override { return s_getType(); } \
+	AXE_INLINE virtual const TypeInfo* getType() const override { return s_getType(); } \
 //----
 
 #define AXE_RTTI_CLASS_COMMON_SELECT(COUNT) AXE_RTTI_CLASS_COMMON_ ## COUNT
@@ -30,7 +29,6 @@ public: \
 #define AXE_RTTI_CLASS_COMMON_2(T, BASE)	AXE_RTTI_CLASS_COMMON__BASE_IMPL(T, BASE)
 #define AXE_RTTI_CLASS_COMMON(...)			AXE_IDENTITY(AXE_CALL(AXE_RTTI_CLASS_COMMON_SELECT, AXE_VA_ARGS_COUNT(__VA_ARGS__)(__VA_ARGS__)))
 //----
-
 
 #define AXE_ABSTRACT_CLASS_TYPE__NOBASE_IMPL(T) \
 	AXE_RTTI_CLASS_COMMON(T) \
@@ -50,12 +48,11 @@ private: \
 private: \
 //----
 
-#define AXE_ABSTRACT_CLASS_TYPE_SELECT(COUNT) AXE_ABSTRACT_CLASS_TYPE_##COUNT
+#define AXE_ABSTRACT_CLASS_TYPE_SELECT(COUNT) AXE_ABSTRACT_CLASS_TYPE_ ## COUNT
 #define AXE_ABSTRACT_CLASS_TYPE_1(T)		  AXE_ABSTRACT_CLASS_TYPE__NOBASE_IMPL(T)
 #define AXE_ABSTRACT_CLASS_TYPE_2(T, BASE)	  AXE_ABSTRACT_CLASS_TYPE__BASE_IMPL(T, BASE)
 #define AXE_ABSTRACT_CLASS_TYPE(...)		  AXE_IDENTITY(AXE_CALL(AXE_ABSTRACT_CLASS_TYPE_SELECT, AXE_VA_ARGS_COUNT(__VA_ARGS__)(__VA_ARGS__)))
 //----
-
 
 #define AXE_CLASS_TYPE__NOBASE_IMPL(T) \
 	AXE_RTTI_CLASS_COMMON(T) \
@@ -151,13 +148,14 @@ class TypeInfo {
 public:
 	using Creator = Object * (*)();
 
+	virtual ~TypeInfo() = default;
+
 	Object* createObject() const {
 		if (!creator) return nullptr;
 		return creator();
 	}
 
 	bool isKindOf(const TypeInfo* target) const {
-		if (!target) return nullptr;
 		const TypeInfo* p = this;
 		while(p) {
 			if (p == target) return true;
@@ -169,7 +167,7 @@ public:
 	template<class DST> inline
 	bool isKindOf() const {
 		return isKindOf(TypeOf<DST>());
-	};
+	}
 
 	Span<const FieldInfo> fields() const { return _fields; }
 
@@ -223,8 +221,9 @@ public:
 #endif
 template<class T, class BASE>
 class TypeInfoInit : public TypeInfoInitNoBase<T> {
+	using This = TypeInfoInit;
 public:
-	TypeInfoInit(const char* name_, Creator creator_) : TypeInfoInitNoBase<T>(name_) {
+	TypeInfoInit(const char* name_, TypeInfo::Creator creator_) : TypeInfoInitNoBase<T>(name_) {
 		AXE_STATIC_ASSERT(is_base_of_v<BASE, T>);
 		base = TypeOf<BASE>();
 		this->creator = creator_;

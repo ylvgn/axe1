@@ -19,8 +19,8 @@ void NativeUIApp_Base::update(float dt) {
 
 	if (_deltaTime > _fastForwardMinSec) {
 		int n = static_cast<int>(Math::floor(_deltaTime / kFastForwardFrequency));
-		_deltaTime = _deltaTime - n * kFastForwardFrequency;
-		float doubleFrequency = 2 * kFastForwardFrequency;
+		_deltaTime = _deltaTime - kFastForwardFrequency * float(n);
+		float doubleFrequency = kFastForwardFrequency * 2;
 		while (n > 0) {
 			onUpdate(n == 1 ? kFastForwardFrequency : doubleFrequency);
 			n -= 2;
@@ -44,7 +44,7 @@ void NativeUIApp_Base::quit(int exitCode) {
 
 void NativeUIApp_Base::setFps(int fps) {
 	_fps				= fps;
-	_targetFrequency	= 1.f / _fps;
+	_targetFrequency	= 1.f / float(_fps);
 	_fastForwardMinSec	= _targetFrequency * 20 + kFastForwardFrequency;
 	_acceptableMaxSec	= _targetFrequency * 0.2f;
 }

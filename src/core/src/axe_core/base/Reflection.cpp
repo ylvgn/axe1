@@ -19,7 +19,8 @@ AXE_TYPEOF_PRIMITIVE_IMP(float,	      "f32")
 AXE_TYPEOF_PRIMITIVE_IMP(double,	  "f64")
 AXE_TYPEOF_PRIMITIVE_IMP(long double, "f128")
 
-AXE_TYPEOF_PRIMITIVE_IMP(char8_t,  "char8")
+//AXE_TYPEOF_PRIMITIVE_IMP(char8_t,  "char8") // char8_t: require c++20
+AXE_TYPEOF_PRIMITIVE_IMP(char,	   "char8")
 AXE_TYPEOF_PRIMITIVE_IMP(char16_t, "char16")
 AXE_TYPEOF_PRIMITIVE_IMP(char32_t, "char32")
 AXE_TYPEOF_PRIMITIVE_IMP(wchar_t,  "wchar")

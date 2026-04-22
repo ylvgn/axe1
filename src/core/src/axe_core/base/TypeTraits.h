@@ -97,7 +97,7 @@ template <class T, unsigned N = 0> inline constexpr auto extent_v = extent<T, N>
 // __underlying_type is compiler intrinsic (a built-in feature provided by the compiler)
 #endif
 template <class T>
-struct underlying_type{ using type = typename __underlying_type(T); };
+struct underlying_type{ using type = __underlying_type(T); };
 
 template <class T> using underlying_type_t					= typename underlying_type<T>::type;
 template <class T> using underlying_type_t_pointer			= typename underlying_type_t<T>*;
@@ -366,8 +366,14 @@ template <class T> struct is_void : bool_constant<is_void_v<T>> {};
 // Walter E. Brown CppCon 2019: https://www.youtube.com/watch?v=OAmWHmwlMwI
 //   "only function types and reference types can't be const qualified."
 #endif
+
+AXE_VC_WARNING_PUSH()
+AXE_VC_WARNING_DISABLE(4180) // qualifier applied to function type has no meaning; ignored
+
 template<class T>
 struct is_function : bool_constant<!is_const_v<const T> && !is_reference_v<T>> {};
+
+AXE_VC_WARNING_POP()
 
 template <class T> inline constexpr bool is_function_v = is_function<T>::value;
 

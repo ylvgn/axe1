@@ -24,7 +24,9 @@ public:
 	DX12_IDXGIFactory* dxgiFactory() { return _dxgiFactory; }
 	DX12_ID3D12Device* d3dDevice(int i = 0);
 
-	struct Helper : public StaticAbstructClass {
+	struct Helper {
+		Helper() = delete;
+
 		using ForEachDXGIAdapterHandler = AXE_FUNC<bool(IDXGIAdapter*)>;
 
 		static void forEachDXGIAdapter(ForEachDXGIAdapterHandler func);

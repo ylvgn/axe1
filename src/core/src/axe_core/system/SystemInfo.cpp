@@ -26,7 +26,7 @@ SystemInfo::OS SystemInfo::getOS() {
 }
 
 int SystemInfo::cpuCount() {
-	return ::std::thread::hardware_concurrency();
+	return static_cast<int>(::std::thread::hardware_concurrency());
 }
 
 } // namespace axe

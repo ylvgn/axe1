@@ -55,63 +55,71 @@ AXE_ENUM_CLASS(ColorCompressType, u8);
 
 
 enum class ColorType : u16;
+using ColorType_IntType = Type_EnumInt<ColorType>;
 
-constexpr ColorType ColorType_make(ColorModel model, ColorElementType elem) {
+constexpr AXE_INLINE ColorType ColorType_make(ColorModel model, ColorElementType elem) {
 	return static_cast<ColorType>(
 			  (static_cast<u32>(model) << 8)
 			| (static_cast<u32>(elem))
 			);
 }
 
-constexpr ColorType ColorType_make(ColorModel model, ColorCompressType compress) {
+constexpr AXE_INLINE ColorType ColorType_make(ColorModel model, ColorCompressType compress) {
 	return static_cast<ColorType>(
 			  (static_cast<u32>(model) << 8)
 			| (static_cast<u32>(compress))
 			);
 }
 
+constexpr AXE_INLINE ColorType_IntType ColorType_int(ColorModel model, ColorElementType elem) {
+	return static_cast<ColorType_IntType>(ColorType_make(model, elem));
+}
+constexpr AXE_INLINE ColorType_IntType ColorType_int(ColorModel model, ColorCompressType compress) {
+	return static_cast<ColorType_IntType>(ColorType_make(model, compress));
+}
+
 #define ColorType_ENUM_LIST(E) \
 	E(None,) \
-	E(Rb,		= ColorType_make(ColorModel::R,		ColorElementType::UNorm8 )) \
-	E(Rs,		= ColorType_make(ColorModel::R,		ColorElementType::UNorm16)) \
-	E(Rh,		= ColorType_make(ColorModel::R,		ColorElementType::Float16)) \
-	E(Rf,		= ColorType_make(ColorModel::R,		ColorElementType::Float32)) \
+	E(Rb,		= ColorType_int(ColorModel::R,		ColorElementType::UNorm8 )) \
+	E(Rs,		= ColorType_int(ColorModel::R,		ColorElementType::UNorm16)) \
+	E(Rh,		= ColorType_int(ColorModel::R,		ColorElementType::Float16)) \
+	E(Rf,		= ColorType_int(ColorModel::R,		ColorElementType::Float32)) \
 	\
-	E(Lb,		= ColorType_make(ColorModel::L,		ColorElementType::UNorm8 )) \
-	E(Ls,		= ColorType_make(ColorModel::L,		ColorElementType::UNorm16)) \
-	E(Lh,		= ColorType_make(ColorModel::L,		ColorElementType::Float16)) \
-	E(Lf,		= ColorType_make(ColorModel::L,		ColorElementType::Float32)) \
+	E(Lb,		= ColorType_int(ColorModel::L,		ColorElementType::UNorm8 )) \
+	E(Ls,		= ColorType_int(ColorModel::L,		ColorElementType::UNorm16)) \
+	E(Lh,		= ColorType_int(ColorModel::L,		ColorElementType::Float16)) \
+	E(Lf,		= ColorType_int(ColorModel::L,		ColorElementType::Float32)) \
 	\
-	E(LAb,		= ColorType_make(ColorModel::LA,	ColorElementType::UNorm8 )) \
-	E(LAs,		= ColorType_make(ColorModel::LA,	ColorElementType::UNorm16)) \
-	E(LAh,		= ColorType_make(ColorModel::LA,	ColorElementType::Float16)) \
-	E(LAf,		= ColorType_make(ColorModel::LA,	ColorElementType::Float32)) \
+	E(LAb,		= ColorType_int(ColorModel::LA,		ColorElementType::UNorm8 )) \
+	E(LAs,		= ColorType_int(ColorModel::LA,		ColorElementType::UNorm16)) \
+	E(LAh,		= ColorType_int(ColorModel::LA,		ColorElementType::Float16)) \
+	E(LAf,		= ColorType_int(ColorModel::LA,		ColorElementType::Float32)) \
 	\
-	E(RGb,		= ColorType_make(ColorModel::RG,	ColorElementType::UNorm8 )) \
-	E(RGs,		= ColorType_make(ColorModel::RG,	ColorElementType::UNorm16)) \
-	E(RGh,		= ColorType_make(ColorModel::RG,	ColorElementType::Float16)) \
-	E(RGf,		= ColorType_make(ColorModel::RG,	ColorElementType::Float32)) \
+	E(RGb,		= ColorType_int(ColorModel::RG,		ColorElementType::UNorm8 )) \
+	E(RGs,		= ColorType_int(ColorModel::RG,		ColorElementType::UNorm16)) \
+	E(RGh,		= ColorType_int(ColorModel::RG,		ColorElementType::Float16)) \
+	E(RGf,		= ColorType_int(ColorModel::RG,		ColorElementType::Float32)) \
 	\
-	E(RGBb,		= ColorType_make(ColorModel::RGB,	ColorElementType::UNorm8 )) \
-	E(RGBs,		= ColorType_make(ColorModel::RGB,	ColorElementType::UNorm16)) \
-	E(RGBh,		= ColorType_make(ColorModel::RGB,	ColorElementType::Float16)) \
-	E(RGBf,		= ColorType_make(ColorModel::RGB,	ColorElementType::Float32)) \
+	E(RGBb,		= ColorType_int(ColorModel::RGB,	ColorElementType::UNorm8 )) \
+	E(RGBs,		= ColorType_int(ColorModel::RGB,	ColorElementType::UNorm16)) \
+	E(RGBh,		= ColorType_int(ColorModel::RGB,	ColorElementType::Float16)) \
+	E(RGBf,		= ColorType_int(ColorModel::RGB,	ColorElementType::Float32)) \
 	\
-	E(RGBAb,	= ColorType_make(ColorModel::RGBA,	ColorElementType::UNorm8 )) \
-	E(RGBAs,	= ColorType_make(ColorModel::RGBA,	ColorElementType::UNorm16)) \
-	E(RGBAh,	= ColorType_make(ColorModel::RGBA,	ColorElementType::Float16)) \
-	E(RGBAf,	= ColorType_make(ColorModel::RGBA,	ColorElementType::Float32)) \
+	E(RGBAb,	= ColorType_int(ColorModel::RGBA,	ColorElementType::UNorm8 )) \
+	E(RGBAs,	= ColorType_int(ColorModel::RGBA,	ColorElementType::UNorm16)) \
+	E(RGBAh,	= ColorType_int(ColorModel::RGBA,	ColorElementType::Float16)) \
+	E(RGBAf,	= ColorType_int(ColorModel::RGBA,	ColorElementType::Float32)) \
 	\
 	/* Texture Block Compression: https://learn.microsoft.com/en-us/windows/win32/direct3d11/texture-block-compression-in-direct3d-11 */ \
-	E(BC1,		= ColorType_make(ColorModel::BlockCompression, ColorCompressType::BC1 )) /* DXT1 */ \
-	E(BC2,		= ColorType_make(ColorModel::BlockCompression, ColorCompressType::BC2 )) /* DXT2 DXT3 */ \
-	E(BC3,		= ColorType_make(ColorModel::BlockCompression, ColorCompressType::BC3 )) /* DXT4 DXT5 */ \
-	E(BC4,		= ColorType_make(ColorModel::BlockCompression, ColorCompressType::BC4 )) /* ATI1 */ \
-	E(BC5,		= ColorType_make(ColorModel::BlockCompression, ColorCompressType::BC5 )) /* ATI2 */ \
-	E(BC6h,		= ColorType_make(ColorModel::BlockCompression, ColorCompressType::BC6h)) \
-	E(BC7,		= ColorType_make(ColorModel::BlockCompression, ColorCompressType::BC7 )) \
+	E(BC1,		= ColorType_int(ColorModel::BlockCompression, ColorCompressType::BC1 )) /* DXT1 */ \
+	E(BC2,		= ColorType_int(ColorModel::BlockCompression, ColorCompressType::BC2 )) /* DXT2 DXT3 */ \
+	E(BC3,		= ColorType_int(ColorModel::BlockCompression, ColorCompressType::BC3 )) /* DXT4 DXT5 */ \
+	E(BC4,		= ColorType_int(ColorModel::BlockCompression, ColorCompressType::BC4 )) /* ATI1 */ \
+	E(BC5,		= ColorType_int(ColorModel::BlockCompression, ColorCompressType::BC5 )) /* ATI2 */ \
+	E(BC6h,		= ColorType_int(ColorModel::BlockCompression, ColorCompressType::BC6h)) \
+	E(BC7,		= ColorType_int(ColorModel::BlockCompression, ColorCompressType::BC7 )) \
 //----
-AXE_ENUM_CLASS(ColorType, u16)
+AXE_ENUM_CLASS(ColorType, ColorType_IntType)
 
 template<class T>
 struct ColorR {

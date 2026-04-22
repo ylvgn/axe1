@@ -67,7 +67,7 @@ void File::_readFile(StrView filename, T& outData) {
 	fs.openRead(filename);
 	auto size = fs.fileSize();
 	if (size > eastl::numeric_limits<size_t>::max())
-		throw AXE_ERROR("file is too large");
+		AXE_THROW_ERROR("file is too large");
 	outData.resize(size);
 
 	Span<u8> span(reinterpret_cast<u8*>(outData.data()), outData.size());

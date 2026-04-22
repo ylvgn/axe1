@@ -166,7 +166,7 @@ void Lexer::_error(StrView msg) {
 	}
 
 	FmtTo(tmp, "  token={}\n  file={}:{}:{}\n", _token, _filename, _line, _col);
-	throw AXE_ERROR("{}", tmp);
+	AXE_THROW_ERROR("{}", tmp);
 }
 
 bool Lexer::_nextToken() {
