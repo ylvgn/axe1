@@ -1,10 +1,20 @@
 #include "AppBase.h"
 
 namespace axe {
+
 #if 0
 #pragma mark ========= AppArguments ============
 #endif
+
+static AppArguments* AppArgments_instance;
+	
+AppArguments* AppArguments::s_instance() {
+	return AppArgments_instance;
+}
+
 AppArguments::AppArguments(int argc, const char* argv[]) {
+	AXE_ASSERT(!AppArgments_instance);
+	AppArgments_instance = this;
 #if !_DEBUG && AXE_OS_WINDOWS // for immutable command line params
 	int argCount = 0;
 	auto* arr = CommandLineToArgvW(GetCommandLineW(), &argCount);
@@ -25,15 +35,29 @@ AppArguments::AppArguments(int argc, const char* argv[]) {
 	}
 }
 
+AppArguments::~AppArguments() {
+	AXE_ASSERT(AppArgments_instance == this);
+	AppArgments_instance = nullptr;
+}
+
 #if 0
 #pragma mark ========= AppBase ============
 #endif
-void AppBase::setCommandArguments(int argc, const char* argv[]) {
-	_args = UPtr_make<AppArguments>(argc, argv);
+
+static AppBase* AppBase_instance;
+
+AppBase* AppBase::s_instance() {
+	return AppBase_instance;
 }
 
-Span<const StrView> AppBase::commandArguments() const {
-	return _args ? _args->args() : Span<const StrView>();
+AppBase::AppBase() noexcept {
+	AXE_ASSERT(AppBase_instance == nullptr);
+	AppBase_instance = this;
+}
+
+AppBase::~AppBase() noexcept {
+	AXE_ASSERT(AppBase_instance == this);
+	AppBase_instance = nullptr;
 }
 
 StrView AppBase::appName() {

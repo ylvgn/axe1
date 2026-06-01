@@ -1,22 +1,21 @@
-# axe1
-This is a personal hobby project for rendering techniques experiment purpose.
+# axe1 - Toy Engine for Experiments
 
-# What is axe1
-* The name **axe1** came from JasonChan **<ins>ax</ins>**[_anon](https://github.com/Jasonchan35/ax_anon) + [SimpleGameEngin](https://github.com/SimpleTalkCpp/SimpleGameEngine)**<ins>e</ins>**
-	* or I'd like to call it [a] f[x] [e]ngine
+## Objective
+do the same thing as [SimpleGameEngine](https://github.com/SimpleTalkCpp/SimpleGameEngine) with DX12, Vulkan
 
 ## How to Build
 
 ### Build on Windows
 
 #### Requirements
-- Visual Studio 2022
+- CMake
+- Visual Studio 2022/2026
 - Windows SDK 10.0.19041.0
+- MSVC Version 14.44+
 ```
+# Run
 install_vcpkg_packages.bat
-gen_vs2022.bat
+gen_vs2022.bat # or gen_vs2026.bat
 ```
-- Open Visual Studio project in `_build/axe1-x64-windows`
+- Open Visual Studio project in `_build/vs2022-x64-windows` or `_build/vs2026-x64-windows`
 
-## References
-- engine design mostly from https://github.com/SimpleTalkCpp/SimpleGameEngine

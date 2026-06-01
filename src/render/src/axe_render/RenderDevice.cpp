@@ -24,13 +24,10 @@ RenderDevice_CreateDesc::RenderDevice_CreateDesc() noexcept
 {
 
 #if AXE_OS_WINDOWS
-	api = RendererApi::DX12;
-#elif AXE_OS_OSX || AXE_OS_IOS
-	api = RendererApi::Metal;
-#elif AXE_OS_LINUX
-	api = RendererApi::OpenGL;
+	api = RendererApi::Dx12;
+#else
+	api = RendererApi::Vk;
 #endif
-
 }
 
 RenderDevice_CreateDesc::RenderDevice_CreateDesc(const RenderAdapterInfo* info) noexcept

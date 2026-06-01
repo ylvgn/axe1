@@ -6,10 +6,14 @@ namespace axe {
 
 class ConsoleApp : public AppBase {
 public:
-	int	exitCode()	const { return _exitCode; }
-
+	void setConsoleTitle(StrView title) {
+#if AX_OS_WINDOWS
+		TempStringW titleW = UtfUtil::toStringW(title);
+		::SetConsoleTitle(titleW.c_str());
+#endif
+	}
 protected:
-	int	_exitCode = 0;
+	
 }; // ConsoleApp
 
 } // namespace axe

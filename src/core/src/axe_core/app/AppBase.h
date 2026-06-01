@@ -12,6 +12,9 @@ namespace axe {
 class AppArguments : public NonCopyable {
 public:
 	explicit AppArguments(int argc, const char* argv[]);
+	~AppArguments();
+	
+	static AppArguments* s_instance();
 
 	Span<const StrView> args() const { return _argsView.span(); }
 
@@ -26,17 +29,16 @@ private:
 #endif
 class AppBase : public NonCopyable {
 public:
-	AppBase() = default;
-	virtual ~AppBase() = default;
-
-	void setCommandArguments(int argc, const char* argv[]);
-
-	template<size_t N>
-	void setCommandArguments(const char* (&argv)[N]) {
-		if(N) setCommandArguments(static_cast<int>(N), argv);
-	}
-
-	Span<const StrView> commandArguments() const;
+	AppBase() noexcept;
+	virtual ~AppBase() noexcept;
+	
+	static AppBase* AppBase::s_instance();
+	
+	void			create()	{ onCreate(); }
+	virtual void	onCreate() {}
+	
+	virtual int		onRun() = 0;
+	virtual void	willQuit() {}
 
 	void	setAppName(StrView s) { _appName = s; }
 	StrView	appName();
@@ -50,13 +52,25 @@ public:
 	template<class STR> void executableDirPathRelativeTo(STR& out, StrView relativePath);
 	void	setCurDirRelativeToExecutable(StrView relativePath);
 
-	virtual void onRun() = 0;
-
 private:
-	UPtr<AppArguments>	_args;
-	String				_appName;
+	String	_appName;
 }; // AppBase
 
+
+template<class T>
+struct App_run {
+	int operator()(int argc, const char* argv[]) {
+		try {
+			axe::AppArguments arg(argc, argv);
+			T app;
+			int ret = app.onRun();
+			return ret;
+		} catch (...) {
+			AXE_LOG_FLUSH();
+			throw;
+		}
+	}
+};
 
 #if 0
 #pragma mark ========= Windows ============

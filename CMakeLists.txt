@@ -51,12 +51,6 @@ find_package(EASTL              CONFIG REQUIRED)
 find_package(nlohmann_json      CONFIG REQUIRED)
 find_package(Tracy              CONFIG REQUIRED)
 
-find_package(spirv_cross_core   CONFIG REQUIRED)
-find_package(spirv_cross_glsl   CONFIG REQUIRED)
-find_package(spirv_cross_hlsl   CONFIG REQUIRED)
-find_package(spirv_cross_msl    CONFIG REQUIRED)
-find_package(directx-dxc        CONFIG REQUIRED)
-
 #-- externals ---
 add_subdirectory(externals)
 

@@ -6,16 +6,32 @@
 
 namespace axe {
 
-void NativeUIApp_Win32::onCreate(CreateDesc& desc) {
-	Base::onCreate(desc);
+int NativeUIApp_Win32::onRun() {
+	
+	create();
+	
 
+	for (;;) {
+		if (_desc.peekMessage) {
+			if (!::PeekMessage(&_win32_msg, nullptr, 0, 0, PM_REMOVE)) {
+				onPeekMessage();
+				continue;
+			}
+		} else {
+			if (!::GetMessage(&_win32_msg, nullptr, 0, 0)) break;
+		}
+
+		if (_win32_msg.message == WM_QUIT) break;
+
+		::TranslateMessage(&_win32_msg);
+		::DispatchMessage(&_win32_msg);
+	}
+
+#if 0 // TODO should move to EditorApp about fps, update freame feature
 	setFps(_getMonitorDisplayFrequency());
-}
-
-void NativeUIApp_Win32::onRun() {
 	_tickCount			= ::GetTickCount64();
 	_win32_msg.message	= static_cast<UINT>(~WM_QUIT);
-
+	
 	while (_win32_msg.message != WM_QUIT) {
 		if (PeekMessage(&_win32_msg, NULL, 0, 0, PM_REMOVE)) {
 			TranslateMessage(&_win32_msg);
@@ -27,14 +43,15 @@ void NativeUIApp_Win32::onRun() {
 			update(deltaTime);
 		}
 	}
-
+#endif
+	
 	willQuit();
+	return _returnCode;
 }
 
-void NativeUIApp_Win32::onQuit() {
-	Base::onQuit();
-
-	::PostQuitMessage(_exitCode);
+void NativeUIApp_Win32::quit(int returnCode) {
+	_returnCode = returnCode;
+	::PostQuitMessage(_returnCode);
 }
 
 DWORD NativeUIApp_Win32::_getMonitorDisplayFrequency() {

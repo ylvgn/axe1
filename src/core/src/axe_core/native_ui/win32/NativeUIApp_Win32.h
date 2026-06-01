@@ -8,13 +8,12 @@ namespace axe {
 class NativeUIApp_Win32 : public NativeUIApp_Base {
 	using Base = NativeUIApp_Base;
 public:
+	NativeUIApp_Win32(const CreateDesc& desc) : Base(desc) {}
+
+	virtual void quit	(int returnCode)	override;
+	virtual int  onRun	()					override;
 
 	::MSG _win32_msg;
-
-protected:
-	virtual void onCreate(CreateDesc& desc) override;
-	virtual void onRun	() override;
-	virtual	void onQuit	() override;
 
 private:
 	DWORD _getMonitorDisplayFrequency();

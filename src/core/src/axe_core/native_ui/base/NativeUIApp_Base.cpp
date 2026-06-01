@@ -3,12 +3,13 @@
 
 namespace axe {
 
-void NativeUIApp_Base::run(CreateDesc& desc) {
-	onCreate(desc);
-	onRun();
+NativeUIApp_Base::NativeUIApp_Base(const CreateDesc& desc)
+	: Base()
+	, _desc(desc)
+{
 }
 
-void NativeUIApp_Base::update(float dt) {
+void NativeUIApp_Base::update(float dt) { // TODO may move to EditorApp
 	_deltaTime += dt;
 
 	// avoid too frequent calls
@@ -35,11 +36,6 @@ void NativeUIApp_Base::update(float dt) {
 	onUpdate(_deltaTime);
 	_deltaTime = 0;
 	++_frameCount;
-}
-
-void NativeUIApp_Base::quit(int exitCode) {
-	_exitCode = exitCode;
-	onQuit();
 }
 
 void NativeUIApp_Base::setFps(int fps) {

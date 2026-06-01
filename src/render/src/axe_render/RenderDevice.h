@@ -5,14 +5,11 @@
 namespace axe {
 
 #define RendererApi_ENUM_LIST(E) \
-	E(Unknown, )                 \
-	E(DX11, )                    \
-	E(DX12, )                    \
-	E(OpenGL, )                  \
-	E(Metal, )                   \
+	E(None, )	\
+	E(Dx12, )	\
+	E(Vk, )		\
 //----
 AXE_ENUM_CLASS(RendererApi, u8)
-
 
 class RenderDevice_CreateDesc {
 public:
@@ -50,7 +47,7 @@ protected:
 	virtual SPtr<RenderContext>	  onCreateContext(RenderDevice* device, RenderContext_CreateDesc& desc) = 0;
 	virtual SPtr<RenderGpuBuffer> onCreateGpuBuffer(RenderDevice* device, RenderGpuBuffer_CreateDesc& desc) = 0;
 
-	RendererApi _api = RendererApi::Unknown;
+	RendererApi _api = RendererApi::None;
 
 	RenderCapabilities* _capabilities = nullptr;
 

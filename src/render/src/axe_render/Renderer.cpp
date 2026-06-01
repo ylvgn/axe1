@@ -18,7 +18,7 @@ Renderer* Renderer::s_create(CreateDesc& desc) {
 	switch (desc.api)
 	{
 		#if AXE_RENDER_HAS_DX12
-			case RendererApi::DX12: p = new Renderer_DX12(desc); break;
+			case RendererApi::Dx12: p = new Renderer_DX12(desc); break;
 		#endif
 	//---
 		default: AXE_THROW;

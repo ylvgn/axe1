@@ -9,7 +9,7 @@ void Log::onWrite(Level lv, StrView str) {
 }
 
 void Log::flush() {
-	std::flush(std::wcout);
+	std::flush(std::cout);
 }
 
 } // namespace axe
