@@ -21,8 +21,11 @@ class NativeUIWindow : public NativeUIWindow_Impl {
 }; // NativeUIWindow
 
 class NativeUIApp : public NativeUIApp_Impl {
+	using This = NativeUIApp;
 	using Base = NativeUIApp_Impl;
 public:
+	AXE_DOWNCAST_GET_INSTANCE()
+
 	NativeUIApp(const CreateDesc& desc = CreateDesc()) : Base(desc) {}
 }; // NativeUIApp
 

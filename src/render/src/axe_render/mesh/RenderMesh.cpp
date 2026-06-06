@@ -3,7 +3,7 @@
 
 #include <axe_render/vertex/Vertex.h>
 #include <axe_render/vertex/VertexLayoutManager.h>
-#include <axe_render/Renderer.h>
+#include <axe_render/RenderDevice.h>
 
 namespace axe {
 
@@ -479,7 +479,7 @@ void RenderSubMesh::_setVertexBuffer(ByteSpan vertexData) {
 	desc.type		= RenderGpuBufferType::Vertex;
 	desc.bufferSize = vertexData.size();
 
-	_vertexBuffer = Renderer::s_rootDevice()->createGpuBuffer(desc);
+	_vertexBuffer = SPtr_fromUPtr(Renderer::s_rootDevice()->createGpuBuffer(desc));
 	_vertexBuffer->uploadToGpu(vertexData);
 }
 
@@ -492,7 +492,7 @@ void RenderSubMesh::_setIndexBuffer(ByteSpan indexData) {
 	desc.type		= RenderGpuBufferType::Index;
 	desc.bufferSize = indexData.size();
 
-	_indexBuffer = Renderer::s_rootDevice()->createGpuBuffer(desc);
+	_indexBuffer = SPtr_fromUPtr(Renderer::s_rootDevice()->createGpuBuffer(desc));
 	_indexBuffer->uploadToGpu(indexData);
 }
 

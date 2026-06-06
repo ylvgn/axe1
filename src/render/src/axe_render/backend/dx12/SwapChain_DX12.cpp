@@ -58,12 +58,12 @@ DX12_ID3D12Device* SwapChain_DX12::d3dDevice(){
 }
 
 void SwapChain_DX12::present() {
-	auto* device = _renderContext->device();
-	bool VSync = device->VSync();
+	auto* device	= _renderContext->device();
+	bool  vsync		= device->vsync();
 	bool hasTearing = device->capabilities()->hasTearing();
 
 	::HRESULT hr;
-	hr = _d3dSwapChain->Present(VSync ? 1 : 0, !VSync && hasTearing ? DXGI_PRESENT_ALLOW_TEARING : 0);
+	hr = _d3dSwapChain->Present(vsync ? 1 : 0, !vsync && hasTearing ? DXGI_PRESENT_ALLOW_TEARING : 0);
 	AXE_DX12_THROWIF_HRESULT_ERROR(hr, d3dDevice());
 
 	_refreshCurImageIndex();

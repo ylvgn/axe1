@@ -1,5 +1,5 @@
 #include "RenderContext.h"
-#include "Renderer.h"
+#include "RenderDevice.h"
 
 namespace axe {
 
@@ -15,14 +15,17 @@ const TypeInfo* RenderContext::s_getType() {
 	return &ti;
 }
 
+UPtr<RenderContext> RenderContext::s_new(CreateDesc& desc, int deviceIndex /*= 0*/) {
+	return Renderer::s_instance()->newRenderContext(desc, deviceIndex);
+}
+
 void RenderContext_EventHandler::render(RenderContext* ctx) {
 	onRender(*ctx);
 }
 
-RenderContext::RenderContext(RenderDevice* device, CreateDesc& desc) noexcept
+RenderContext::RenderContext(RenderDevice* device, const CreateDesc& desc) noexcept
 	: Base(device)
 	, _window(desc.window)
-	, _eventHandler(desc.eventHandler)
 {
 }
 
@@ -34,7 +37,7 @@ void RenderContext::endRender() {
 	onEndRender();
 }
 
-void RenderContext::setSwapChainFrameBufferSize(const Vec2& newSize) {
+void RenderContext::setSwapChainFrameBufferSize(const Vec2f& newSize) {
 	if (_swapChainFrameBufferSize == newSize)
 		return;
 	onSetSwapChainFrameBufferSize(newSize);

@@ -20,11 +20,11 @@ void NativeUIWindow_Base::onUINativeMouseEvent(UIMouseEvent& ev) {
 	onUIMouseEvent(ev);
 }
 
-void NativeUIWindow_Base::onUINativeKeyboardEvent(UIKeyboardEvent& ev) {
-	using KeyCode	= UIKeyboardEvent::KeyCode;
-	using Type		= UIKeyboardEvent::Type;
+void NativeUIWindow_Base::onUINativeKeyboardEvent(UIKeyEvent& ev) {
+	using KeyCode	= UIKeyEvent::KeyCode;
+	using Type		= UIKeyEvent::Type;
 
-	onUIKeyboardEvent(ev);
+	onUIKeyEvent(ev);
 }
 
 void NativeUIWindow_Base::setWindowTitle(StrView title) {

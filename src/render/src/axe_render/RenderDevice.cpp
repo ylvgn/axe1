@@ -19,15 +19,9 @@ const TypeInfo* RenderDevice::s_getType() {
 
 RenderDevice_CreateDesc::RenderDevice_CreateDesc() noexcept
 	: adapterInfo(nullptr) 
-	, VSync(true)
+	, vsync(true)
 	, useWarpDeviceFallback(false)
 {
-
-#if AXE_OS_WINDOWS
-	api = RendererApi::Dx12;
-#else
-	api = RendererApi::Vk;
-#endif
 }
 
 RenderDevice_CreateDesc::RenderDevice_CreateDesc(const RenderAdapterInfo* info) noexcept
@@ -36,23 +30,22 @@ RenderDevice_CreateDesc::RenderDevice_CreateDesc(const RenderAdapterInfo* info) 
 	adapterInfo = info;
 }
 
+RenderDevice::RenderDevice(CreateDesc& desc) noexcept
+	: _desc(desc)
+{
+}
+
 RenderDevice::~RenderDevice() {
 	auto* renderer = Renderer::s_instance();
 	renderer->onRenderDeviceDestroy(this);
 }
 
-SPtr<RenderContext> RenderDevice::createContext(RenderContext_CreateDesc& desc) {
+UPtr<RenderContext> RenderDevice::createContext(const RenderContext_CreateDesc& desc) {
 	return onCreateContext(this, desc);
 }
 
-SPtr<RenderGpuBuffer> RenderDevice::createGpuBuffer(RenderGpuBuffer_CreateDesc& desc) {
+UPtr<RenderGpuBuffer> RenderDevice::createGpuBuffer(const RenderGpuBuffer_CreateDesc& desc) {
 	return onCreateGpuBuffer(this, desc);
-}
-
-RenderDevice::RenderDevice(CreateDesc& desc) noexcept
-	: _api(desc.api)
-	, _VSync(desc.VSync)
-{
 }
 
 } // namespace axe

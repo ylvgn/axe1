@@ -4,6 +4,13 @@
 
 namespace axe {
 
+#define RendererApi_ENUM_LIST(E) \
+	E(None, )	\
+	E(Dx12, )	\
+	E(Vk, )		\
+//----
+AXE_ENUM_CLASS(RendererApi, u8)
+
 class EditMesh;
 
 class Material;

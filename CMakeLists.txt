@@ -45,25 +45,23 @@ message("CMAKE_CURRENT_SOURCE_DIR       = ${CMAKE_CURRENT_SOURCE_DIR}")
 message("CMAKE_CURRENT_BINARY_DIR       = ${CMAKE_CURRENT_BINARY_DIR}")
 message("CMAKE_RUNTIME_OUTPUT_DIRECTORY = ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
 
-find_package(fmt                CONFIG REQUIRED)
-find_package(EABase             CONFIG REQUIRED)
-find_package(EASTL              CONFIG REQUIRED)
-find_package(nlohmann_json      CONFIG REQUIRED)
-find_package(Tracy              CONFIG REQUIRED)
+find_package(fmt          	CONFIG REQUIRED)
+find_package(EABase       	CONFIG REQUIRED)
+find_package(EASTL        	CONFIG REQUIRED)
+find_package(nlohmann_json	CONFIG REQUIRED)
+find_package(Tracy        	CONFIG REQUIRED)
 
 #-- externals ---
 add_subdirectory(externals)
 
 add_subdirectory(src/core)
 add_subdirectory(src/render)
+add_subdirectory(src/imui)
 add_subdirectory(src/engine)
 add_subdirectory(src/editor)
 add_subdirectory(src/tools/editor_app)
 
 #-- test ---
 add_subdirectory(src/test/core)
-add_subdirectory(src/test/render)
-add_subdirectory(src/test/engine)
-add_subdirectory(src/test/editor)
 
 set_property (DIRECTORY PROPERTY VS_STARTUP_PROJECT axe_editor_app) # Set As Startup Project

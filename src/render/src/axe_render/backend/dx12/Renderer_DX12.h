@@ -14,7 +14,9 @@ class Renderer_DX12 : public Renderer {
 public:
 	AXE_DOWNCAST_GET_INSTANCE()
 
-	Renderer_DX12(CreateDesc& desc);
+	Renderer_DX12(const CreateDesc& desc);
+
+	static DX12_ID3D12Device* s_d3dDevice() { auto* t = s_instance(); return t ? t->d3dDevice(0) : nullptr; }
 
 	virtual RenderDevice* onCreateRenderDevice(RenderDevice_CreateDesc& desc) final;
 

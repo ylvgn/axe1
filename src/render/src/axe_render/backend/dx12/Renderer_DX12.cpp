@@ -5,7 +5,7 @@
 
 namespace axe {
 
-Renderer_DX12::Renderer_DX12(CreateDesc& desc)
+Renderer_DX12::Renderer_DX12(const CreateDesc& desc)
 	: Base(desc)
 {
 	::HRESULT hr;

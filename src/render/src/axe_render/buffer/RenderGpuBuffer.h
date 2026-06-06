@@ -24,7 +24,7 @@ public:
 
 	axeRenderResources_InterfaceFunctions(RenderGpuBuffer)
 
-	void create(CreateDesc& desc); // please create from RenderDevice::createGpuBuffer
+	void create(const CreateDesc& desc); // please create from RenderDevice::createGpuBuffer
 
 	size_t	bufferSize() const { return _desc.bufferSize; }
 	void	uploadToGpu(ByteSpan data, size_t offset = 0);
@@ -32,7 +32,7 @@ public:
 	const CreateDesc& desc() const { return _desc; }
 
 protected:
-	virtual void onCreate(CreateDesc& desc) = 0;
+	virtual void onCreate(const CreateDesc& desc) = 0;
 	virtual void onUploadToGpu(ByteSpan data, size_t offset) = 0;
 
 	CreateDesc _desc;

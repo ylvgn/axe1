@@ -10,25 +10,25 @@ class RenderContext_EventHandler {
 public:
 	void render(RenderContext* ctx);
 
-
 	virtual void onRender(RenderContext& ctx) {};
 }; // RenderContext_EventHandler
 AXE_VC_WARNING_POP()
 
 class RenderContext_CreateDesc {
 public:
-	using EventHandler = RenderContext_EventHandler;
-
-	NativeUIWindow*	window		 = nullptr;
-	EventHandler*	eventHandler = nullptr;
+	NativeUIWindow*	window = nullptr;
 }; // RenderContext_CreateDesc
 
 
 class RenderContext : public RenderDeviceObject {
+	using This = RenderContext;
+	using Base = RenderDeviceObject;
 	AXE_ABSTRACT_CLASS_TYPE(RenderContext, RenderDeviceObject)
 public:
 	using CreateDesc	= RenderContext_CreateDesc;
-	using EventHandler	= CreateDesc::EventHandler;
+	using EventHandler	= RenderContext_EventHandler;
+
+	static UPtr<This> s_new(CreateDesc& desc, int deviceIndex = 0);
 
 			void   beginRender();
 	virtual void onBeginRender() {}
@@ -44,14 +44,16 @@ public:
 	virtual void onCommit(RenderCommandBuffer& cmdBuf) = 0;
 
 	NativeUIWindow*		window()		const { return _window; }
-	EventHandler*		eventHandler()	const { return _eventHandler; }
 
-#if AXE_OS_WINDOWS
+	void						setEventHandler(EventHandler* eventHandler) { _eventHandler = eventHandler; }
+	RenderContext_EventHandler* eventHandler() const { return _eventHandler; }
+
+#if AXE_OS_WINDOWS // TODO may remove later, and use NativeUIWindow then casting to win impl when use hwnd case
 	::HWND				hwnd()			const { return _window->_hwnd; }
 #endif
 
 protected:
-	RenderContext(RenderDevice* device, CreateDesc& desc) noexcept; // please create from 'RenderDevice::createRenderContext'
+	RenderContext(RenderDevice* device, const CreateDesc& desc) noexcept; // please create from 'RenderDevice::createRenderContext'
 
 	template<class IMPL>
 	void _dispatch(IMPL* impl, RenderCommandBuffer& cmdBuf) {

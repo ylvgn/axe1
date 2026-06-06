@@ -44,8 +44,6 @@ public:
 
 	~SPtr()				noexcept { reset(nullptr); }
 
-	static SPtr<T> s_make(T* p) noexcept { return SPtr(p); }
-
 	void operator=(Null)			noexcept { reset(nullptr); }
 	void operator=(T* p)			noexcept { reset(p); }
 	void operator=(const SPtr& r)	noexcept { reset(r._p); }
@@ -54,7 +52,7 @@ public:
 		  T* operator->()			noexcept { return _p; }
 	const T* operator->()	const	noexcept { return _p; }
 
-	operator T* () & { return _p; }
+	operator T* () const & { return _p; }
 	operator T* () && = delete;
 
 	explicit operator bool() const { return _p != nullptr; }
@@ -84,6 +82,8 @@ public:
 
 	T* detach() noexcept { T* o = _p; _p = nullptr; return o; }
 
+	AXE_NODISCARD AXE_INLINE static SPtr<T> s_ref(T* p) noexcept { return SPtr(p); }
+
 private:
 	T* _p = nullptr;
 }; // SPtr
@@ -104,12 +104,17 @@ template<class T> AXE_INLINE bool operator!= (const Null&,		const SPtr<T>& r)	no
 
 template <class T> AXE_NODISCARD AXE_INLINE
 SPtr<T> SPtr_make(T* p) {
-	return SPtr<T>::s_make(p);
+	return SPtr<T>::s_ref(p);
 }
 
 template <class T, class... ARGS> AXE_NODISCARD AXE_INLINE
 SPtr<T> SPtr_make(ARGS&&... args) {
-	return SPtr<T>::s_make(new T(AXE_FORWARD(args)...));
+	return SPtr<T>::s_ref(new T(AXE_FORWARD(args)...));
+}
+
+template<class T>
+inline SPtr<T> SPtr_fromUPtr(UPtr<T>&& p) noexcept {
+	return SPtr<T>::s_ref(p.release());
 }
 
 } // namespace axe

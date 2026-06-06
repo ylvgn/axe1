@@ -15,7 +15,7 @@ public:
 	using Base::Base;
 
 protected:
-	virtual void onCreate(CreateDesc& desc) final;
+	virtual void onCreate(const CreateDesc& desc) final;
 	virtual void onUploadToGpu(ByteSpan data, size_t offset) final;
 private:
 	//ComPtr<DX12_ID3DBuffer> _d3dBuf;

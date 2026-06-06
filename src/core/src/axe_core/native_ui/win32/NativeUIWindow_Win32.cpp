@@ -48,9 +48,9 @@ namespace axe {
 			if (auto* thisObj = s_getThis(hwnd)) {
 				u16 a = LOWORD(wParam);
 				switch (a) {
-				case WA_ACTIVE:		 thisObj->onActive(true);  break;
-				case WA_CLICKACTIVE: thisObj->onActive(true);  break;
-				case WA_INACTIVE:	 thisObj->onActive(false); break;
+					case WA_ACTIVE:		 thisObj->onActive(true);  break;
+					case WA_CLICKACTIVE: thisObj->onActive(true);  break;
+					case WA_INACTIVE:	 thisObj->onActive(false); break;
 				}
 			}
 		}break;
@@ -62,27 +62,15 @@ namespace axe {
 			}
 		}break;
 
-		case WM_SIZING: {
-			if (auto* thisObj = s_getThis(hwnd)) {
-				thisObj->setWorldRect(_s_win32_getWorldRect(hwnd));
-			}
-		}break;
-
 		case WM_SIZE: {
 			if (auto* thisObj = s_getThis(hwnd)) {
-				thisObj->setWorldRect(_s_win32_getWorldRect(hwnd));
-
-				::RECT clientRect;
-				::GetClientRect(hwnd, &clientRect);
-				Rect2f newClientRect = Win32Util::toRect2f(clientRect);
-				if (newClientRect != thisObj->_clientRect) {
-					thisObj->onClientRectChanged(newClientRect);
-				}
+				auto rc = _s_win32_getWorldRect(hwnd);
+				thisObj->onSetSize(rc.size);
 				return 0;
 			}
  		}break;
 
-	//---
+	//----
 		default: {
 			if (auto* thisObj = s_getThis(hwnd)) {
 				return thisObj->_handleNativeEvent(hwnd, msg, wParam, lParam);
@@ -225,7 +213,12 @@ void NativeUIWindow_Win32::onSetNativeSize(const Vec2f& size) {
 				 , SWP_NOMOVE | SWP_NOREDRAW
 	);
 
-	// after SetWindowPos, os will default send 'WM_SIZE' message, so _clientRect will refresh.
+	::RECT clientRect;
+	::GetClientRect(_hwnd, &clientRect);
+	Rect2f newClientRect = Win32Util::toRect2f(clientRect);
+	if (newClientRect != _clientRect) {
+		onClientRectChanged(newClientRect);
+	}
 }
 
 void NativeUIWindow_Win32::onSetNativeCursor(UIMouseCursor type) {
@@ -251,6 +244,10 @@ void NativeUIWindow_Win32::onSetNativeCursor(UIMouseCursor type) {
 
 void NativeUIWindow_Win32::onSetNativeVisible(bool b) {
 	::ShowWindow(_hwnd, b ? SW_SHOWNOACTIVATE : SW_HIDE);
+
+	// after ShowWindow:
+		// if change different visible state, os will default send 'WM_SIZE' msg
+		// else, os will not send 'WM_SIZE' msg
 }
 
 void NativeUIWindow_Win32::onDrawNeeded() {
@@ -354,13 +351,13 @@ bool NativeUIWindow_Win32::_handleNativeUIKeyboardEvent(::HWND hwnd,
 		// You typically do not need the information in lParam
 		// One flag that might be useful is bit 30, the "previous key state" flag, which is set to 1 for repeated key-down messages.
 
-	UIKeyboardEvent ev;
+	UIKeyEvent ev;
 
 	ev.modifier = _getWin32Modifier();
 
-	using KeyCode	= UIKeyboardEvent::KeyCode;
+	using KeyCode	= UIKeyEvent::KeyCode;
 	using Modifier	= UIEventModifier;
-	using Type		= UIKeyboardEvent::Type;
+	using Type		= UIKeyEvent::Type;
 
 #if 0
 	switch (msg) {

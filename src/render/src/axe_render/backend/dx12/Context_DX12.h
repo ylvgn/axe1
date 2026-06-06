@@ -12,7 +12,7 @@ class Context_DX12 : public RenderContext {
 	using Base = RenderContext;
 	using Util = DX12Util;
 public:
-	Context_DX12(RenderDevice* device, CreateDesc& desc);
+	Context_DX12(RenderDevice* device, const CreateDesc& desc);
 
 	ComPtr<ID3D12RootSignature>		  m_rootSignature;
 	ComPtr<ID3D12PipelineState>		  m_pipelineState;

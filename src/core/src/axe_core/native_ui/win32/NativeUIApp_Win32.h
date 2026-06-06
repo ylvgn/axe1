@@ -6,8 +6,11 @@
 namespace axe {
 
 class NativeUIApp_Win32 : public NativeUIApp_Base {
+	using This = NativeUIApp_Win32;
 	using Base = NativeUIApp_Base;
 public:
+	AXE_DOWNCAST_GET_INSTANCE()
+
 	NativeUIApp_Win32(const CreateDesc& desc) : Base(desc) {}
 
 	virtual void quit	(int returnCode)	override;

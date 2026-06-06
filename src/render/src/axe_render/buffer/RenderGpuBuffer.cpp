@@ -14,7 +14,7 @@ const TypeInfo* RenderGpuBuffer::s_getType() {
 	return &ti;
 }
 
-void RenderGpuBuffer::create(CreateDesc& desc) {
+void RenderGpuBuffer::create(const CreateDesc& desc) {
 	AXE_ASSERT(_device != nullptr);
 	_desc = desc;
 	onCreate(desc);

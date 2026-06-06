@@ -4,23 +4,14 @@
 
 namespace axe {
 
-#define RendererApi_ENUM_LIST(E) \
-	E(None, )	\
-	E(Dx12, )	\
-	E(Vk, )		\
-//----
-AXE_ENUM_CLASS(RendererApi, u8)
-
-class RenderDevice_CreateDesc {
+class RenderDevice_CreateDesc : public Renderer_CreateDesc {
 public:
 	RenderDevice_CreateDesc() noexcept;
 	RenderDevice_CreateDesc(const RenderAdapterInfo* info) noexcept;
 
-	RendererApi api;
-
 	const RenderAdapterInfo* adapterInfo = nullptr;
 
-	bool VSync					: 1;
+	bool vsync					: 1;
 	bool useWarpDeviceFallback	: 1;
 }; // RenderDevice_CreateDesc
 
@@ -32,42 +23,40 @@ public:
 
 	~RenderDevice();
 
-	void	setVSync(bool b)	{ _VSync = b; }
-	bool	VSync()	const		{ return _VSync; }
+	RenderCapabilities* capabilities()	const	{ return _capabilities; }
 
-	RendererApi			api()		   const { return _api; }
-	RenderCapabilities* capabilities() const { return _capabilities; }
+	RendererApi			api()			const	{ return _desc.api; }
+	bool				vsync()			const	{ return _desc.vsync; }
+	bool				multithread()	const	{ return _desc.multithread; }
 
-	SPtr<RenderContext>	  createContext(RenderContext_CreateDesc& desc);
-	SPtr<RenderGpuBuffer> createGpuBuffer(RenderGpuBuffer_CreateDesc& desc);
+	UPtr<RenderContext>	  createContext(const RenderContext_CreateDesc& desc);
+	UPtr<RenderGpuBuffer> createGpuBuffer(const RenderGpuBuffer_CreateDesc& desc);
 
 protected:
 	RenderDevice(CreateDesc& desc) noexcept; // please create from Renderer::createDevice
 
-	virtual SPtr<RenderContext>	  onCreateContext(RenderDevice* device, RenderContext_CreateDesc& desc) = 0;
-	virtual SPtr<RenderGpuBuffer> onCreateGpuBuffer(RenderDevice* device, RenderGpuBuffer_CreateDesc& desc) = 0;
-
-	RendererApi _api = RendererApi::None;
+	virtual UPtr<RenderContext>	  onCreateContext(RenderDevice* device, const RenderContext_CreateDesc& desc) = 0;
+	virtual UPtr<RenderGpuBuffer> onCreateGpuBuffer(RenderDevice* device, const RenderGpuBuffer_CreateDesc& desc) = 0;
 
 	RenderCapabilities* _capabilities = nullptr;
 
-	bool _VSync	: 1;
+	CreateDesc _desc;
 }; // RenderDevice
 
 
 #define axeRenderDevice_InterfaceFunctions(T)                                                                  \
-	virtual SPtr<RenderContext>	  onCreateContext(RenderDevice* device, RenderContext_CreateDesc& desc) final; \
-	virtual SPtr<RenderGpuBuffer> onCreateGpuBuffer(RenderDevice* device, RenderGpuBuffer_CreateDesc& desc) final; \
+	virtual UPtr<RenderContext>	  onCreateContext(RenderDevice* device, const RenderContext_CreateDesc& desc) final; \
+	virtual UPtr<RenderGpuBuffer> onCreateGpuBuffer(RenderDevice* device, const RenderGpuBuffer_CreateDesc& desc) final; \
 //----
 
 #define axeRenderDevice_InterfaceFunctions_Impl(T)                                                              \
-	SPtr<RenderContext> Device_##T::onCreateContext(RenderDevice* device, RenderContext_CreateDesc& desc)       \
+	UPtr<RenderContext> Device_##T::onCreateContext(RenderDevice* device, const RenderContext_CreateDesc& desc)       \
 	{                                                                                                           \
-		return new Context_##T(device, desc);                                                                   \
+		return UPtr<RenderContext>(new Context_##T(device, desc));                                                      \
 	}                                                                                                           \
-	SPtr<RenderGpuBuffer> Device_##T::onCreateGpuBuffer(RenderDevice* device, RenderGpuBuffer_CreateDesc& desc) \
+	UPtr<RenderGpuBuffer> Device_##T::onCreateGpuBuffer(RenderDevice* device, const RenderGpuBuffer_CreateDesc& desc) \
 	{                                                                                                           \
-		SPtr<RenderGpuBuffer> p = new GpuBuffer_##T(device);                                                          \
+		UPtr<RenderGpuBuffer> p(new GpuBuffer_##T(device));                                                    \
 		p->create(desc);                                                                                        \
 		return p;                                                                                               \
 	}                                                                                                           \

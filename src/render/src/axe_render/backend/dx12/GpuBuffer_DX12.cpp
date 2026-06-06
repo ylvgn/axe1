@@ -16,7 +16,7 @@ const TypeInfo* GpuBuffer_DX12::s_getType() {
 	return &ti;
 }
 
-void GpuBuffer_DX12::onCreate(CreateDesc& desc)  {
+void GpuBuffer_DX12::onCreate(const CreateDesc& desc)  {
 	//if (desc.bufferSize <= 0)	AXE_THROW_ERROR("buffer size = 0");
 	//if (desc.stride <= 0)		AXE_THROW_ERROR("stride == 0");
 

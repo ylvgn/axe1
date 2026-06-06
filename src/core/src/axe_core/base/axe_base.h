@@ -38,6 +38,7 @@
 #include <EASTL/fixed_string.h>
 #include <EASTL/string_view.h>
 #include <EASTL/span.h>
+#include <EASTL/algorithm.h>
 #include <EASTL/optional.h>
 #include <EASTL/map.h>
 #include <EASTL/hash_map.h>
@@ -75,6 +76,9 @@ class NonCopyable {
 public:
 	NonCopyable() = default;
 };
+
+template<class T> AXE_INLINE constexpr T* axe_const_cast(const T* v) { return const_cast<T*>(v); }
+template<class T> AXE_INLINE constexpr T& axe_const_cast(const T& v) { return const_cast<T&>(v); }
 
 } // namespace axe
 
@@ -347,6 +351,15 @@ public:
 	void resizeToLocalBufSize() { Base::resize(N); }
 
 	void move(This& rhs) { Base::clear(); *this = ::eastl::move(rhs); }
+
+	void eraseAllIfEquals(const T& value) {
+		Base::erase(::eastl::remove_if(begin(), end(),
+			[value](const T& one) {
+				return one == value;
+			}), 
+			end()
+		);
+	}
 }; // Vector
 
 

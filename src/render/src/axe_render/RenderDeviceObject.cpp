@@ -20,10 +20,6 @@ RenderDeviceObject::RenderDeviceObject(RenderDevice* device) noexcept
 {
 }
 
-void RenderDeviceObject::_internalSetDevice(RenderDevice* device) {
-	_device = device;
-}
-
 RenderDevice* RenderDeviceObject::device() const {
 	return _device;
 }

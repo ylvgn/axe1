@@ -19,16 +19,16 @@ else()
 endif()
 
 axe_copy_files_post_build(${PROJECT_NAME}
-	${axe_glslc}
-	${axe_spirv_cross}
-	${axe_ninja}
+	#${axe_glslc}
+	#${axe_spirv_cross}
+	#${axe_ninja}
 	${axe_TracyClient}
 #----
     ${AXE_RUNTIME_OUTPUT_DIRECTORY_CONFIGURATION}
 )
 
 #-- vcpkg python3 ---
-axe_vcpkg_find_python(axe_python3 3)
-axe_copy_dir_post_build(${PROJECT_NAME} ${axe_python3} ${AXE_RUNTIME_OUTPUT_DIRECTORY_CONFIGURATION}/python3)
+#axe_vcpkg_find_python(axe_python3 3)
+#axe_copy_dir_post_build(${PROJECT_NAME} ${axe_python3} ${AXE_RUNTIME_OUTPUT_DIRECTORY_CONFIGURATION}/python3)
 
 add_subdirectory(DirectX-Headers)

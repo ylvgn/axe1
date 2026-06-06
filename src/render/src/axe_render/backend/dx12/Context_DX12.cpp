@@ -17,7 +17,7 @@ Device_DX12* Context_DX12::renderDevice() {
 	return static_cast<Device_DX12*>(_device);
 }
 
-Context_DX12::Context_DX12(RenderDevice* device, CreateDesc& desc)
+Context_DX12::Context_DX12(RenderDevice* device, const CreateDesc& desc)
 	: Base(device, desc)
 {
 	::HRESULT hr;
@@ -264,8 +264,8 @@ void Context_DX12::_test_WaitForPreviousFrame() {
 }
 
 void Context_DX12::onSetSwapChainFrameBufferSize(const Vec2f& newSize) {
-	_swapChain->OnResizeOrMove(newSize);
 	Base::onSetSwapChainFrameBufferSize(newSize);
+	_swapChain->OnResizeOrMove(newSize);
 }
 
 void Context_DX12::onCommit(RenderCommandBuffer& cmdBuf) {

@@ -10,6 +10,6 @@
 	#define AXE_RENDER_HAS_DX12_DXR 0
 #endif
 
-#if AXE_TRY_USE_VULKAN
-	#define AXE_RENDER_HAS_VULKAN 0
+#if AXE_TRY_USE_VK
+	#define AXE_RENDER_HAS_VK 0
 #endif

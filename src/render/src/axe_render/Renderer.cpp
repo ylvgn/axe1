@@ -5,14 +5,21 @@
 
 namespace axe {
 
-Renderer* Renderer::_s_instance = nullptr;
+static Renderer* Renderer_instance = nullptr;
+
+Renderer* Renderer::s_instance() { return Renderer_instance; }
 
 Renderer_CreateDesc::Renderer_CreateDesc() noexcept
 	: multithread(false)
 {
+#if AXE_OS_WINDOWS
+	api = RendererApi::Dx12;
+#else
+	api = RendererApi::Vk;
+#endif
 }
 
-Renderer* Renderer::s_create(CreateDesc& desc) {
+Renderer* Renderer::s_create(const CreateDesc& desc) {
 	Renderer* p = nullptr;
 
 	switch (desc.api)
@@ -20,8 +27,12 @@ Renderer* Renderer::s_create(CreateDesc& desc) {
 		#if AXE_RENDER_HAS_DX12
 			case RendererApi::Dx12: p = new Renderer_DX12(desc); break;
 		#endif
-	//---
-		default: AXE_THROW;
+		#if AXE_RENDER_HAS_VK
+			case RendererApi::Vk:	p = new Renderer_Vk(desc); break;
+		#endif
+	//----
+		default:
+			AXE_THROW;
 	}
 
 	AXE_ASSERT(p->_adapterInfos.size() > 0);
@@ -42,23 +53,25 @@ void Renderer::onRenderDeviceDestroy(RenderDevice* device) {
 	}
 }
 
-Renderer::Renderer(CreateDesc& desc) noexcept
+Renderer::Renderer(const CreateDesc& desc) noexcept
 	: _multithread(desc.multithread)
 {
-	AXE_ASSERT(_s_instance == nullptr);
-	_s_instance = this;
-}
-
-RenderDevice* Renderer::s_rootDevice() {
-	return _s_instance->findDevice(0);
+	AXE_ASSERT(Renderer_instance == nullptr);
+	Renderer_instance = this;
 }
 
 Renderer::~Renderer() noexcept
 {
-	AXE_ASSERT(_s_instance == this);
+	AXE_ASSERT(Renderer_instance == this);
 	AXE_ASSERT(_devices.size() == 0);
 
-	_s_instance = nullptr;
+	Renderer_instance = nullptr;
+}
+
+UPtr<RenderContext> Renderer::newRenderContext(const RenderContext_CreateDesc& desc, int deviceIndex) {
+	auto* device = findDevice(deviceIndex);
+	AXE_ASSERT(device != nullptr);
+	return device->createContext(desc);
 }
 
 } // namespace axe

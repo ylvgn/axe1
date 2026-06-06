@@ -123,7 +123,7 @@ AXE_ENUM_ALL_OPERATOR(UIKeyboardEventKeyCode)
 AXE_ENUM_CLASS(UIKeyCodeEventType, u8)
 AXE_ENUM_ALL_OPERATOR(UIKeyCodeEventType)
 
-struct UIKeyboardEvent {
+struct UIKeyEvent {
 	using KeyCode		= UIKeyboardEventKeyCode;
 	using Type			= UIKeyCodeEventType;
 	using Modifier		= UIEventModifier;
@@ -131,8 +131,8 @@ struct UIKeyboardEvent {
 	bool isUp()			const { return type == Type::Up; }
 	bool isDown()		const { return type == Type::Down; }
 
-	bool isUp(KeyCode k)	const { return pressedKeyCodes[enumInt(k)] == Type::Up; }
-	bool isDown(KeyCode k)	const { return pressedKeyCodes[enumInt(k)] == Type::Down; }
+	bool isUp	(KeyCode k)	const { return pressedKeyCodes[enumInt(k)] == Type::Up; }
+	bool isDown	(KeyCode k)	const { return pressedKeyCodes[enumInt(k)] == Type::Down; }
 
 	StrView data()		const { return charCodeStr.view(); }
 
@@ -143,6 +143,13 @@ struct UIKeyboardEvent {
 	String				charCodeStr;
 
 	Vector<Type, static_cast<size_t>(KeyCode::_End)> pressedKeyCodes;
+};
+
+class UIEventHandler : public NonCopyable {
+public:
+	virtual ~UIEventHandler() = default;
+	virtual void onUIMouseEvent	(UIMouseEvent& ev)	{}
+	virtual void onUIKeyEvent	(UIKeyEvent& ev)	{}
 };
 
 #define UIScrollBarEventMode_ENUM_LIST(E) \
@@ -158,8 +165,8 @@ struct UIScrollBarEvent {
 
 	Mode  mode = Mode::None;
 
-	Vec2i pos{0,0};
-	Vec2i deltaPos{0,0};
+	Vec2i pos		{0};
+	Vec2i deltaPos	{0};
 };
 
-}
+} // namespace axe

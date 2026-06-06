@@ -1,5 +1,5 @@
 #pragma once
-
+#include <axe_core/base/axe_macro.h>
 #include <axe_core/string/UtfUtil.h>
 #include <axe_core/file/FilePath.h>
 #include <axe_core/file/Directory.h>

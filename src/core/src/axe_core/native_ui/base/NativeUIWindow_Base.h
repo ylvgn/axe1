@@ -100,8 +100,8 @@ protected:
 	virtual void onUINativeMouseEvent(UIMouseEvent& ev);
 	virtual void onUIMouseEvent		 (UIMouseEvent& ev) {}
 
-	virtual void onUINativeKeyboardEvent(UIKeyboardEvent& ev);
-	virtual void onUIKeyboardEvent		(UIKeyboardEvent& ev) {}
+	virtual void onUINativeKeyboardEvent(UIKeyEvent& ev);
+	virtual void onUIKeyEvent			(UIKeyEvent& ev) {}
 
 	Rect2 _worldRect  {0}; //! relative to the screen's top-left corner
 	Rect2 _clientRect {0};
@@ -109,7 +109,7 @@ protected:
 	UIMouseEventButton	_pressedMouseButtons = UIMouseEventButton::None;
 	Vec2f				_mousePos {0,0};
 	
-	Vector<UIKeyboardEvent::Type, kKeyCodeCount> _pressedKeyCodes;
+	Vector<UIKeyEvent::Type, kKeyCodeCount> _pressedKeyCodes;
 }; // NativeUIWindow_Base
 
 } // namespace axe

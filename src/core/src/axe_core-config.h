@@ -6,7 +6,7 @@
 
 #define AXE_TRY_USE_DX12	1
 #define AXE_TRY_USE_OPENGL	1
-#define AXE_TRY_USE_VULKAN	1
+#define AXE_TRY_USE_VK		1
 
 #if AXE_OS_WINDOWS
 	#define TRACY_ENABLE 1

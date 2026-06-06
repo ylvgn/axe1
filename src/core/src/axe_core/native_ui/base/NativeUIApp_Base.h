@@ -1,5 +1,4 @@
 #pragma once
-
 #include <axe_core/app/AppBase.h>
 
 struct NativeUIApp_CreateDesc {
@@ -9,8 +8,11 @@ struct NativeUIApp_CreateDesc {
 namespace axe {
 
 class NativeUIApp_Base : public AppBase {
+	using This = NativeUIApp_Base;
 	using Base = AppBase;
 public:
+	AXE_DOWNCAST_GET_INSTANCE()
+
 	using CreateDesc = NativeUIApp_CreateDesc;
 
 	NativeUIApp_Base(const CreateDesc& desc);

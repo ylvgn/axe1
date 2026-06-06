@@ -1,16 +1,13 @@
 #pragma once
 
-#include "RenderCommonBase.h"
+#include "Renderer.h"
 
 namespace axe {
 
 class RenderDeviceObject : public Object, public RenderCommonBase {
 	AXE_ABSTRACT_CLASS_TYPE(RenderDeviceObject, Object)
 public:
-	RenderDeviceObject() = default;
-	explicit RenderDeviceObject(RenderDevice* device) noexcept;
-
-	void _internalSetDevice(RenderDevice* device);
+	RenderDeviceObject(RenderDevice* device = Renderer::s_rootDevice()) noexcept;
 
 	RenderDevice* device() const;
 

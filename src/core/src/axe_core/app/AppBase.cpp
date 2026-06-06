@@ -6,7 +6,7 @@ namespace axe {
 #pragma mark ========= AppArguments ============
 #endif
 
-static AppArguments* AppArgments_instance;
+static AppArguments* AppArgments_instance = nullptr;
 	
 AppArguments* AppArguments::s_instance() {
 	return AppArgments_instance;

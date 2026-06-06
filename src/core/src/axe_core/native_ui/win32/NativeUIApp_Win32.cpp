@@ -7,9 +7,7 @@
 namespace axe {
 
 int NativeUIApp_Win32::onRun() {
-	
 	create();
-	
 
 	for (;;) {
 		if (_desc.peekMessage) {
@@ -27,7 +25,7 @@ int NativeUIApp_Win32::onRun() {
 		::DispatchMessage(&_win32_msg);
 	}
 
-#if 0 // TODO should move to EditorApp about fps, update freame feature
+#if 0 // TODO should move to EditorApp about fps, update frame feature
 	setFps(_getMonitorDisplayFrequency());
 	_tickCount			= ::GetTickCount64();
 	_win32_msg.message	= static_cast<UINT>(~WM_QUIT);
@@ -54,7 +52,7 @@ void NativeUIApp_Win32::quit(int returnCode) {
 	::PostQuitMessage(_returnCode);
 }
 
-DWORD NativeUIApp_Win32::_getMonitorDisplayFrequency() {
+DWORD NativeUIApp_Win32::_getMonitorDisplayFrequency() { // TODO may move to Base and impl in specific os
 	::POINT ptZero = { 0, 0 };
 	::HMONITOR hMonitor = ::MonitorFromPoint(ptZero, MONITOR_DEFAULTTOPRIMARY);
 
