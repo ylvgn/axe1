@@ -8,7 +8,6 @@ add_library(${PROJECT_NAME} INTERFACE)
 file(GLOB_RECURSE all_files "${DxIncludeDir}/*.h")
 
 target_sources(${PROJECT_NAME} PUBLIC ${all_files})
-
-
 target_include_directories(${PROJECT_NAME} INTERFACE ${DxIncludeDir})
+
 set_target_properties (${PROJECT_NAME} PROPERTIES FOLDER "externals")
