@@ -51,6 +51,17 @@ struct is_same<T, T> : public true_type {};
 
 template <class T1, class T2> inline constexpr bool is_same_v = is_same<T1, T2>::value;
 
+#if 0
+#pragma mark------------ is_same --------------
+// is_convertible: https://en.cppreference.com/cpp/types/is_convertible
+// __is_convertible_to is compiler intrinsic (a built-in feature provided by the compiler)
+#endif
+template <class _From, class _To>
+struct is_convertible : bool_constant<__is_convertible_to(_From, _To)> {
+	// determine whether _From is convertible to _To
+};
+
+template <class _From, class _To> inline constexpr bool is_convertible_v = is_convertible<_From, _To>::value;
 
 #if 0
 #pragma mark------------ is_base_of --------------
@@ -61,7 +72,6 @@ template <class Base, class Derived>
 struct is_base_of : bool_constant<__is_base_of(Base, Derived)> {};
 
 template <class Base, class Derived> inline constexpr bool is_base_of_v = is_base_of<Base, Derived>::value;
-
 
 #if 0
 #pragma mark------------ extent --------------
@@ -351,6 +361,14 @@ template <class T> struct is_pointer<T* const volatile>	: true_type  {};
 
 template <class T> inline constexpr bool is_pointer_v = is_pointer<T>::value;
 
+#if 0
+#pragma mark------------ is_null_pointer_v --------------
+// is_null_pointer: https://en.cppreference.com/w/cpp/types/is_null_pointer.html
+#endif
+
+template <class T> inline constexpr bool is_null_pointer_v = is_same_v<remove_cv_t<T>, nullptr_t>;
+template <class T> struct is_null_pointer : bool_constant<is_null_pointer_v<T>> {};
+
 
 #if 0
 #pragma mark------------ is_void --------------
@@ -449,6 +467,14 @@ struct is_arithmetic : bool_constant<is_integral_v<T> || is_floating_point_v<T>>
 template <class T> inline constexpr bool is_arithmetic_v = is_arithmetic<T>::value;
 
 
+#if 0
+#pragma mark------------ is_arithmetic --------------
+// is_fundamental: https://en.cppreference.com/w/cpp/types/is_fundamental.html
+#endif
+template <class T> inline constexpr bool is_fundamental_v = is_arithmetic_v<T> || is_void_v<T> || is_null_pointer_v<T>;
+template <class T> struct is_fundamental : bool_constant<is_fundamental_v<T>> {};
+
+
 //+----------------------------------------------+
 //|                Type properties               |
 //+----------------------------------------------+
@@ -485,6 +511,16 @@ template <class T> inline constexpr bool is_unsigned_v = is_unsigned<T>::value;
 
 
 #if 0
+#pragma mark------------ is_final --------------
+// is_final: https://en.cppreference.com/w/cpp/types/is_final.html
+// __is_final: is a compiler intrinsic (a built-in feature provided by the compiler)
+#endif
+template <class T> struct is_final : bool_constant<__is_final(T)> {};
+
+template <class T> inline constexpr bool is_final_v = is_final<T>::value;
+
+
+#if 0
 #pragma mark------------ decay --------------
 // decay: https://en.cppreference.com/w/cpp/types/decay.html
 #endif
@@ -505,6 +541,14 @@ public:
 };
 
 template <typename T> using decay_t = typename decay<T>::type;
+
+
+//----
+template<typename T>
+struct __axe_is_nobase : bool_constant< !is_final_v<T> && !is_void_v<T> && !is_fundamental_v<T> > {};
+template<typename T> using is_nobase = __axe_is_nobase<T>;
+
+template <class T> inline constexpr bool is_nobase_v = is_nobase<T>::value;
 
 
 //----

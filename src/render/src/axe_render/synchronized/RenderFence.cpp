@@ -2,18 +2,6 @@
 
 namespace axe {
 
-const TypeInfo* RenderFence::s_getType() {
-	class TI : public TI_Base {
-	public:
-		TI() {
-			name = "RenderFence";
-			AXE_TODO("");
-		}
-	};
-	static TI ti;
-	return &ti;
-}
-
 bool RenderFence::isDone() {
 	if (_signaled)
 		return true;

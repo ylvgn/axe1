@@ -3,18 +3,6 @@
 
 namespace axe {
 
-const TypeInfo* RenderContext::s_getType() {
-	class TI : public TI_Base {
-	public:
-		TI() {
-			name = "RenderContext";
-			AXE_TODO("");
-		}
-	};
-	static TI ti;
-	return &ti;
-}
-
 UPtr<RenderContext> RenderContext::s_new(CreateDesc& desc, int deviceIndex /*= 0*/) {
 	return Renderer::s_instance()->newRenderContext(desc, deviceIndex);
 }

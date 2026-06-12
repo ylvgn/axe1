@@ -4,7 +4,7 @@ project(${PROJECT_NAME})
 
 axe_add_library(${PROJECT_NAME} ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(${PROJECT_NAME} PUBLIC axe_core)
-target_link_libraries(${PROJECT_NAME} PRIVATE DirectX-Headers)
+target_link_libraries(${PROJECT_NAME} PRIVATE DirectX-Headers D3D12MemoryAllocator VulkanMemoryAllocator)
 
 set_target_properties(${PROJECT_NAME} PROPERTIES FOLDER "axe")
 

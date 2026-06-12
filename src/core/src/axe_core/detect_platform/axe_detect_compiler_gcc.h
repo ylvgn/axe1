@@ -49,8 +49,11 @@
 
 // #define nullptr	NULL
 
-#define	AXE_FUNC_NAME_SZ				__FUNCTION__
-#define AXE_FUNC_FULLNAME_SZ			__PRETTY_FUNCTION__
+#define	AXE_FUNC_NAME_SZ				__FUNCTION__		// TODO will remove later
+#define AXE_FUNC_FULLNAME_SZ			__PRETTY_FUNCTION__ // TODO will remove later
+
+#define	AXE_FUNC_NAME				AXE_FUNC_NAME_SZ
+#define AXE_FUNC_SIG				AXE_FUNC_FULLNAME_SZ
 
 #define AXE_DEPRECATED( f )		f __attribute__( (deprecated) )
 

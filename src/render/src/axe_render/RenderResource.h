@@ -16,7 +16,7 @@ AXE_ENUM_CLASS(RenderResourceType, u8);
 
 
 class RenderResource : public RenderDeviceObject {
-	AXE_CLASS_TYPE(RenderResource, RenderDeviceObject)
+	AXE_RTTI_INFO(RenderResource, RenderDeviceObject)
 public:
 	using Base::Base;
 

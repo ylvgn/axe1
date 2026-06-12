@@ -143,7 +143,4 @@ void RenderSubMesh::_setIndexData(const Span<const SRC>& indexData) {
 	AXE_ASSERT(_indexData.end() == p);
 }
 
-template<> const TypeInfo* TypeOf<RenderMesh>();
-template<> const TypeInfo* TypeOf<RenderSubMesh>();
-
 } // namespace axe

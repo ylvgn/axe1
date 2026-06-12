@@ -3,18 +3,6 @@
 
 namespace axe {
 
-const TypeInfo* RenderDeviceObject::s_getType() {
-	class TI : public TI_Base {
-	public:
-		TI() {
-			name = "RenderDeviceObject";
-			AXE_TODO("");
-		}
-	};
-	static TI ti;
-	return &ti;
-}
-
 RenderDeviceObject::RenderDeviceObject(RenderDevice* device) noexcept
 	: _device(device)
 {

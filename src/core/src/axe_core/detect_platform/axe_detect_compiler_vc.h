@@ -33,8 +33,11 @@
 #define AXE_DLL_EXPORT			_declspec(dllexport)
 #define AXE_DLL_IMPORT			_declspec(dllimport)
 
-#define	AXE_FUNC_NAME_SZ			__FUNCTION__
-#define AXE_FUNC_FULLNAME_SZ		__FUNCSIG__
+#define	AXE_FUNC_NAME_SZ			__FUNCTION__ // TODO will remove later
+#define AXE_FUNC_FULLNAME_SZ		__FUNCSIG__  // TODO will remove later
+
+#define	AXE_FUNC_NAME				AXE_FUNC_NAME_SZ
+#define AXE_FUNC_SIG				AXE_FUNC_FULLNAME_SZ
 
 #define AXE_COMPILER_VER _MSVC_LANG
 

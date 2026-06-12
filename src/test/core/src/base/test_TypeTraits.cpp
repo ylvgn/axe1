@@ -466,7 +466,7 @@ struct Test_TypeTraits__is_array : public UnitTestBase {
 	AXE_STATIC_ASSERT( is_array_v<int[3]>);
 	AXE_STATIC_ASSERT(!is_array_v<::std::array<int, 3>>);
 
-}; // Test_TypeTraits__is_enum
+}; // Test_TypeTraits__is_array
 
 #if 0
 #pragma mark------------ is_integral --------------
@@ -506,7 +506,7 @@ struct Test_TypeTraits__is_integral : public UnitTestBase {
 		AXE_TEST_CHECK(!is_integral_v<::std::nullptr_t>);
 		AXE_TEST_CHECK(is_integral_v<decltype(this)> == false);
 	}
-};
+}; // Test_TypeTraits__is_integral
 
 
 #if 0
@@ -551,7 +551,7 @@ struct Test_TypeTraits__is_floating_point : public UnitTestBase {
 		AXE_TEST_CHECK(!is_floating_point_v<::std::nullptr_t>);
 		AXE_TEST_CHECK(!is_floating_point_v<decltype(this)>);
 	}
-};
+}; // Test_TypeTraits__is_floating_point
 
 
 #if 0
@@ -613,7 +613,35 @@ struct Test_TypeTraits__is_arithmetic : public UnitTestBase {
 		AXE_TEST_CHECK(!is_arithmetic_v<::std::nullptr_t>);
 		AXE_TEST_CHECK(!is_arithmetic_v<decltype(this)>);
 	}
-};
+}; // Test_TypeTraits__is_arithmetic
+
+#if 0
+#pragma mark------------ is_arithmetic --------------
+#endif
+struct Test_TypeTraits__is_nobase : public UnitTestBase {
+	
+	class Base {};
+	class MyFoo : public Base {};
+	class FinalFoo final {};
+	
+	void test_Int() {
+		AXE_TEST_CHECK(is_nobase_v<int>);
+		AXE_TEST_CHECK(is_nobase_v<const int>);
+		AXE_TEST_CHECK(is_nobase_v<size_t>);
+		AXE_TEST_CHECK(is_nobase_v<int*>);
+		AXE_TEST_CHECK(is_nobase_v<int&>);
+		AXE_TEST_CHECK(is_nobase_v<const int&>);
+		AXE_TEST_CHECK(is_nobase_v<::std::atomic_int>);
+		AXE_TEST_CHECK(is_nobase_v<byte>);
+		AXE_TEST_CHECK(is_nobase_v<::std::byte>);
+	}
+	
+	void test_Misc() {
+		AXE_TEST_CHECK(is_nobase_v<Base>);
+		AXE_TEST_CHECK(is_nobase_v<FinalFoo>);
+		AXE_TEST_CHECK(!is_nobase_v<MyFoo>);
+	}
+}; // Test_TypeTraits__is_nobase
 
 
 #if 0
@@ -692,6 +720,12 @@ struct _test_TypeTraits_Helper {
 			AXE_TEST_CASE(Test_TypeTraits__is_arithmetic, test_Enum());
 			AXE_TEST_CASE(Test_TypeTraits__is_arithmetic, test_Misc());
 		}
+		
+		static void test_is_nobase() {
+			AXE_TEST_CASE(Test_TypeTraits__is_nobase, test_Int());
+			AXE_TEST_CASE(Test_TypeTraits__is_nobase, test_Misc());
+		}
+		
 	}; // TypeCategories
 
 	#if 0
@@ -724,8 +758,10 @@ void test_TypeTraits() {
 	using H = axe::_test_TypeTraits_Helper;
 
 #if 0 // single test
-	using T = H::TypeTransformations;
-	T::test_decay();
+	//using T = H::TypeTransformations;
+	//T::test_decay();
+	
+	H::TypeCategories::test_is_nobase();
 #else
 	{
 		using T = H::Core;
@@ -739,6 +775,7 @@ void test_TypeTraits() {
 		T::test_is_integral();
 		T::test_is_floating_point();
 		T::test_is_arithmetic();
+		T::test_is_nobase();
 	}
 
 	{

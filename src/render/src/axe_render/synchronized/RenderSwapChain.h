@@ -5,7 +5,7 @@
 namespace axe {
 
 class RenderSwapChain : public RenderDeviceObject {
-	AXE_ABSTRACT_CLASS_TYPE(RenderSwapChain, RenderDeviceObject)
+	AXE_RTTI_INFO(RenderSwapChain, RenderDeviceObject)
 public:
 	using Base::Base;
 

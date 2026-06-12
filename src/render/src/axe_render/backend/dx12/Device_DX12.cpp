@@ -63,7 +63,7 @@ Device_DX12::Device_DX12(CreateDesc& desc)
 		_dxgiAdapter->GetDesc3(&adapterDesc);
 		TempString tmp;
 		UtfUtil::convert(tmp, adapterDesc.Description);
-		setDebugName(tmp);
+		setName(tmp);
 	}
 #endif
 

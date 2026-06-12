@@ -64,7 +64,7 @@ EditorMainWindow::EditorMainWindow() {
 
 	{
 		auto title = TempString::s_format("AXE Editor - [{}({}, MT: {}, VSync: {})]",
-										  renderDevice->debugName()
+										  renderDevice->name()
 										, renderDevice->api(),
 										  renderDevice->multithread()
 										, renderDevice->vsync()

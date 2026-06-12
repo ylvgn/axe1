@@ -8,7 +8,7 @@
 namespace axe {
 
 class GpuBuffer_DX12 : public RenderGpuBuffer {
-	AXE_CLASS_TYPE(GpuBuffer_DX12, RenderGpuBuffer)
+	AXE_RTTI_INFO(GpuBuffer_DX12, RenderGpuBuffer)
 public:
 	//DX12_ID3DBuffer* d3dBuf() { return _d3dBuf; }
 

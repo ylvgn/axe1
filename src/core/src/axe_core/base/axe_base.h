@@ -291,6 +291,11 @@ size_t arraySize(T (&arr)[N]) {
 
 namespace axe {
 
+template<class A, class B> using Pair = ::eastl::pair<A, B>;
+template<class A, class B = typename A> AXE_NODISCARD constexpr auto Pair_make() { return Pair<A, B>(A(), B()); }
+template<class A, class B> AXE_NODISCARD constexpr auto Pair_make(const A & a, const B & b) { return Pair<A, B>(a, b); }
+template<class A, class B> AXE_NODISCARD constexpr auto Pair_make(A && a, B && b) { return Pair<A, B>(AXE_FORWARD(a), AXE_FORWARD(b)); }
+
 template <class T> using UPtr = typename ::eastl::unique_ptr<T>;
 template <class T, class... Args> AXE_NODISCARD
 AXE_INLINE UPtr<T> UPtr_make(Args&&... args) {
@@ -404,11 +409,28 @@ AXE_INLINE Any Any_make(Args&&... args) {
 	return ::eastl::make_any<T>(AXE_FORWARD(args)...);
 }
 
+enum class StrCase : u8 {
+	Ignore,
+	Sensitive,
+};
+
+enum class CmpResult : u8 {
+	Equal,
+	Greater,
+	Lesser,
+};
+
+AXE_INLINE constexpr CmpResult CmpResult_fromInt(Int v) {
+	return v == 0 ? CmpResult::Equal
+		  : v > 0 ? CmpResult::Greater
+				  : CmpResult::Lesser; 
+}
+
 template<class T, size_t N, bool bEnableOverflow = true> class StringT;
 
 template<class T> using StrViewT_Base = typename ::eastl::basic_string_view<T>;
 template<class T>
-class StrViewT : public StrViewT_Base<T> { // immutable string view
+class StrViewT : public StrViewT_Base<T> { // mutable string view
 	using Base			= typename StrViewT_Base<T>;
 	using const_pointer = typename Base::const_pointer;
 
@@ -417,6 +439,18 @@ class StrViewT : public StrViewT_Base<T> { // immutable string view
 
 public:
 	using size_type	= typename Base::size_type;
+	
+	using SplitResult = Pair<StrViewT<T>, StrViewT<T>>;
+	
+	using Base::begin;
+	using Base::end;
+	using Base::empty;
+	using Base::size;
+	using Base::find;
+	using Base::compare;
+	using Base::data;
+	using Base::front;
+	using Base::back;
 
 						constexpr StrViewT() = default;
 						constexpr StrViewT(const StrViewT& other)				 noexcept : Base(other) {}
@@ -428,30 +462,48 @@ public:
 
 	explicit operator bool() const { return !empty(); }
 
-	const T&	operator[]	(int i)		const	{ return at(i); }
-	const T&	at			(int i)		const	{ _checkBound(i); return mpBegin[i]; }
-	const T&	unsafe_at	(int i)		const	{ return mpBegin[i]; }
-	 	  T*	tryAt(int i)					{ return inBound(i) ? &mpBegin[i] : nullptr; }
-	const T*	tryAt(int i)			const	{ return inBound(i) ? &mpBegin[i] : nullptr; }
-	const T&	back		(int i = 0)	const	{ return at(mnCount - i - 1); }
-	const T&	unsafe_back	(int i = 0)	const	{ unsafe_at(mnCount - i - 1); }
+	
+	Span<      T> span()			{ return Span<      T>(begin(), end()); }
+	Span<const T> span() const		{ return Span<const T>(begin(), end()); }
+	
+	const 	T&		operator[]	(int i)		const	{ return at(i); }
+	const 	T&		at			(int i)		const	{ _checkBound(i); return mpBegin[i]; }
+	const 	T&		unsafe_at	(int i)		const	{ return mpBegin[i]; }
+	 	  	T*		tryAt		(int i)				{ return inBound(i) ? &mpBegin[i] : nullptr; }
+	const 	T*		tryAt		(int i)		const	{ return inBound(i) ? &mpBegin[i] : nullptr; }
+	const 	T&		back		(int i = 0)	const	{ return at(mnCount - i - 1); }
+	const 	T&		unsafe_back	(int i = 0)	const	{ return unsafe_at(mnCount - i - 1); }
 
-			bool inBound(int i)			const	{ return i >= 0 && i < mnCount; }
+			bool	inBound		(int i)		const	{ return i >= 0 && i < mnCount; }
 
 	StrViewT<T> extractFromPrefix(StrViewT prefix) const {
 		return starts_with(prefix) ? sliceFrom(prefix.size()) : StrViewT();
 	}
 
-	StrViewT<T> sliceFrom(int offset)			const { return slice(offset, mnCount - offset); }
-	StrViewT<T> sliceBack(int offset)			const { return slice(mnCount - offset, offset); }
-	StrViewT<T> sliceFromAndBack(int offset)	const { return slice(offset, mnCount - offset - offset); }
+	StrViewT<T> sliceFrom(Int offset)			const { return slice(offset, mnCount - offset); }
+	StrViewT<T> sliceBack(Int offset)			const { return slice(mnCount - offset, offset); }
+	StrViewT<T> sliceFromAndBack(Int offset)	const { return slice(offset, mnCount - offset - offset); }
 
-	StrViewT<T> slice(int offset, int size) const {
-		if (offset < 0 || size < 0 || offset + size > mnCount)
+	StrViewT<T> slice(Int offset, Int size) const {
+		if (offset < 0 || size < 0 || offset + size > static_cast<Int>(mnCount)) // Warning C4018 : '>': signed/unsigned mismatch
 			throw std::out_of_range("StrViewT::slice");
 		return StrViewT(begin() + offset, size);
 	}
 
+	SplitResult splitByIndex (Opt<int> index, Int separatorSize);
+	
+	Opt<Int>  find	  (StrViewT str, StrCase sc);
+	Opt<Int>  findBack(StrViewT str, StrCase sc);
+	
+	CmpResult compare (StrViewT r, StrCase sc) noexcept;
+	
+	constexpr SplitResult split(StrViewT str, StrCase sc = StrCase::Sensitive) {
+		return splitByIndex(find(str, sc), str.size());
+	}
+	constexpr SplitResult splitBack(StrViewT str, StrCase sc = StrCase::Sensitive) {
+		return splitByIndex(findBack(str, sc), str.size());
+	}
+	
 private:
 	void _checkBound(int i) const {
 		if (!inBound(i))
@@ -459,6 +511,84 @@ private:
 	}
 }; // StrViewT
 
+template<class T> AXE_INLINE
+auto StrViewT<T>::splitByIndex(Opt<int> index, Int separatorSize) -> SplitResult {
+	using Size_T = decltype(separatorSize);
+	if (empty() || !index || index.value() < 0) {
+		return Pair_make( *this, SplitResult::second_type() );
+	} else if (index.value() >= size()) {
+		return Pair_make( SplitResult::second_type(), *this );
+	} else {
+		Size_T second = ::eastl::min(index.value() + separatorSize, static_cast<Size_T>(size()));
+		return Pair_make( slice(0, index.value()), sliceFrom(second) );
+	}
+}
+
+template<class T> AXE_INLINE
+Opt<Int> StrViewT<T>::find(StrViewT<T> str, StrCase sc) {
+	Int sliceSize = str.size();
+	if (sliceSize > static_cast<Int>(size())) return eastl::nullopt; // Warning C4018 : '>': signed/unsigned mismatch
+	Int loop = size() - str.size() + 1;
+	for (Int i = 0; i < loop; ++i) {
+		auto ret = slice(i, sliceSize).compare(str, sc);
+		if (ret == CmpResult::Equal) {
+			return i;
+		}
+	}
+	return eastl::nullopt;
+}
+
+template<class T> AXE_INLINE
+Opt<Int> StrViewT<T>::findBack(StrViewT<T> str, StrCase sc) {
+	Int sliceSize = str.size();
+	if (sliceSize > static_cast<Int>(size())) return eastl::nullopt; // Warning C4018 : '>': signed/unsigned mismatch
+	Int loop = size() - str.size() + 1;
+	static_assert(std::is_signed_v<Int>);
+	for (Int i = loop - 1; i >= 0; --i) {
+		auto ret = slice(i, sliceSize).compare(str, sc);
+		if (ret == CmpResult::Equal) {
+			return i;
+		}
+	}
+	return eastl::nullopt;
+}
+
+template<class T> AXE_INLINE
+CmpResult StrViewT<T>::compare(StrViewT<T> r, StrCase sc) noexcept {
+	auto funcSensitive = [&](const T& a, const T& b) -> CmpResult {
+		auto diff = a - b;
+		return CmpResult_fromInt(diff);
+	};
+	auto isUpper = [&](const T& ch) -> bool {
+		return ch >= 'A' && ch <= 'Z';
+	};
+	auto toLower = [&](const T& ch) -> T {
+		return isUpper(ch) ? (ch - 'A' + 'a') : ch;
+	};
+	auto funcIgnored = [&](const T& a_, const T& b_) -> CmpResult {
+		auto a = toLower(a_);
+		auto b = toLower(b_);
+		return funcSensitive(a, b);
+	};
+	
+	if (size() == 0 && r.size() == 0) return CmpResult::Equal;
+	if (size() == r.size() && r.data() == data()) return CmpResult::Equal;
+	
+	Int n = eastl::min(size(), r.size());
+	const T* p0 = data();
+	const T* p1 = r.data();
+
+	for (Int i = 0; i < n; ++p0, ++p1, i++) {
+		CmpResult res;
+		if (sc == StrCase::Ignore) {
+			res = funcIgnored(*p0, *p1);
+		} else {
+			res = funcSensitive(*p0, *p1);
+		}
+		if (res != CmpResult::Equal) return res;
+	}
+	return CmpResult_fromInt(size() - r.size());
+}
 
 using StrViewA  = StrViewT<Char8>;
 using StrViewW  = StrViewT<CharW>;
@@ -491,6 +621,13 @@ public:
 	using Base::npos;
 	using Base::append;
 	using Base::assign;
+	using Base::copy;
+	
+	using Base::begin;
+	using Base::end;
+	using Base::empty;
+	using Base::data;
+	using Base::size;
 
 						StringT() = default;
 						StringT(const T* begin, const T* end)	noexcept : Base(begin, end) {}
@@ -505,7 +642,7 @@ public:
 	explicit operator bool() const { return !Base::empty(); }
 
 						void operator= (const StringT& s)		{ Base::assign(s.data(), s.size()); }
-	template<size_t N>	void operator= (const StringT<T, N>& r)	{ Base::assign(s.data(), s.size()); }
+	template<size_t N>	void operator= (const StringT<T, N>& s)	{ Base::assign(s.data(), s.size()); }
 	template<class R>	void operator= (R&& r)					{ Base::operator=(AXE_FORWARD(r)); }
 
 						void operator+=(StrViewT s)				{ Base::append(s.begin(), s.end()); }
@@ -526,8 +663,7 @@ public:
 		if (!n) return;
 		for (size_t i = 0; i < n; ++i) {
 			const auto& sv = views[i];
-			if (sv)
-				append(sv);
+			if (sv) append(sv);
 		}
 	}
 
@@ -566,6 +702,10 @@ public:
 	}
 
 	void resizeToLocalBufSize() { Base::resize(N); }
+	
+	static This s_make(const T* sz) {
+		return This(StrView_c_str(sz));
+	}
 }; // StringT
 
 
@@ -684,6 +824,82 @@ template <int N>		 using IndexSequence_make = typename IntSequence_make<N>;
 template <typename... T> using IndexSequenceFor	  = typename IndexSequence_make<sizeof...(T)>;
 
 template <class... ARGS> using TupleT_Base = typename ::eastl::tuple<ARGS...>;
+template <class... ARGS> class Tuple;
+
+template<
+	class TUPLE0, int... INDEX0,
+	class TUPLE1, int... INDEX1
+> AXE_INLINE constexpr
+auto Tuple_join_helper(	const TUPLE0& t0, const IntSequence<INDEX0...>&,
+						const TUPLE1& t1, const IntSequence<INDEX1...>&)
+{
+	return Tuple_make(
+		t0.template get<INDEX0>() ...,
+		t1.template get<INDEX1>() ...
+	);
+}
+
+template<class TUPLE0, class TUPLE1>
+AXE_INLINE constexpr
+auto Tuple_join(const TUPLE0& t0, const TUPLE1& t1) {
+	return Tuple_join_helper(t0, IntSequence_make<TUPLE0::kSize>(),
+							 t1, IntSequence_make<TUPLE1::kSize>());
+}
+
+template<class...T> struct Tuple_JoinType_Helper;
+
+template<
+	class TUPLE0, Int... INDEX0,
+	class TUPLE1, Int... INDEX1
+>
+struct Tuple_JoinType_Helper<	TUPLE0, IntSequence<INDEX0...>, 
+								TUPLE1, IntSequence<INDEX1...> >
+{
+	using Type = Tuple<	typename TUPLE0::template Element<INDEX0> ...,
+						typename TUPLE1::template Element<INDEX1> ...
+						>;
+};
+
+template<class TUPLE0, class TUPLE1>
+struct Tuple_JoinType {
+	using Type = typename Tuple_JoinType_Helper<	TUPLE0, IntSequence_make<TUPLE0::kSize>,
+													TUPLE1, IntSequence_make<TUPLE1::kSize>
+													>::Type;
+};
+
+template<class TUPLE, class FUNC, Int N>
+struct Tuple_ForEach {
+	static void onEach(TUPLE* tuple, FUNC func) {
+		static constexpr Int index = N-1;
+		static_assert(index >= 0 && index < TUPLE::kSize);
+
+		Tuple_ForEach<TUPLE, FUNC, index>::onEach(tuple, func);
+		func(index, tuple->template get<index>());
+	}
+};
+template<class TUPLE, class FUNC> 
+struct Tuple_ForEach<TUPLE, FUNC, 0> { static void onEach(TUPLE* tuple, FUNC h) {} };
+
+template<class TUPLE, class HANDLER, Int N, class... ARGS>
+struct Tuple_ForEachType {
+	static void onEach(ARGS&&... args) {
+		if constexpr (TUPLE::kSize <= 0) {
+			return;
+		} else {
+			static constexpr Int index = N-1;
+			static_assert(index >= 0 && index < TUPLE::kSize);
+
+			using Elem = typename TUPLE::template Element<index>;
+
+			if constexpr (index > 0) {
+				Tuple_ForEachType<TUPLE, HANDLER, index, ARGS...>::onEach(AXE_FORWARD(args)...);
+			}
+
+			HANDLER::template onEach<index, Elem>(AXE_FORWARD(args)...);
+		}
+	}
+};
+
 template <class... ARGS>
 class Tuple : public TupleT_Base<ARGS...> {
 	using This = Tuple;
@@ -698,10 +914,9 @@ public:
 	template<int INDEX> using Element = typename ::eastl::tuple_element<INDEX, Base>::type;
 	template<int INDEX, class T = Element<INDEX>> AXE_INLINE constexpr       T& get()				{ return ::eastl::get<INDEX>(*this); }
 	template<int INDEX, class T = Element<INDEX>> AXE_INLINE constexpr const T& get() const			{ return ::eastl::get<INDEX>(*this); }
-	template<int INDEX, class T = Element<INDEX>> AXE_INLINE constexpr       T  getValue() const	{ return ::eastl::get<INDEX>(*this); }
 
-	template<class FUNC>	constexpr void forEach(FUNC& h)					{ UnrollHelper<      This, FUNC, kSize>::call(this, h); }
-	template<class FUNC>	constexpr void forEach(FUNC&& h) const			{ UnrollHelper<const This, FUNC, kSize>::call(this, h); }
+	//template<class FUNC>	constexpr void forEach(FUNC& h)					{ UnrollHelper<      This, FUNC, kSize>::call(this, h); } // TODO will remove later
+	//template<class FUNC>	constexpr void forEach(FUNC&& h) const			{ UnrollHelper<const This, FUNC, kSize>::call(this, h); } // TODO will remove later
 	template<class HANDLER> constexpr static void s_forEachType(HANDLER& h) { UnrollTypeHelper<HANDLER, kSize>::call(h); }
 
 	template<class FUNC>	constexpr void forEachReverse(FUNC& h)				   { UnrollHelperReverse<      This, FUNC, kSize>::call(this, h); }
@@ -710,6 +925,24 @@ public:
 
 	template<class TUPLE2> auto join(const TUPLE2& tuple2) const { return Tuple_join(*this, tuple2); }
 
+	template<class TUPLE2>
+	using JoinType = typename Tuple_JoinType<This, TUPLE2>::Type;
+	
+	template<class FUNC>
+	constexpr void forEach(FUNC func) {
+		Tuple_ForEach<This, FUNC, kSize>::onEach(this, func);
+	}
+
+	template<class FUNC>
+	constexpr void forEach(FUNC func) const {
+		Tuple_ForEach<const This, FUNC, kSize>::onEach(this, func);
+	}
+
+	template<class HANDLER, class... ARGS>
+	constexpr static void ForEachType(ARGS&&... args) {
+		Tuple_ForEachType<This, HANDLER, kSize, ARGS...>::onEach(AXE_FORWARD(args)...);
+	}
+	
 	void onFormat(fmt::format_context& ctx) const {
 		TempString s("Tuple[");
 		forEach([&s](auto index, const auto& value) {
@@ -780,26 +1013,6 @@ private:
 template <class... ARGS> AXE_NODISCARD
 AXE_INLINE constexpr auto Tuple_make(ARGS&&... args) {
 	return Tuple<ARGS...>(AXE_FORWARD(args)...);
-}
-
-template<
-	class TUPLE0, int... INDEX0,
-	class TUPLE1, int... INDEX1
-> AXE_INLINE constexpr
-auto Tuple_join_helper(	const TUPLE0& t0, const IntSequence<INDEX0...>&,
-						const TUPLE1& t1, const IntSequence<INDEX1...>&)
-{
-	return Tuple_make(
-		t0.template getValue<INDEX0>() ...,
-		t1.template getValue<INDEX1>() ...
-	);
-}
-
-template<class TUPLE0, class TUPLE1>
-AXE_INLINE constexpr
-auto Tuple_join(const TUPLE0& t0, const TUPLE1& t1) {
-	return Tuple_join_helper(t0, IntSequence_make<TUPLE0::kSize>(),
-							 t1, IntSequence_make<TUPLE1::kSize>());
 }
 
 } // namespace axe
@@ -1025,27 +1238,6 @@ private:
 
 template <class START_FUNC, class END_FUNC> AXE_NODISCARD AXE_INLINE auto ScopedAction_make(START_FUNC&& st, END_FUNC&& ed) {
 	return ScopedAction(AXE_FORWARD(st), AXE_FORWARD(ed));
-}
-
-template<class First, class Second>
-class Pair {
-	Pair() = delete;
-public:
-	constexpr Pair(const First& first_, const Second& second_) noexcept
-		: first(first_), second(second_) {}
-	constexpr Pair(First&& first_, Second&& second_) noexcept
-		: first(AXE_MOVE(first_)), second(AXE_MOVE(second_)) {}
-
-	First	first;
-	Second	second;
-}; // Pair
-
-template<class First, class Second> AXE_NODISCARD inline Pair<First, Second> Pair_make(const First& first, const Second& second) {
-	return Pair<First, Second>(first, second);
-}
-
-template<class First, class Second = typename First> AXE_NODISCARD inline Pair<First, Second> Pair_make() {
-	return Pair<First, Second>(First(), Second());
 }
 
 } // namespace axe

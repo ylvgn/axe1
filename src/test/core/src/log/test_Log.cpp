@@ -13,7 +13,7 @@ public:
 	}
 
 	void _wrapFuncToRunOnce_AXE_TODO(int& AXE_TODO_calledCount) {
-		AXE_TODO("{} - {}", ++AXE_TODO_calledCount, AXE_FUNC_NAME_SZ);
+		AXE_TODO("{} - {}", ++AXE_TODO_calledCount, AXE_FUNC_NAME);
 	}
 
 	void test_AXE_WARN_ONCE() {
@@ -32,7 +32,7 @@ public:
 	}
 
 	void _wrapFuncToRunOnce_AXE_WARN_ONCE(int& AXE_WARN_ONCE_calledCount) {
-		AXE_WARN_ONCE("{} - {}", ++AXE_WARN_ONCE_calledCount, AXE_FUNC_NAME_SZ);
+		AXE_WARN_ONCE("{} - {}", ++AXE_WARN_ONCE_calledCount, AXE_FUNC_NAME);
 	}
 }; // Test_Log
 

@@ -27,7 +27,7 @@ public:
 #pragma mark ========= SwapChain_DX12 ============
 #endif
 class SwapChain_DX12 : public RenderSwapChain {
-	AXE_CLASS_TYPE(SwapChain_DX12, RenderSwapChain)
+	AXE_RTTI_INFO(SwapChain_DX12, RenderSwapChain)
 	using Format = SwapChain_DX12__Format;
 	using Util = DX12Util;
 public:

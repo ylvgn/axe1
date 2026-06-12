@@ -13,7 +13,7 @@
 namespace axe {
 
 void run_temp_test() {
-	RUN_TEST(test_Rect2);
+	RUN_TEST(test_Rtti);
 }
 
 void run_all_test() {
@@ -47,6 +47,8 @@ void run_all_test() {
 	RUN_TEST(test_Socket);
 // pointer
 	RUN_TEST(test_WPtr);
+// reflection
+	RUN_TEST(test_Rtti);
 }
 
 int test_main() {

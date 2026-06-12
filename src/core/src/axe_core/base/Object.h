@@ -5,16 +5,13 @@
 
 namespace axe {
 
-class Object : public RefCountBase, public TypeInfo {
-	AXE_CLASS_TYPE(Object, TypeInfo)
+class Object : public RttiObject {
+	AXE_RTTI_INFO(Object, RttiObject)
 public:
-	virtual ~Object() = default;
-
-	void		setDebugName(StrView debugName)	{ _debugName.assign(debugName); }
-	StrView		debugName	() const			{ return _debugName; }
-
-private:
-	TempString _debugName;
+	void		setName(StrView name_)	{ _name.assign(name_); }
+	StrView		name	() const		{ return _name; }
+protected:
+	TempString _name;
 }; // Object
 
 } // namespace axe

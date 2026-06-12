@@ -5,17 +5,6 @@
 
 namespace axe {
 
-const TypeInfo* GpuBuffer_DX12::s_getType() {
-	class TI : public TI_Base {
-	public:
-		TI() {
-			AXE_TODO("");
-		}
-	};
-	static TI ti;
-	return &ti;
-}
-
 void GpuBuffer_DX12::onCreate(const CreateDesc& desc)  {
 	//if (desc.bufferSize <= 0)	AXE_THROW_ERROR("buffer size = 0");
 	//if (desc.stride <= 0)		AXE_THROW_ERROR("stride == 0");

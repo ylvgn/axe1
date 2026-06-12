@@ -15,7 +15,7 @@ public:
 
 
 class RenderGpuBuffer : public RenderResource {
-	AXE_ABSTRACT_CLASS_TYPE(RenderGpuBuffer, RenderResource)
+	AXE_RTTI_INFO(RenderGpuBuffer, RenderResource)
 public:
 	using Type		 = RenderGpuBufferType;
 	using CreateDesc = RenderGpuBuffer_CreateDesc;

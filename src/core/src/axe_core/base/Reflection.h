@@ -1,91 +1,162 @@
 #pragma once
 
 #include "axe_base.h"
+#include <axe_core/pointer/SPtr.h>
 #include <axe_core/log/Log.h>
 
-#define AXE_DOWNCAST_GET_INSTANCE() \
-	AXE_INLINE static This* s_instance() { return static_cast<This*>(Base::s_instance()); }
-//----
-
-#define AXE_RTTI_CLASS_COMMON__NOBASE_IMPL(T) \
-private:\
-	using This = T; \
-public: \
-	static const TypeInfo* s_getType(); \
-	AXE_INLINE virtual const TypeInfo* getType() const { return s_getType(); } \
-//----
-
-#define AXE_RTTI_CLASS_COMMON__BASE_IMPL(T, BASE) \
-private:\
-	using This = T; \
-	using Base = BASE; \
-public: \
-	static const TypeInfo* s_getType(); \
-	AXE_INLINE virtual const TypeInfo* getType() const override { return s_getType(); } \
-//----
-
-#define AXE_RTTI_CLASS_COMMON_SELECT(COUNT) AXE_RTTI_CLASS_COMMON_ ## COUNT
-#define AXE_RTTI_CLASS_COMMON_1(T)			AXE_RTTI_CLASS_COMMON__NOBASE_IMPL(T)
-#define AXE_RTTI_CLASS_COMMON_2(T, BASE)	AXE_RTTI_CLASS_COMMON__BASE_IMPL(T, BASE)
-#define AXE_RTTI_CLASS_COMMON(...)			AXE_IDENTITY(AXE_CALL(AXE_RTTI_CLASS_COMMON_SELECT, AXE_VA_ARGS_COUNT(__VA_ARGS__)(__VA_ARGS__)))
-//----
-
-#define AXE_ABSTRACT_CLASS_TYPE__NOBASE_IMPL(T) \
-	AXE_RTTI_CLASS_COMMON(T) \
-	class TI_Base : public TypeInfoInitNoBase<T> { \
-	public: \
-		TI_Base() : TypeInfoInitNoBase<T>(#T) {} \
-	}; \
-private: \
-//----
-
-#define AXE_ABSTRACT_CLASS_TYPE__BASE_IMPL(T, BASE) \
-	AXE_RTTI_CLASS_COMMON(T, BASE) \
-	class TI_Base : public TypeInfoInit<T, BASE> { \
-	public: \
-		TI_Base() : TypeInfoInit<T, BASE>(#T, nullptr) {} \
-	}; \
-private: \
-//----
-
-#define AXE_ABSTRACT_CLASS_TYPE_SELECT(COUNT) AXE_ABSTRACT_CLASS_TYPE_ ## COUNT
-#define AXE_ABSTRACT_CLASS_TYPE_1(T)		  AXE_ABSTRACT_CLASS_TYPE__NOBASE_IMPL(T)
-#define AXE_ABSTRACT_CLASS_TYPE_2(T, BASE)	  AXE_ABSTRACT_CLASS_TYPE__BASE_IMPL(T, BASE)
-#define AXE_ABSTRACT_CLASS_TYPE(...)		  AXE_IDENTITY(AXE_CALL(AXE_ABSTRACT_CLASS_TYPE_SELECT, AXE_VA_ARGS_COUNT(__VA_ARGS__)(__VA_ARGS__)))
-//----
-
-#define AXE_CLASS_TYPE__NOBASE_IMPL(T) \
-	AXE_RTTI_CLASS_COMMON(T) \
-	class TI_Base : public TypeInfoInitNoBase<T> { \
-	public: \
-		TI_Base() : TypeInfoInitNoBase<T>(#T) {} \
-	}; \
-private: \
-//----
-
-#define AXE_CLASS_TYPE__BASE_IMPL(T, BASE) \
-	AXE_RTTI_CLASS_COMMON(T, BASE) \
-	class TI_Base : public TypeInfoInit<T, BASE> { \
-	public: \
-		TI_Base() : TypeInfoInit<T, BASE>(#T, &TypeCreator<T>) {} \
-	}; \
-private: \
-//----
-
-#define AXE_CLASS_TYPE_SELECT(COUNT) AXE_CLASS_TYPE_ ## COUNT
-#define AXE_CLASS_TYPE_1(T)			 AXE_CLASS_TYPE__NOBASE_IMPL(T)
-#define AXE_CLASS_TYPE_2(T, BASE)	 AXE_CLASS_TYPE__BASE_IMPL(T, BASE)
-#define AXE_CLASS_TYPE(...)			 AXE_IDENTITY(AXE_CALL(AXE_CLASS_TYPE_SELECT, AXE_VA_ARGS_COUNT(__VA_ARGS__)(__VA_ARGS__)))
-//----
-
-
 namespace axe {
+
+template<class T> inline constexpr
+StrViewA axe_metatype_get_class_name() {
+	auto* sig = AXE_FUNC_SIG;
+	auto src = StrView_c_str(sig);
+
+#if AXE_COMPILER_VC
+	auto pair = src.split("axe_metatype_get_class_name<");
+	pair = pair.second.splitBack(">(void)");
+	return pair.first;
+#else
+	auto pair = src.split("axe_metatype_get_class_name() [T = ");
+	pair = pair.second.splitBack("]");
+	return pair.first;
+#endif
+}
+
+struct IMetaTypeInit : public NonCopyable {
+	IMetaTypeInit() = delete;
+	//static NameId s_name() { return NameId(); } // TODO NameId::s_make
+	static const char* s_name() { return nullptr; }
+	using OwnFields = Tuple<>;
+	using OwnAttrs  = Tuple<>;
+};
+
+struct NoBaseClass {
+	NoBaseClass() = delete;
+};
+
+template<class T, class ENABLE = void>
+struct BaseClassOf_Handler_ {
+	using Type = typename T::_TYPE_INFO_Base;
+};
+template<class T>
+struct BaseClassOf_Handler_ <T, enable_if_t<is_fundamental_v<T>> > {
+	using Type = NoBaseClass;
+};
+template<class T> using BaseClassOf = typename BaseClassOf_Handler_<T>::Type;
+
+
+template<class T>
+struct MetaTypeInit_Handler_ {
+	using MetaTypeInit = typename T::MetaTypeInit;
+};
+
+template<>
+struct MetaTypeInit_Handler_<NoBaseClass> {
+	using MetaTypeInit = IMetaTypeInit;
+};
+
+struct MetaAttr {
+	static StrView	name() { return "MetaAttr"; }
+};
+struct MetaFieldBase : public NonCopyable {
+	MetaFieldBase() = delete;
+	using OwnFields = Tuple<>;
+};
 
 class Object;
 class TypeInfo;
 
-template<class T> inline const TypeInfo* TypeOf()			{ return T::s_getType(); }
-template<class T> inline const TypeInfo* TypeOf(const T& v) { return TypeOf<T>(); }
+// use for declare out of class
+template<class T> struct MutRttiInit_;
+template<class T> struct MutRttiInit_FromMetaType_;
+template<class T> struct MetaTypeInit_Helper_;
+
+template<> struct MutRttiInit_FromMetaType_<NoBaseClass> {}; 
+
+template<class T>
+struct FinalMetaTypeOf_Handler_ {
+	//using NameId = const char*; // TODO NameId::s_make
+	
+	using ObjThis                    = T;
+	using ObjBase                    = BaseClassOf<T>;
+	using Base_Handler               = FinalMetaTypeOf_Handler_<ObjBase>;
+	using Base_MetaTypeInit          = typename MetaTypeInit_Handler_<ObjBase>::MetaTypeInit;
+	using Base_FinalMetaType         = typename Base_Handler::FinalMetaType;
+	using Base_AllFields             = typename Base_FinalMetaType::AllFields;
+	using Base_AllAttrs              = typename Base_FinalMetaType::AllAttrs;
+	using Potential_MetaTypeInit     = typename MetaTypeInit_Handler_<ObjThis>::MetaTypeInit;
+	static constexpr bool hasOwnInit = !is_same_v<Potential_MetaTypeInit, Base_MetaTypeInit>;
+
+	struct Empty_MetaTypeInit : public MetaTypeInit_Helper_<ObjBase> {};
+
+	using MetaTypeInit = conditional_t<hasOwnInit, Potential_MetaTypeInit, Empty_MetaTypeInit>;
+	using OwnFields    = typename MetaTypeInit::OwnFields;
+	using OwnAttrs     = typename MetaTypeInit::OwnAttrs;
+	
+	struct FinalMetaType : public MetaTypeInit {
+		//---- Combine all ---
+		using AllFields = typename Base_AllFields::template JoinType<OwnFields>;
+		using AllAttrs  = typename Base_AllAttrs ::template JoinType<OwnAttrs >;
+	};
+};
+template<>
+struct FinalMetaTypeOf_Handler_<NoBaseClass> {
+	struct FinalMetaType : IMetaTypeInit {
+		using AllFields = Tuple<>;
+		using AllAttrs  = Tuple<>;
+	};
+};
+
+template<class T> using MetaTypeOf			= typename FinalMetaTypeOf_Handler_<T>::FinalMetaType;
+
+template<class T>
+struct MetaTypeInit_Helper_ : public MetaTypeOf< BaseClassOf<T> > {
+	using ObjThis = T;
+	using ObjBase = typename T::_TYPE_INFO_Base;
+	static const char* s_name() { // TODO NameId::s_make
+		static TempString s;
+		if (s.empty()) {
+			auto view = axe_metatype_get_class_name<T>();
+			s.assign(view);
+		}
+		return s.c_str();
+	}
+	
+	using OwnFields = Tuple<>;
+	using OwnAttrs  = Tuple<>;
+};
+
+template<class RTTI_INIT>
+struct RttiInit_Make : public RTTI_INIT {
+	RttiInit_Make() {
+		if (auto* p = this->base) { //auto* base = RTTI_INIT::base; // TypeInfo::base
+			this->allFields.reserve(p->allFields.size() + this->ownFields.size());
+			this->allFields.appendRange(p->allFields);
+		}
+		for (auto* field : this->ownFields) {
+			this->allFields.emplace_back(field);
+		}
+	}
+};
+
+template<class T>
+struct Rtti_Handler_ {
+	static TypeInfo* s_rtti() {
+		static_assert(!is_const_v<T>);
+		static_assert(!is_reference_v<T>);
+		static_assert(!is_pointer_v<T>);
+		
+		static RttiInit_Make<MutRttiInit_FromMetaType_<T>> s;
+		return &s;
+	}
+};
+
+template<> struct Rtti_Handler_<NoBaseClass> {
+	static TypeInfo* s_rtti() { return nullptr; }
+};
+
+template<class T> TypeInfo* rttiOf() { return Rtti_Handler_<remove_cv_t<T>>::s_rtti(); } // template<class T> inline const TypeInfo* TypeOf() { return T::s_getType(); }
+template<class T> inline const TypeInfo* rttiOf(const T& v) { return rttiOf<T>(); }
 
 #if 0
 #pragma mark ========= FieldInfo ============
@@ -94,25 +165,27 @@ class FieldInfo {
 public:
 	using Getter = const void* (*)(const void* obj);
 	using Setter = void (*)(void* obj, const void* value);
-
+#if 1 // simple for now
+	FieldInfo() = default;
+#else	 // TODO will remove later
 	template<class OBJ, class FIELD>
 	FieldInfo(	const char* name_,
 				FIELD OBJ::* ptr_,
 				const FIELD& (*getter_)(const OBJ& obj) = nullptr,
 				void (*setter_)(OBJ& obj, const FIELD& field) = nullptr)
 		: name(name_)
-		, fieldType(TypeOf<FIELD>())
+		, fieldType(rttiOf<FIELD>())
 		, offset(memberOffset(ptr_))
 		, getter(reinterpret_cast<Getter>(getter_))
 		, setter(reinterpret_cast<Setter>(setter_))
 	{}
-
-		  void* getValuePtr(      void* obj) const { return reinterpret_cast<      u8*>(obj) + offset; }
-	const void* getValuePtr(const void* obj) const { return reinterpret_cast<const u8*>(obj) + offset; }
+#endif
+		  void* getValuePtr(      void* obj) const { return reinterpret_cast<      u8*>(obj) + offset; } // TODO may use new handle
+	const void* getValuePtr(const void* obj) const { return reinterpret_cast<const u8*>(obj) + offset; } // TODO may use new handle
 
 	template<class T>
-	const T& getValue(const void* obj) const {
-		AXE_ASSERT(TypeOf<T>() == fieldType);
+	const T& getValue(const void* obj) const { // TODO may use new handle
+		AXE_ASSERT(rttiOf<T>() == fieldType);
 		if (getter) {
 			return *reinterpret_cast<const T*>(getter(obj));
 		} else {
@@ -121,8 +194,8 @@ public:
 	}
 
 	template<class T>
-	void setValue(void* obj, const T& value) const {
-		AXE_ASSERT(TypeOf<T>() == fieldType);
+	void setValue(void* obj, const T& value) const { // TODO may use new handle
+		AXE_ASSERT(rttiOf<T>() == fieldType);
 		if (setter) {
 			setter(obj, &value);
 		} else {
@@ -132,11 +205,15 @@ public:
 
 	void onFormat(fmt::format_context& ctx) const;
 
-	const char* name			= "";
+	const TypeInfo*	fieldOwner	= nullptr;
 	const TypeInfo* fieldType	= nullptr;
-	intptr_t offset				= 0;
-	Getter getter				= nullptr;
-	Setter setter				= nullptr;
+	
+	TempString name; //const char* name			= ""; TODO NameId::s_make
+	intptr_t offset				= INT_MAX;
+	
+	Getter getter				= nullptr; // TODO may use new handle
+	Setter setter				= nullptr; // TODO may use new handle
+	
 }; // FieldInfo
 AXE_FORMATTER(FieldInfo)
 
@@ -144,10 +221,13 @@ AXE_FORMATTER(FieldInfo)
 #if 0
 #pragma mark ========= TypeInfo ============
 #endif
+using Rtti = TypeInfo; // TODO rename
 class TypeInfo {
 public:
 	using Creator = Object * (*)();
 
+	using InNameId = const char*; // TODO NameId::s_make
+	
 	virtual ~TypeInfo() = default;
 
 	Object* createObject() const {
@@ -166,69 +246,83 @@ public:
 
 	template<class DST> inline
 	bool isKindOf() const {
-		return isKindOf(TypeOf<DST>());
+		return isKindOf(rttiOf<DST>());
 	}
 
-	Span<const FieldInfo> fields() const { return _fields; }
+	Span<const FieldInfo* const> fields() const { return ownFields; }
 
 	void onFormat(fmt::format_context& ctx) const;
 
-	static const TypeInfo* s_getType();
-	AXE_INLINE virtual const TypeInfo* getType() const { return s_getType(); }
-
-	const char*		name = "";
+	TempString name; // const char*		name = ""; TODO NameId::s_make
 	const TypeInfo* base = nullptr;
-	const TypeInfo* elementType = nullptr;
-	Creator			creator;
-	size_t			dataSize = 0;
-	bool			isContainer = false;
 
-protected:
-	Span<const FieldInfo> _fields;
+	const TypeInfo* elementType = nullptr;	// TODO container type
+	Creator			creator;			 	// TODO container type
+	size_t			dataSize = 0;		 	// TODO container type
+	bool			isContainer = false; 	// TODO container type
+
+	void addField(InNameId name_, Rtti* fieldType_, Int offset_) {
+		AXE_ASSERT(ownFieldsDict.count(name_) == 0);
+		auto& field = ownFieldsDict[name_];
+		field.name		 = name_;
+		field.fieldOwner = this;
+		field.fieldType  = fieldType_;
+		field.offset     = offset_;
+		ownFields.emplace_back(&field);
+	}
+
+	template<class OBJ, class FIELD>
+	void addField(InNameId name_, FIELD OBJ::*ptrToField) {
+		addField(name_, rttiOf<FIELD>(), memberOffset(ptrToField));
+	}
+
+	Vector<const FieldInfo*>    allFields;
+	Vector<const FieldInfo*>	ownFields;
+	StringMap<FieldInfo>		ownFieldsDict;
 }; // TypeInfo
 AXE_FORMATTER(TypeInfo)
 
+class RttiObject : public RefCountBase {
+public:
+	RttiObject() = default;
+	virtual ~RttiObject() = default;
+	
+	AXE_META_TYPE(RttiObject, NoBaseClass) {};
+	
+	static  Rtti* s_rtti ()		{ return rttiOf<This>(); }
+	virtual Rtti* rtti() const 	{ return rttiOf<This>(); }
+};
 
 #if 0
-#pragma mark ========= TypeInfoInitNoBase ============
+#pragma mark ========= MutRttiInit_FromMetaType_ ============
 #endif
 template<class T>
-class TypeInfoInitNoBase : public TypeInfo {
-public:
-	TypeInfoInitNoBase(const char* name_) {
-		name = name_;
-		dataSize = sizeof(T);
-	}
+struct MutRttiInit_FromMetaType_ : public TypeInfo {
+	using ObjThis      = T;
+	using ObjBase      = BaseClassOf<T>;
 
-	template<size_t N>
-	void setFields(const FieldInfo(&fi)[N]) {
-		_fields = fi;
-	}
-}; // TypeInfoInitNoBase
+	using MetaType     = MetaTypeOf<T>;
+	using BaseMetaType = MetaTypeOf<ObjBase>;
 
-template<>
-class TypeInfoInitNoBase<void> : public TypeInfo {
-public:
-	TypeInfoInitNoBase(const char* name_) {
-		name = name_;
-		dataSize = 0;
-	}
-}; // TypeInfoInitNoBase<void>
+	static constexpr bool noBase = std::is_same_v<ObjBase, NoBaseClass>;
+	
+	struct OwnField_Handler {
+		template<Int Index, class Field>
+		static void onEach(MutRttiInit_FromMetaType_* rtti) {
+			rtti->addField(Field::s_name(), rttiOf<typename Field::FieldType>(), Field::s_offset());
+		}
+	};
 
-
-#if 0
-#pragma mark ========= TypeInfoInit ============
-#endif
-template<class T, class BASE>
-class TypeInfoInit : public TypeInfoInitNoBase<T> {
-	using This = TypeInfoInit;
-public:
-	TypeInfoInit(const char* name_, TypeInfo::Creator creator_) : TypeInfoInitNoBase<T>(name_) {
-		AXE_STATIC_ASSERT(is_base_of_v<BASE, T>);
-		base = TypeOf<BASE>();
-		this->creator = creator_;
+	MutRttiInit_FromMetaType_() {
+//		static_assert(Type_IsBaseOf<IMetaType, MetaType>, "MetaType must based on IMetaType");
+		this->base = rttiOf<ObjBase>();
+		auto view = axe_metatype_get_class_name<T>(); // TODO NameId::s_make
+		this->name.assign(view); // TODO template require is_convertible then use this->name = view; 
+		using OwnFields = typename MetaType::OwnFields;
+		this->ownFields.reserve(OwnFields::kSize);
+		OwnFields::template ForEachType<OwnField_Handler>(this);
 	}
-}; // TypeInfoInit
+};
 
 
 template <class T, class... ARGS> AXE_NODISCARD
@@ -239,44 +333,24 @@ inline static Object* TypeCreator(ARGS&&... args) {
 template <class DST> inline
 DST* axe_cast(Object* obj) {
 	if (!obj) return nullptr;
-	const auto* ti = TypeOf<DST>();
+	const auto* ti = rttiOf<DST>();
 	if (!ti) return nullptr;
 	if (!ti->isKindOf<DST>()) return nullptr;
 	return static_cast<DST*>(obj);
 };
 
-#define AXE_TYPEOF_PRIMITIVE(T) \
-	template<> const TypeInfo* TypeOf<T>();
-//----
-	AXE_TYPEOF_PRIMITIVE(void)
-
-	AXE_TYPEOF_PRIMITIVE(bool)
-
-	AXE_TYPEOF_PRIMITIVE(i8 )
-	AXE_TYPEOF_PRIMITIVE(i16)
-	AXE_TYPEOF_PRIMITIVE(i32)
-	AXE_TYPEOF_PRIMITIVE(i64)
-
-	AXE_TYPEOF_PRIMITIVE(u8 )
-	AXE_TYPEOF_PRIMITIVE(u16)
-	AXE_TYPEOF_PRIMITIVE(u32)
-	AXE_TYPEOF_PRIMITIVE(u64)
-
-	AXE_TYPEOF_PRIMITIVE(f32 )
-	AXE_TYPEOF_PRIMITIVE(f64 )
-	AXE_TYPEOF_PRIMITIVE(f128)
-
-	AXE_TYPEOF_PRIMITIVE(Char8 )
-	AXE_TYPEOF_PRIMITIVE(Char16)
-	AXE_TYPEOF_PRIMITIVE(Char32)
-	AXE_TYPEOF_PRIMITIVE(CharW )
-//----
-
-#define AXE_TYPEOF_PRIMITIVE_IMP(T, NAME) \
-	template<> const TypeInfo* TypeOf<T>() { \
-		static TypeInfoInitNoBase<T> ti(NAME); \
-		return &ti; \
-	} \
-//----
+AXE_META_TYPE_INIT_SIMPLE(void)
+AXE_META_TYPE_INIT_SIMPLE(bool)
+AXE_META_TYPE_INIT_SIMPLE(i8 )
+AXE_META_TYPE_INIT_SIMPLE(i16)
+AXE_META_TYPE_INIT_SIMPLE(i32)
+AXE_META_TYPE_INIT_SIMPLE(i64)
+AXE_META_TYPE_INIT_SIMPLE(u8 )
+AXE_META_TYPE_INIT_SIMPLE(u16)
+AXE_META_TYPE_INIT_SIMPLE(u32)
+AXE_META_TYPE_INIT_SIMPLE(u64)
+AXE_META_TYPE_INIT_SIMPLE(f32 )
+AXE_META_TYPE_INIT_SIMPLE(f64 )
+AXE_META_TYPE_INIT_SIMPLE(f128)
 
 } // namespace axe

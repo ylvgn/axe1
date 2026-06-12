@@ -22,7 +22,7 @@
 
 #define AXE_FILE StrView(__FILE__)
 #define AXE_LINE static_cast<int>(__LINE__)
-#define AXE_LOC	 SrcLoc(AXE_FUNC_NAME_SZ, __FILE__, __LINE__)
+#define AXE_LOC	 SrcLoc(AXE_FUNC_NAME, __FILE__, __LINE__)
 
 #if AXE_COMPILER_CLANG
 	#define AXE_LIFETIME_BOUND	[[clang::lifetimebound]]
@@ -73,13 +73,15 @@
 #define AXE_VA_ARGS_COUNT(...) AXE_IDENTITY( AXE_VA_ARGS_COUNT_INTERNAL(__VA_ARGS__, 32, 31, 30, 29, 28, 27, 26, 25, 24, 23, 22, 21, 20, 19, 18, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1) )
 #define AXE_VA_ARGS_COUNT_INTERNAL(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18, a19, a20, a21, a22, a23, a24, a25, a26, a27, a28, a29, a30, a31, COUNT, ...) COUNT
 
-//---- Log
+#if 0
+#pragma mark ========= Log begin ============
+#endif
 #define AXE_LOG(...)		do{ ::axe::Log::s_get()->write(axe::Log::Level::Info,    __VA_ARGS__); } while(false)
 #define AXE_LOG_WARN(...)	do{ ::axe::Log::s_get()->write(axe::Log::Level::Warning, __VA_ARGS__); } while(false)
 #define AXE_LOG_ERROR(...)	do{ ::axe::Log::s_get()->write(axe::Log::Level::Error,   __VA_ARGS__); } while(false)
 #define AXE_LOG_FLUSH()		do{ ::axe::Log::s_get()->flush(); } while(false)
 
-#define AXE_LOG_FUNC_NAME() AXE_LOG("FUNC {}", AXE_FUNC_FULLNAME_SZ)
+#define AXE_LOG_FUNC_NAME() AXE_LOG("FUNC {}", AXE_FUNC_SIG)
 
 #define AXE_WARN_ONCE(...)	do{ AXE_RUN_ONCE(::axe::Log::s_get()->write(::axe::Log::Level::Warning, __VA_ARGS__)); } while(false)
 
@@ -154,6 +156,10 @@
 	} while (false) \
 //----
 
+#if 0
+#pragma mark ========= Log end ============
+#endif
+
 #define AXE_CONCAT_1(v0)				v0
 #define AXE_CONCAT_2(v0, v1)			v0 ## v1
 #define AXE_CONCAT_3(v0, v1, v2)		v0 ## v1 ## v2
@@ -166,7 +172,6 @@
 #define AXE_UNIQUE_NAME(NAME) AXE_CONCAT(axeUNIQUE_NAME_##NAME, __LINE__)
 #define AXE_NO_NAME			  AXE_UNIQUE_NAME(Unnamed)
 
-// usage: please check 'test_AXE_RUN_ONCE'
 #define AXE_RUN_ONCE(EXPR)               \
 	do                                   \
 	{                                    \
@@ -209,7 +214,7 @@
 #define AXE_ASSERT_ONCE(...)		 AXE_RUN_ONCE(AXE_ASSERT_IMPL(__VA_ARGS__))
 #define AXE_ASSERT(expr)			 AXE_ASSERT_ONCE(expr, "", "---- ASSERT ----")
 #define AXE_FATAL_ASSERT(expr)		 AXE_ASSERT_ONCE(expr, "", "---- FATAL ASSERT ----", axe_force_crash())
-#define AXE_ASSERT_NOT_IMPLEMENTED() AXE_ASSERT_ONCE(false, AXE_FUNC_FULLNAME_SZ, "AXE_ASSERT_NOT_IMPLEMENTED");
+#define AXE_ASSERT_NOT_IMPLEMENTED() AXE_ASSERT_ONCE(false, AXE_FUNC_SIG, "AXE_ASSERT_NOT_IMPLEMENTED");
 
 #define AXE_VALIDATE(expr) ::axe::Error::s_validate(__FUNCTION__, __FILE__, __LINE__, expr, #expr, "")
 
@@ -302,6 +307,11 @@
 
 #define AXE_NAMED_IO(SE, V)	SE.named_io(#V, V)
 
+#define AXE_NON_COPYABLE(T) \
+	constexpr T(const T& s) = delete; \
+	constexpr void operator=(const T& s) = delete; \
+//----
+
 #define AXE_STATIC_ASSERT_NO_MEMBER_CLASS(T)  \
 	AXE_GCC_WARNING_PUSH_AND_DISABLE("-Wunused-private-field") \
 	class T##_Dummy : public T                \
@@ -311,3 +321,68 @@
 	AXE_GCC_WARNING_POP() \
 	AXE_STATIC_ASSERT(sizeof(T##_Dummy) == 1) \
 //----
+
+#define AXE_DOWNCAST_GET_INSTANCE() \
+	AXE_INLINE static This* s_instance() { return static_cast<This*>(Base::s_instance()); }
+//----
+
+#if 0
+#pragma mark ========= Rtti begin ============
+#endif
+#define AXE_TYPE_INFO(T, BASE) \
+private: \
+	using This = T; \
+	using Base = BASE; \
+public: \
+	using _TYPE_INFO_This = T; \
+	using _TYPE_INFO_Base = BASE; \
+private: \
+//----
+
+#define AXE_RTTI_INFO(T, BASE) \
+private: \
+	AXE_TYPE_INFO(T, BASE) \
+public: \
+	static  Rtti* s_rtti ()				{ return rttiOf<T>(); } \
+	virtual Rtti* rtti() const override	{ return rttiOf<T>(); } \
+private: \
+//----
+
+#define AXE_META_TYPE(T, BASE) \
+private: \
+	AXE_TYPE_INFO(T, BASE) \
+public: \
+	struct MetaTypeInit : public MetaTypeInit_Helper_<_TYPE_INFO_This> \
+//----
+
+#define AXE_META_TYPE_EX(T, BASE) \
+private: \
+	AXE_TYPE_INFO(T, BASE) \
+public: \
+	struct MetaTypeInit; \
+//----
+
+#define AXE_META_FIELD(V) \
+	struct _INIT_##V : public MetaFieldBase { \
+		using FieldType = decltype(_TYPE_INFO_This::V); \
+		/*static NameId s_name() { return NameId::s_make(#V); } TODO NameId::s_make */ \
+		static const char* s_name() { return #V; } \
+		static Int s_offset() { return ::axe::memberOffset(&_TYPE_INFO_This::V); } \
+	}; \
+	struct V :	public _INIT_##V
+//----
+
+#define AXE_META_TYPE_INIT_SIMPLE(T) \
+	template<> struct MetaTypeInit_Handler_<T> { \
+		struct MetaTypeInit : public IMetaTypeInit { \
+			using This = T; \
+			using Base = NoBaseClass; \
+			/*static NameId s_name() { static auto s = NameId::s_make(#T); return s; } TODO NameId::s_make */ \
+			static const char* s_name() { return #T; } \
+		}; \
+	}; \
+//----
+
+#if 0
+#pragma mark ========= Rtti end ============
+#endif

@@ -5,17 +5,6 @@
 
 namespace axe {
 
-const TypeInfo* RenderDevice::s_getType() {
-	class TI : public TI_Base {
-	public:
-		TI() {
-			name = "RenderDevice";
-			AXE_TODO("");
-		}
-	};
-	static TI ti;
-	return &ti;
-}
 
 RenderDevice_CreateDesc::RenderDevice_CreateDesc() noexcept
 	: adapterInfo(nullptr) 

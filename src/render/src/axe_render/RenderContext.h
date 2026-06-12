@@ -23,7 +23,7 @@ public:
 class RenderContext : public RenderDeviceObject {
 	using This = RenderContext;
 	using Base = RenderDeviceObject;
-	AXE_ABSTRACT_CLASS_TYPE(RenderContext, RenderDeviceObject)
+	AXE_RTTI_INFO(RenderContext, RenderDeviceObject)
 public:
 	using CreateDesc	= RenderContext_CreateDesc;
 	using EventHandler	= RenderContext_EventHandler;

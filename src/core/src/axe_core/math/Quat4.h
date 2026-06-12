@@ -204,7 +204,4 @@ Quat4<T> Quat4<T>::s_angleAxis(T rad, const Vec3& axis) {
 	return Quat4(axis.x * s, axis.y * s, axis.z * s, c);
 }
 
-template<> const TypeInfo* TypeOf<Quat4f>();
-template<> const TypeInfo* TypeOf<Quat4d>();
-
 } // namespace axe

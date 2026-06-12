@@ -7,18 +7,6 @@
 
 namespace axe {
 
-const TypeInfo* SwapChain_DX12::s_getType() {
-	class TI : public TI_Base {
-	public:
-		TI() {
-			name = "SwapChain_DX12";
-			AXE_TODO("");
-		}
-	};
-	static TI ti;
-	return &ti;
-}
-
 #if 0
 #pragma mark ========= Texture2D_GL__Format ============
 #endif

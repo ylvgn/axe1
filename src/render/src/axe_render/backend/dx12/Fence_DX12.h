@@ -12,7 +12,7 @@ namespace axe {
 #endif
 
 class Fence_DX12 : public RenderFence {
-	AXE_CLASS_TYPE(Fence_DX12, RenderFence)
+	AXE_RTTI_INFO(Fence_DX12, RenderFence)
 	using Util = DX12Util;
 public:
 	using Base::Base;

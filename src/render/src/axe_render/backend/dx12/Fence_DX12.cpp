@@ -8,17 +8,6 @@ namespace axe  {
 #if 0
 #pragma mark ========= Fence_DX12 ============
 #endif
-const TypeInfo* Fence_DX12::s_getType() {
-	class TI : public TI_Base {
-	public:
-		TI() {
-			name = "Fence_DX12";
-			AXE_TODO("");
-		}
-	};
-	static TI ti;
-	return &ti;
-}
 
 void Fence_DX12::create(Device_DX12* device) {
 	AXE_ASSERT(device);

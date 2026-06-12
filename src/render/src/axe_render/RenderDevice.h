@@ -17,7 +17,7 @@ public:
 
 
 class RenderDevice : public RenderDeviceObject {
-	AXE_ABSTRACT_CLASS_TYPE(RenderDevice, RenderDeviceObject)
+	AXE_RTTI_INFO(RenderDevice, RenderDeviceObject)
 public:
 	using CreateDesc = RenderDevice_CreateDesc;
 

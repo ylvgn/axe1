@@ -5,7 +5,7 @@
 namespace axe {
 
 class RenderFence : public RenderDeviceObject {
-	AXE_ABSTRACT_CLASS_TYPE(RenderFence, RenderDeviceObject)
+	AXE_RTTI_INFO(RenderFence, RenderDeviceObject)
 public:
 	using Base::Base;
 

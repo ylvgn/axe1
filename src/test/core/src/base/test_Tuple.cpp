@@ -8,7 +8,7 @@ public:
 
 	struct ForEachType_Handler {
 		void _todo() {
-			AXE_TODO("AXE_DUMP_VAR(index, TypeOf<Field>()->name)")
+			AXE_TODO("AXE_DUMP_VAR(index, rttiOf<Field>()->name)")
 		}
 
 		template <int index, class Field>
