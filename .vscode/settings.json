@@ -1,0 +1,17 @@
+{
+	"dotnet.defaultSolution": "disable",
+	"cmake.useCMakePresets": "always",
+
+	"files.exclude": {
+		"**/_build": true,
+		"**/externals/_vcpkg": true,
+		"**/deploy/_bin": true,
+
+		"**/deploy/Test101/Assets/Mesh": true,
+		"**/deploy/Test101/Assets/Textures": true,
+		"**/deploy/Test101/Assets/Scenes": true,
+	},
+	"search.exclude": {
+//		"**/*.gitignore": true,
+	}
+}

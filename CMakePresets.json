@@ -1,0 +1,64 @@
+{
+    "version": 3,
+    "configurePresets": [
+        {
+            "name": "axe-x64-vs2022",
+            "generator": "Visual Studio 17 2022",
+            "binaryDir": "${sourceDir}/_build/vscode-x64-vs2022",
+            "cacheVariables": {
+                "CMAKE_CONFIGURATION_TYPES": "Debug;Release;RelWithDebInfo;MinSizeRel"
+            }
+        },
+		{
+            "name": "axe-x64-vs2026",
+            "generator": "Visual Studio 18 2026",
+            "binaryDir": "${sourceDir}/_build/vscode-x64-vs2026",
+            "cacheVariables": {
+                "CMAKE_CONFIGURATION_TYPES": "Debug;Release;RelWithDebInfo;MinSizeRel"
+            }
+        }
+    ],
+    "buildPresets": [
+        {
+            "name": "axe-x64-vs2022-Debug",
+            "configurePreset": "axe-x64-vs2022",
+            "configuration": "Debug"
+        },
+        {
+            "name": "axe-x64-vs2022-Release",
+            "configurePreset": "axe-x64-vs2022",
+            "configuration": "Release"
+        },
+        {
+            "name": "axe-x64-vs2022-RelWithDebInfo",
+            "configurePreset": "axe-x64-vs2022",
+            "configuration": "RelWithDebInfo"
+        },
+		{
+            "name": "axe-x64-vs2022-MinSizeRel",
+            "configurePreset": "axe-x64-vs2022",
+            "configuration": "MinSizeRel"
+        },
+		
+		{
+            "name": "axe-x64-vs2026-Debug",
+            "configurePreset": "axe-x64-vs2026",
+            "configuration": "Debug"
+        },
+        {
+            "name": "axe-x64-vs2026-Release",
+            "configurePreset": "axe-x64-vs2026",
+            "configuration": "Release"
+        },
+        {
+            "name": "axe-x64-vs2026-RelWithDebInfo",
+            "configurePreset": "axe-x64-vs2026",
+            "configuration": "RelWithDebInfo"
+        },
+		{
+            "name": "axe-x64-vs2026-MinSizeRel",
+            "configurePreset": "axe-x64-vs2026",
+            "configuration": "MinSizeRel"
+        }
+    ]
+}
