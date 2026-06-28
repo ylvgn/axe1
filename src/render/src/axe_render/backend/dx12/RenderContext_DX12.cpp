@@ -1,23 +1,24 @@
 #if AXE_RENDER_HAS_DX12
 
-#include "Context_DX12.h"
-#include "Renderer_DX12.h"
+#include "RenderContext_DX12.h"
 #include "Device_DX12.h"
+#include "Renderer_DX12.h"
+
 #include <axe_render/vertex/Vertex.h>
 #include <axe_render/command/RenderCommand.h>
 #include "SwapChain_DX12.h"
 
 namespace axe {
 
-DX12_ID3D12Device* Context_DX12::d3dDevice() {
+DX12_ID3D12Device* RenderContext_DX12::d3dDevice() {
 	return renderDevice()->d3dDevice();
 }
 
-Device_DX12* Context_DX12::renderDevice() {
+Device_DX12* RenderContext_DX12::renderDevice() {
 	return static_cast<Device_DX12*>(_device);
 }
 
-Context_DX12::Context_DX12(RenderDevice* device, const CreateDesc& desc)
+RenderContext_DX12::RenderContext_DX12(RenderDevice* device, const CreateDesc& desc)
 	: Base(device, desc)
 {
 	::HRESULT hr;
@@ -49,8 +50,8 @@ Context_DX12::Context_DX12(RenderDevice* device, const CreateDesc& desc)
 	_swapChain->create(this);
 
 	{ // disable alt+enter
-		auto* renderer	  = Util::renderer();
-		auto* dxgiFactory = renderer->dxgiFactory();
+		auto* renderer	   = Util::renderer();
+		auto* dxgiFactory  = renderer->dxgiFactory();
 		auto& _hwnd = desc.window->_hwnd;
 		hr = dxgiFactory->MakeWindowAssociation(_hwnd, DXGI_MWA_NO_ALT_ENTER);
 		AXE_DX12_THROWIF_HRESULT_ERROR(hr, d3d12Device);
@@ -70,7 +71,7 @@ Context_DX12::Context_DX12(RenderDevice* device, const CreateDesc& desc)
 	AXE_DX12_THROWIF_HRESULT_ERROR(hr, d3d12Device);
 }
 
-void Context_DX12::_test_LoadAssets() {
+void RenderContext_DX12::_test_LoadAssets() {
 	using VertexT = VertexT_Color<Color4f, 1, Vertex_Pos>;
 
 	::HRESULT hr;
@@ -96,7 +97,7 @@ void Context_DX12::_test_LoadAssets() {
         ComPtr<ID3DBlob> vertexShader;
         ComPtr<ID3DBlob> pixelShader;
 
-#if defined(_DEBUG)
+#if AXE_RENDER_DEBUG_LAYER
         // Enable better shader debugging with the graphics debugging tools.
         UINT compileFlags = D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
 #else
@@ -209,7 +210,7 @@ void Context_DX12::_test_LoadAssets() {
 	}
 }
 
-void Context_DX12::onBeginRender() {
+void RenderContext_DX12::onBeginRender() {
 	AXE_RUN_ONCE(_test_LoadAssets());
 
 	::HRESULT hr;
@@ -239,7 +240,7 @@ void Context_DX12::onBeginRender() {
 	m_commandList->OMSetRenderTargets(1, &rtvHandle, FALSE, nullptr);
 }
 
-void Context_DX12::_test_WaitForPreviousFrame() {
+void RenderContext_DX12::_test_WaitForPreviousFrame() {
 	::HRESULT hr;
 	auto* d3d12Device = d3dDevice();
 
@@ -263,16 +264,16 @@ void Context_DX12::_test_WaitForPreviousFrame() {
 	}
 }
 
-void Context_DX12::onSetSwapChainFrameBufferSize(const Vec2f& newSize) {
+void RenderContext_DX12::onSetSwapChainFrameBufferSize(const Vec2f& newSize) {
 	Base::onSetSwapChainFrameBufferSize(newSize);
 	_swapChain->OnResizeOrMove(newSize);
 }
 
-void Context_DX12::onCommit(RenderCommandBuffer& cmdBuf) {
+void RenderContext_DX12::onCommit(RenderCommandBuffer& cmdBuf) {
 	_dispatch(this, cmdBuf);
 }
 
-void Context_DX12::onCmd_SetViewport(RenderCommand_SetViewport& cmd) {
+void RenderContext_DX12::onCmd_SetViewport(RenderCommand_SetViewport& cmd) {
 	auto& rect = cmd.rect;
 
 	::D3D12_VIEWPORT viewport = {};
@@ -285,7 +286,7 @@ void Context_DX12::onCmd_SetViewport(RenderCommand_SetViewport& cmd) {
 	m_commandList->RSSetViewports(1, &viewport);
 }
 
-void Context_DX12::onCmd_SetScissorRect(RenderCommand_SetScissorRect& cmd) {
+void RenderContext_DX12::onCmd_SetScissorRect(RenderCommand_SetScissorRect& cmd) {
 	auto& rect = cmd.rect;
 
 	::D3D12_RECT scissorRect = {};
@@ -298,7 +299,7 @@ void Context_DX12::onCmd_SetScissorRect(RenderCommand_SetScissorRect& cmd) {
 	m_commandList->RSSetScissorRects(1, &scissorRect);
 }
 
-void Context_DX12::onCmd_ClearFrameBuffers(RenderCommand_ClearFrameBuffers& cmd) {
+void RenderContext_DX12::onCmd_ClearFrameBuffers(RenderCommand_ClearFrameBuffers& cmd) {
 	// clear back buffer(color buffer)
 	if (cmd.color.has_value()) {
 		auto rtvHandle = _swapChain->d3dRTVHandle();
@@ -313,7 +314,7 @@ void Context_DX12::onCmd_ClearFrameBuffers(RenderCommand_ClearFrameBuffers& cmd)
 #endif
 }
 
-void Context_DX12::onCmd_SwapBuffers(RenderCommand_SwapBuffers& cmd) {
+void RenderContext_DX12::onCmd_SwapBuffers(RenderCommand_SwapBuffers& cmd) {
 	::HRESULT hr;
 	auto*	  d3d12Device = d3dDevice();
 
@@ -340,7 +341,7 @@ void Context_DX12::onCmd_SwapBuffers(RenderCommand_SwapBuffers& cmd) {
 	_swapChain->present();
 }
 
-void Context_DX12::onCmd_DrawCall(RenderCommand_DrawCall& cmd) {
+void RenderContext_DX12::onCmd_DrawCall(RenderCommand_DrawCall& cmd) {
 	m_commandList->IASetPrimitiveTopology(DX12Util::getDxPrimitiveTopology(cmd.primitive));
 
 	AXE_TODO("draw vertex buffer");
@@ -348,7 +349,7 @@ void Context_DX12::onCmd_DrawCall(RenderCommand_DrawCall& cmd) {
 	m_commandList->DrawInstanced(3, 1, 0, 0);
 }
 
-void Context_DX12::onEndRender() {
+void RenderContext_DX12::onEndRender() {
 	_test_WaitForPreviousFrame();
 }
 

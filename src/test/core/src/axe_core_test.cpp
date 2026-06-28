@@ -13,7 +13,7 @@
 namespace axe {
 
 void run_temp_test() {
-	RUN_TEST(test_Rtti);
+	RUN_TEST(test_Vector);
 }
 
 void run_all_test() {
@@ -22,6 +22,7 @@ void run_all_test() {
 	RUN_TEST(test_BinSerializer);
 	RUN_TEST(test_Error);
 	RUN_TEST(test_TypeTraits);
+	RUN_TEST(test_Vector);
 	RUN_TEST(test_Tuple);
 	RUN_TEST(test_Mutex);
 	RUN_TEST(test_Thread);

@@ -5,6 +5,11 @@
 
 namespace axe { namespace StackTrace {
 
+#if 0
+#pragma mark ================= Windows ====================
+#endif
+#if AXE_OS_WINDOWS
+
 using SymFromAddrFn = BOOL (*)(HANDLE, DWORD64, PDWORD64, PSYMBOL_INFO);
 static SymFromAddrFn sSymFromAddr;
 
@@ -21,7 +26,7 @@ u32 Trace(void** pStackData, u32 stackSize, u32 skipDepth)
 {
 	if (!sSymFromAddr)
 	{
-		::HMODULE mod			  = ::LoadLibraryA("dbghelp.dll");
+		::HMODULE mod		  = ::LoadLibraryA("dbghelp.dll");
 		sSymFromAddr		  = (SymFromAddrFn)GetProcAddress(mod, "SymFromAddr");
 		sSymGetLineFromAddr64 = (SymGetLineFromAddr64Fn)GetProcAddress(mod, "SymGetLineFromAddr64");
 		sSymInitialize		  = (SymInitializeFn)GetProcAddress(mod, "SymInitialize");
@@ -74,6 +79,7 @@ void Resolve(Span<u64> stackFrame, u32 numFrames, Symbol* outSymbols)
 	for (u32 i = 0; i < numFrames; i++)
 		Resolve(stackFrame[i], outSymbols[i]);
 }
+#endif // AXE_OS_WINDOWS 
 
 } // namespace StackTrace
 } // namespace axe

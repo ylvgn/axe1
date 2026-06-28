@@ -8,8 +8,7 @@ struct ImuiApp_CreateDesc : public NativeUIApp_CreateDesc {
 };
 
 class ImUIApp : public NativeUIApp {
-	using This = ImUIApp;
-	using Base = NativeUIApp;
+	AXE_RTTI_INFO(ImUIApp, NativeUIApp)
 public:
 	AXE_DOWNCAST_GET_INSTANCE()
 

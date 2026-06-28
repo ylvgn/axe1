@@ -1,10 +1,7 @@
-#include "Renderer.h"
 #include "RenderDevice.h"
-#include "RenderContext.h"
-#include "buffer/RenderGpuBuffer.h"
+#include "Renderer.h"
 
 namespace axe {
-
 
 RenderDevice_CreateDesc::RenderDevice_CreateDesc() noexcept
 	: adapterInfo(nullptr) 
@@ -24,17 +21,9 @@ RenderDevice::RenderDevice(CreateDesc& desc) noexcept
 {
 }
 
-RenderDevice::~RenderDevice() {
+RenderDevice::~RenderDevice() noexcept {
 	auto* renderer = Renderer::s_instance();
 	renderer->onRenderDeviceDestroy(this);
-}
-
-UPtr<RenderContext> RenderDevice::createContext(const RenderContext_CreateDesc& desc) {
-	return onCreateContext(this, desc);
-}
-
-UPtr<RenderGpuBuffer> RenderDevice::createGpuBuffer(const RenderGpuBuffer_CreateDesc& desc) {
-	return onCreateGpuBuffer(this, desc);
 }
 
 } // namespace axe

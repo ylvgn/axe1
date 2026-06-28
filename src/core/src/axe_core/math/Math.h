@@ -2,6 +2,12 @@
 
 namespace axe { namespace Math {
 
+	constexpr Int KiloBytes = 1024;
+	constexpr Int MegaBytes = KiloBytes * 1024;
+	constexpr Int GigaBytes = MegaBytes * 1024;
+	constexpr Int TeraBytes = GigaBytes * 1024;
+	constexpr Int PetaBytes = TeraBytes * 1024;
+
 	template<class T> AXE_NODISCARD T abs(const T& v) { return v < 0 ? -v : v; }
 
 	template<class T> constexpr T max(const T& a, const T& b) { return a > b ? a : b; }
@@ -14,13 +20,17 @@ namespace axe { namespace Math {
 	template<class T> constexpr T clamp01	(const T& v) { return clamp(v, T(0), T(1)); }
 	template<class T> constexpr T saturate	(const T& v) { return clamp01(v); }
 
-	template<class T> constexpr T byteToK(const T& v) { return v / (1024/*1 << 10*/); }
-	template<class T> constexpr T byteToM(const T& v) { return v / (1 << 20); }
-	template<class T> constexpr T byteToG(const T& v) { return v / (1 << 30); }
+	template<class T> constexpr T byteToK(const T& v) { return v / KiloBytes; }
+	template<class T> constexpr T byteToM(const T& v) { return v / MegaBytes; }
+	template<class T> constexpr T byteToG(const T& v) { return v / GigaBytes; }
+	template<class T> constexpr T byteToT(const T& v) { return v / TeraBytes; }
+	template<class T> constexpr T byteToP(const T& v) { return v / PetaBytes; }
 
-	template<class T> constexpr T KSizeInBytes() { return static_cast<T>(1 << 10); }
-	template<class T> constexpr T MSizeInBytes() { return static_cast<T>(1 << 20); }
-	template<class T> constexpr T GSizeInBytes() { return static_cast<T>(1 << 30); }
+	template<class T> constexpr T KSizeInBytes() { return static_cast<T>(KiloBytes); }
+	template<class T> constexpr T MSizeInBytes() { return static_cast<T>(MegaBytes); }
+	template<class T> constexpr T GSizeInBytes() { return static_cast<T>(GigaBytes); }
+	template<class T> constexpr T TSizeInBytes() { return static_cast<T>(TeraBytes); }
+	template<class T> constexpr T PSizeInBytes() { return static_cast<T>(PetaBytes); }
 
 	struct _Helper : public StaticClass {
 		template<class T>

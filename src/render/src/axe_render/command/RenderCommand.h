@@ -19,7 +19,8 @@ AXE_ENUM_CLASS(RenderCommandType, u32)
 #if 0
 #pragma mark ========= RenderCommand ============
 #endif
-class RenderCommand : NonCopyable {
+class RenderCommand : public RenderObject {
+	AXE_RTTI_INFO(RenderCommand, RenderObject)
 public:
 	using Type = RenderCommandType;
 
@@ -47,8 +48,7 @@ public:
 #pragma mark ========= RenderCommand_ClearFrameBuffers ============
 #endif
 class RenderCommand_ClearFrameBuffers : public RenderCommand {
-	using Base = RenderCommand;
-	using This = RenderCommand_ClearFrameBuffers;
+	AXE_RTTI_INFO(RenderCommand_ClearFrameBuffers, RenderCommand)
 public:
 	RenderCommand_ClearFrameBuffers() noexcept
 		: Base(Type::ClearFrameBuffers)
@@ -72,7 +72,7 @@ public:
 #pragma mark ========= RenderCommand_SetViewport ============
 #endif
 class RenderCommand_SetViewport : public RenderCommand {
-	using Base = RenderCommand;
+	AXE_RTTI_INFO(RenderCommand_SetViewport, RenderCommand)
 public:
 	RenderCommand_SetViewport() noexcept
 		: Base(Type::SetViewport)
@@ -86,7 +86,7 @@ public:
 #pragma mark ========= RenderCommand_SwapBuffers ============
 #endif
 class RenderCommand_SwapBuffers : public RenderCommand {
-	using Base = RenderCommand;
+	AXE_RTTI_INFO(RenderCommand_SwapBuffers, RenderCommand)
 public:
 	RenderCommand_SwapBuffers() noexcept
 		: Base(Type::SwapBuffers)
@@ -98,7 +98,7 @@ public:
 #pragma mark ========= RenderCommand_DrawCall ============
 #endif
 class RenderCommand_DrawCall : public RenderCommand {
-	using Base = RenderCommand;
+	AXE_RTTI_INFO(RenderCommand_DrawCall, RenderCommand)
 public:
 	RenderCommand_DrawCall() noexcept
 		: Base(Type::DrawCall)
@@ -131,7 +131,7 @@ public:
 #pragma mark ========= RenderCommand_SetScissorRect ============
 #endif
 class RenderCommand_SetScissorRect : public RenderCommand {
-	using Base = RenderCommand;
+	AXE_RTTI_INFO(RenderCommand_SetScissorRect, RenderCommand)
 public:
 	RenderCommand_SetScissorRect() noexcept
 		: Base(Type::SetScissorRect)
@@ -143,7 +143,8 @@ public:
 #if 0
 #pragma mark ========= RenderCommandBuffer ============
 #endif
-class RenderCommandBuffer : public NonCopyable {
+class RenderCommandBuffer : public RenderObject {
+	AXE_RTTI_INFO(RenderCommandBuffer, RenderObject)
 public:
 	void reset(RenderContext* ctx);
 

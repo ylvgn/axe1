@@ -20,6 +20,7 @@
 #include <iostream>
 #include <mutex>
 #include <thread>
+#include <algorithm>
 
 #if AXE_CPLUSPLUS_17
 	#include <shared_mutex>
@@ -80,6 +81,44 @@ public:
 template<class T> AXE_INLINE constexpr T* axe_const_cast(const T* v) { return const_cast<T*>(v); }
 template<class T> AXE_INLINE constexpr T& axe_const_cast(const T& v) { return const_cast<T&>(v); }
 
+template<typename DST, typename SRC> AXE_INLINE constexpr
+void axe_const_assign(const DST*& dst, const SRC& src) {
+	using SrcType = std::decay_t<SRC>;
+	using DstElem = std::remove_const_t<DST>;
+
+	static_assert(std::is_pointer_v<SrcType> || 
+				  std::is_convertible_v<SrcType, void*> ||
+				  std::is_arithmetic_v<SrcType> ||
+				  std::is_same_v<SrcType, std::nullptr_t> ||
+				  "axe_const_assign: unsupported source type");
+    
+	auto*& o = const_cast<DST*&>(dst);
+    
+	if constexpr (std::is_same_v<SrcType, std::nullptr_t>) {
+		o = nullptr;
+	} else if constexpr (std::is_pointer_v<SrcType>) {
+		using SrcElem = std::remove_pointer_t<SrcType>;
+	    
+		static_assert(std::is_same_v<SrcElem, DstElem> ||
+					  std::is_base_of_v<DstElem, SrcElem> ||  // Upcast: Derived→Base
+					  std::is_base_of_v<SrcElem, DstElem>,    // Downcast: Base→Derived
+					  "axe_const_assign: incompatible pointer types");
+		if constexpr (std::is_base_of_v<SrcElem, DstElem>) {
+			o = dynamic_cast<DST*>(src);
+			assert(src != nullptr && o != nullptr);
+		} else {
+			o = static_cast<DST*>(src);
+		}
+	} else if constexpr (std::is_convertible_v<SrcType, void*>) {
+		o = static_cast<DST*>(src);
+	} else if constexpr (std::is_arithmetic_v<SrcType> && 
+						!std::is_same_v<SrcType, bool>) {
+		o = reinterpret_cast<DST*>(static_cast<uintptr_t>(src));
+	} else {
+		assert(false);
+	}
+}
+
 } // namespace axe
 
 //---- basic types
@@ -109,7 +148,7 @@ using Int		 = i64;
 using UInt		 = u64;
 using Float		 = f64;
 
-using StrLiteral = const char*;
+using StrLit	 = const char*; // TODO
 
 using Char8		 = char; // char8_t: require c++20
 using Char16	 = char16_t;
@@ -297,8 +336,8 @@ template<class A, class B> AXE_NODISCARD constexpr auto Pair_make(const A & a, c
 template<class A, class B> AXE_NODISCARD constexpr auto Pair_make(A && a, B && b) { return Pair<A, B>(AXE_FORWARD(a), AXE_FORWARD(b)); }
 
 template <class T> using UPtr = typename ::eastl::unique_ptr<T>;
-template <class T, class... Args> AXE_NODISCARD
-AXE_INLINE UPtr<T> UPtr_make(Args&&... args) {
+template <class T, class... Args> AXE_NODISCARD AXE_INLINE
+UPtr<T> UPtr_make(Args&&... args) {
 	return ::eastl::make_unique<T>(AXE_FORWARD(args)...);
 }
 
@@ -330,12 +369,18 @@ public:
 	using Base::begin;
 	using Base::end;
 	using Base::kMaxSize;
+	using Base::resize;
+	using Base::size;
 
-	Vector() = default;
-	Vector(::std::initializer_list<T> ilist)					noexcept : Base(ilist) {}
-	Vector(const ::std::initializer_list<remove_cv_t<T>>& list) noexcept : Base(list.begin(), list.end()) {}
+//TODO: when declare std::initializer_list, but move semantics will be issue, cuz Base only "Base &&" no "This &&"
+	//	Vector() = default;
+	//	Vector(::std::initializer_list<T> ilist) noexcept : Base(ilist) {}
+	//	Vector(This && src) noexcept : Base(AXE_FORWARD(src)) {} // Error
 
 	void appendRange(const Span<const T>& rhs) { Base::insert(end(), rhs.begin(), rhs.end()); }
+	
+	template<Int M>
+	constexpr void appendRange(Vector<T, M> && src) { Base::operator=(AXE_MOVE(src)); }
 
 	Span<      T> span()			{ return Span<      T>(begin(), end()); }
 	Span<const T> span() const		{ return Span<const T>(begin(), end()); }
@@ -352,6 +397,13 @@ public:
 	bool inBound(int i) const { return i >= 0 && i < Base::size(); }
 
 	void remove(const T& value) { ::eastl::remove(begin(), end(), value); }
+
+	void eraseUnsorted(const T& value) {
+		auto it = ::eastl::find(begin(), end(), value);
+		if (it != end()) {
+			Base::erase_unsorted(it);
+		}
+	}
 
 	void resizeToLocalBufSize() { Base::resize(N); }
 
@@ -377,9 +429,10 @@ public:
 
 	using Base::begin;
 	using Base::end;
+	using Base::size;
 
 			 List() = default;
-	explicit List(size_type n)						noexcept : Base(n)	  {}
+	explicit List(size_type n)						noexcept : Base(n)	   {}
 			 List(::std::initializer_list<T> ilist)	noexcept : Base(ilist) {}
 
 	Span<      T> span()			{ return Span<      T>(begin(), end()); }
@@ -390,7 +443,7 @@ public:
 
 	void appendRange(const Span<const T>& r) { Base::insert_range(r.begin(), r.end()); }
 
-	bool inBound(int i) const { return i >= 0 && i < Base::size(); }
+	bool inBound(int i) const { return i >= 0 && i < size(); }
 }; // List
 
 
@@ -430,7 +483,7 @@ template<class T, size_t N, bool bEnableOverflow = true> class StringT;
 
 template<class T> using StrViewT_Base = typename ::eastl::basic_string_view<T>;
 template<class T>
-class StrViewT : public StrViewT_Base<T> { // mutable string view
+class StrViewT : public StrViewT_Base<T> { // mutable strview
 	using Base			= typename StrViewT_Base<T>;
 	using const_pointer = typename Base::const_pointer;
 
@@ -1162,6 +1215,18 @@ constexpr void axe_try_safe_assign(DST& dst, const SRC& src) {
 	}
 }
 
+template<class DST, class SRC> constexpr
+DST axe_safe_cast_to(const SRC& src) {
+	DST o; axe_try_safe_assign(o, src); return o;
+}
+
+template<class SRC>
+struct axe_safe_cast_from {
+	const SRC& src;
+	constexpr axe_safe_cast_from(const SRC& src_) : src(src_) {}
+	template <typename DST>	constexpr operator DST() const { return axe_safe_cast_to<DST>(src); }
+};
+
 template<class SRC>
 struct axe_static_cast_from {
 	SRC& src;
@@ -1169,6 +1234,12 @@ struct axe_static_cast_from {
 	template <typename DST>	constexpr operator DST() const { return static_cast<DST>(src); }
 };
 
+template<class SRC>
+struct axe_reinterpret_cast_from {
+	SRC& src;
+	constexpr axe_reinterpret_cast_from(SRC& src_) : src(src_) {}
+	template <typename DST>	constexpr operator DST() const { return reinterpret_cast<DST>(src); }
+};
 
 // this cast can over come function pointer to void*
 template<class DST, class SRC> AXE_INLINE

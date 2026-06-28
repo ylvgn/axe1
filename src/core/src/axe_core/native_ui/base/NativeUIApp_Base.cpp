@@ -9,7 +9,8 @@ NativeUIApp_Base::NativeUIApp_Base(const CreateDesc& desc)
 {
 }
 
-void NativeUIApp_Base::update(float dt) { // TODO may move to EditorApp
+void NativeUIApp_Base::update(float dt) {
+	AXE_TODO("NativeUIApp_Base::update impl may move to EditorApp");
 	_deltaTime += dt;
 
 	// avoid too frequent calls

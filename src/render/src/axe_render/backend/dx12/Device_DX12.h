@@ -8,13 +8,10 @@
 namespace axe {
 
 class Device_DX12 : public RenderDevice {
-	using This = Device_DX12;
-	using Base = RenderDevice;
+	AXE_RTTI_INFO(Device_DX12, RenderDevice)
 	using Util = DX12Util;
 public:
 	Device_DX12(CreateDesc& desc);
-
-	axeRenderDevice_InterfaceFunctions(DX12);
 
 	DX12_IDXGIDevice*	dxgiDevice()	{ return _dxgiDevice; }
 	DX12_ID3D12Device*	d3dDevice()		{ return _d3dDevice; }

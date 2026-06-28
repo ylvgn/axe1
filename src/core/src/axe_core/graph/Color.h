@@ -13,6 +13,7 @@ namespace axe {
 	E(L,)  /* Luminance */ \
 	E(LA,) /* Luminance Alpha */ \
 	E(HSV,) \
+	E(HSVA,) \
 	E(BlockCompression,) \
 //----
 AXE_ENUM_CLASS(ColorModel, u8)
@@ -109,6 +110,12 @@ constexpr AXE_INLINE ColorType_IntType ColorType_int(ColorModel model, ColorComp
 	E(RGBAs,	= ColorType_int(ColorModel::RGBA,	ColorElementType::UNorm16)) \
 	E(RGBAh,	= ColorType_int(ColorModel::RGBA,	ColorElementType::Float16)) \
 	E(RGBAf,	= ColorType_int(ColorModel::RGBA,	ColorElementType::Float32)) \
+	\
+	E(HSVAb, 	= ColorType_int(ColorModel::HSVA, 	ColorElementType::UNorm8 )) \
+	E(HSVAs, 	= ColorType_int(ColorModel::HSVA, 	ColorElementType::UNorm16)) \
+	E(HSVAh, 	= ColorType_int(ColorModel::HSVA, 	ColorElementType::Float16)) \
+	E(HSVAf, 	= ColorType_int(ColorModel::HSVA, 	ColorElementType::Float32)) \
+	E(HSVAd, 	= ColorType_int(ColorModel::HSVA, 	ColorElementType::Float64)) \
 	\
 	/* Texture Block Compression: https://learn.microsoft.com/en-us/windows/win32/direct3d11/texture-block-compression-in-direct3d-11 */ \
 	E(BC1,		= ColorType_int(ColorModel::BlockCompression, ColorCompressType::BC1 )) /* DXT1 */ \

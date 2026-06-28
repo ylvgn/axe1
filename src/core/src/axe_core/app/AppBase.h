@@ -3,6 +3,7 @@
 #include <axe_core/string/UtfUtil.h>
 #include <axe_core/file/FilePath.h>
 #include <axe_core/file/Directory.h>
+#include <axe_core/base/Reflection.h>
 
 namespace axe {
 
@@ -27,7 +28,8 @@ private:
 #if 0
 #pragma mark ========= AppBase ============
 #endif
-class AppBase : public NonCopyable {
+class AppBase : public RttiObject {
+	AXE_RTTI_INFO(AppBase, RttiObject)
 public:
 	AppBase() noexcept;
 	virtual ~AppBase() noexcept;

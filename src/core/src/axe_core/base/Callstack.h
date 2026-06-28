@@ -13,7 +13,7 @@ struct Symbol
 
 namespace StackTrace
 {
-	u32 Trace(void** pStackData, u32 stackSize, u32 skipDepth);
+	u32  Trace  (void**	   pStackData, u32 stackSize, u32 skipDepth);
 	void Resolve(Span<u64> stackFrame, u32 numFrames, Symbol* outSymbols);
 }
 

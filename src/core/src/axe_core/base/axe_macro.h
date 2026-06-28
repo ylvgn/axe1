@@ -313,13 +313,11 @@
 //----
 
 #define AXE_STATIC_ASSERT_NO_MEMBER_CLASS(T)  \
-	AXE_GCC_WARNING_PUSH_AND_DISABLE("-Wunused-private-field") \
-	class T##_Dummy : public T                \
-	{                                         \
-		uint8_t T##EnsureNoMemberIn;          \
-	};                                        \
-	AXE_GCC_WARNING_POP() \
-	AXE_STATIC_ASSERT(sizeof(T##_Dummy) == 1) \
+	/* the size of any complete object type (including empty structs and classes) is always at least 1 byte */\
+AXE_GCC_WARNING_PUSH_AND_DISABLE("-Wunused-private-field") \
+	class T##_Dummy : public T {  uint8_t T##EnsureOnlyMe; }; \
+AXE_GCC_WARNING_POP() \
+	AXE_STATIC_ASSERT(sizeof(T##_Dummy) == sizeof(uint8_t)) \
 //----
 
 #define AXE_DOWNCAST_GET_INSTANCE() \
@@ -385,4 +383,52 @@ public: \
 
 #if 0
 #pragma mark ========= Rtti end ============
+#endif
+
+#if 0
+#pragma mark ========= Render begin ============
+#endif
+
+#define AXE_RenderObject_ForwardDeclare(OBJ, ...)	\
+	class OBJ; \
+	class OBJ ## _CreateDesc; \
+//----
+
+#define AXE_RenderObject_LIST(E, API, SUFFIX) \
+	E(RenderContext				, API, SUFFIX) \
+/*	E(RenderObjectManager		, API, SUFFIX) */ \
+/*	E(RenderPass				, API, SUFFIX) */ \
+/*	E(RenderPassColorBuffer		, API, SUFFIX) */ \
+/*	E(RenderPassDepthBuffer		, API, SUFFIX) */ \
+/*	E(RenderRequest				, API, SUFFIX) */ \
+/*	E(GpuBuffer					, API, SUFFIX) */ \
+/*	E(GpuBufferPool				, API, SUFFIX) */ \
+/*	E(StructuredGpuBuffer		, API, SUFFIX) */ \
+/*	E(Shader					, API, SUFFIX) */ \
+/*	E(ShaderPass				, API, SUFFIX) */ \
+/*	E(ShaderParamSpace			, API, SUFFIX) */ \
+/*	E(Material					, API, SUFFIX) */ \
+/*	E(MaterialPass				, API, SUFFIX) */ \
+/*	E(MaterialParamSpace		, API, SUFFIX) */ \
+/*	E(Sampler					, API, SUFFIX) */ \
+/*	E(Texture2D					, API, SUFFIX) */ \
+/*	E(Texture3D					, API, SUFFIX) */ \
+/*	E(TextureCube				, API, SUFFIX) */ \
+//----
+
+#define AXE_RenderSystem_NewObject(OBJ, API, SUFFIX) \
+	AXE_NODISCARD virtual UPtr<OBJ> new##OBJ(/*const MemAllocRequest& req,*/ const OBJ##_CreateDesc& desc, int deviceIndex = 0) SUFFIX; \
+//----
+
+#define AXE_RenderSystem_NewObjectImp(OBJ, API, SUFFIX) \
+	UPtr<OBJ> Renderer_##API::new##OBJ(/*const MemAllocRequest& req,*/ const OBJ##_CreateDesc& desc, int deviceIndex /*= 0*/) { \
+		using OBJ_API_T = typename OBJ##_##API; \
+		auto* device = findDevice(deviceIndex); \
+		AXE_ASSERT(device != nullptr); \
+		return UPtr<OBJ_API_T>(new OBJ_API_T(device, desc)); \
+	} \
+//----
+
+#if 0
+#pragma mark ========= Render end ============
 #endif

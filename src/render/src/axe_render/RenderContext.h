@@ -10,7 +10,7 @@ class RenderContext_EventHandler {
 public:
 	void render(RenderContext* ctx);
 
-	virtual void onRender(RenderContext& ctx) {};
+	virtual void onRender(RenderContext& ctx) {}
 }; // RenderContext_EventHandler
 AXE_VC_WARNING_POP()
 
@@ -21,8 +21,6 @@ public:
 
 
 class RenderContext : public RenderDeviceObject {
-	using This = RenderContext;
-	using Base = RenderDeviceObject;
 	AXE_RTTI_INFO(RenderContext, RenderDeviceObject)
 public:
 	using CreateDesc	= RenderContext_CreateDesc;
@@ -43,13 +41,13 @@ public:
 			void   commit(RenderCommandBuffer& cmdBuf) { onCommit(cmdBuf); }
 	virtual void onCommit(RenderCommandBuffer& cmdBuf) = 0;
 
-	NativeUIWindow*		window()		const { return _window; }
+	NativeUIWindow*				window()		const { return _window; }
 
 	void						setEventHandler(EventHandler* eventHandler) { _eventHandler = eventHandler; }
 	RenderContext_EventHandler* eventHandler() const { return _eventHandler; }
 
-#if AXE_OS_WINDOWS // TODO may remove later, and use NativeUIWindow then casting to win impl when use hwnd case
-	::HWND				hwnd()			const { return _window->_hwnd; }
+#if AXE_OS_WINDOWS
+	::HWND						hwnd()	const { return _window->_hwnd; }
 #endif
 
 protected:

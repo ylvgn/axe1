@@ -52,16 +52,16 @@ struct is_same<T, T> : public true_type {};
 template <class T1, class T2> inline constexpr bool is_same_v = is_same<T1, T2>::value;
 
 #if 0
-#pragma mark------------ is_same --------------
+#pragma mark------------ is_convertible --------------
 // is_convertible: https://en.cppreference.com/cpp/types/is_convertible
 // __is_convertible_to is compiler intrinsic (a built-in feature provided by the compiler)
 #endif
-template <class _From, class _To>
-struct is_convertible : bool_constant<__is_convertible_to(_From, _To)> {
+template <class From, class To>
+struct is_convertible : bool_constant<__is_convertible_to(From, To)> {
 	// determine whether _From is convertible to _To
 };
 
-template <class _From, class _To> inline constexpr bool is_convertible_v = is_convertible<_From, _To>::value;
+template <class From, class To> inline constexpr bool is_convertible_v = is_convertible<From, To>::value;
 
 #if 0
 #pragma mark------------ is_base_of --------------
@@ -92,7 +92,7 @@ struct extent_help<T[I], 0> : integral_constant<size_t, I> {};
 template <class T, unsigned I, unsigned N>
 struct extent_help<T[I], N> : extent_help<T, N - 1> {};
 
-template <typename T, unsigned N = 0> // extent uses unsigned instead of size_t.
+template <typename T, unsigned N = 0> // !!<-- extent uses unsigned instead of size_t.
 struct extent : extent_help<T, N> {};
 
 template <class T, unsigned N = 0> inline constexpr auto extent_v = extent<T, N>::value;
@@ -386,7 +386,7 @@ template <class T> struct is_void : bool_constant<is_void_v<T>> {};
 #endif
 
 AXE_VC_WARNING_PUSH()
-AXE_VC_WARNING_DISABLE(4180) // qualifier applied to function type has no meaning; ignored
+AXE_VC_WARNING_DISABLE(4180) // warning C4180: qualifier applied to function type has no meaning; ignored
 
 template<class T>
 struct is_function : bool_constant<!is_const_v<const T> && !is_reference_v<T>> {};

@@ -19,9 +19,9 @@ class SystemInfo : public StaticClass {
 public:
 	using OS = SystemInfo_OS;
 
-	static	OS			getOS();
-	static	StrLiteral	getOSName();
-	static	int			cpuCount();
+	static	OS		getOS();
+	static	StrLit	getOSName();
+	static	int		cpuCount();
 }; // SystemInfo
 
 } // namespace axe

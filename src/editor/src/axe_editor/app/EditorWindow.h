@@ -3,9 +3,7 @@
 namespace axe {
 	
 class EditorWindow : public ImUIWindow {
-	using This = EditorWindow;
-	using Base = ImUIWindow;
-
+	AXE_RTTI_INFO(EditorWindow, ImUIWindow)
 };
 	
 } // namespace axe

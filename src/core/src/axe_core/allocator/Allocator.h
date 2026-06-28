@@ -47,6 +47,7 @@ void operator delete[](void* p) noexcept;
 namespace axe {
 
 class Allocator;
+using IAllocator = ::eastl::allocator;
 
 class AllocatorChunkBase : public NonCopyable {
 protected:
@@ -55,14 +56,13 @@ protected:
 	Allocator* _allocator;
 }; // AllocatorChunkBase
 
-using IAllocator = eastl::allocator;
 class Allocator : public IAllocator {
 	using Base = IAllocator;
 	using This = Allocator;
 protected:
-	explicit Allocator(const char* name = "Unnamed") : Base(name) {}
-	Allocator(const ::eastl::allocator& x) : Base(x) {}
-	Allocator(const ::eastl::allocator& x, const char* pName) : Base(x, pName) {}
+	explicit Allocator(const char* name = "Unnamed")					: Base(name) {}
+			 Allocator(const ::eastl::allocator& x)						: Base(x) {}
+			 Allocator(const ::eastl::allocator& x, const char* pName)	: Base(x, pName) {}
 }; // Allocator
 
 } // namespace axe

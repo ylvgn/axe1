@@ -38,9 +38,8 @@ class FencePool_DX12 : public NonCopyable {
 	using Util = DX12Util;
 public:
 	class Fence : public Fence_DX12 {
+		AXE_RTTI_INFO(Fence, Fence_DX12)
 		using Util = DX12Util;
-		using This = Fence;
-		using Base = Fence_DX12;
 	friend class FencePool_DX12;
 	public:
 		void create(const SrcLoc& srcLoc);

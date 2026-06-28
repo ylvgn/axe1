@@ -35,7 +35,7 @@ public:
 
 	~SwapChain_DX12() { destroy(); }
 
-	void create(Context_DX12* context);
+	void create(RenderContext_DX12* context);
 	void destroy();
 
 	virtual void OnResizeOrMove(const Vec2f& newSize) final;
@@ -46,7 +46,7 @@ public:
 	DescriptorHandle_DX12		d3dRTVHandle();
 	DX12_ID3D12Device*			d3dDevice();
 
-	Context_DX12*		  renderContext();
+	RenderContext_DX12*		  renderContext();
 
 	void present();
 

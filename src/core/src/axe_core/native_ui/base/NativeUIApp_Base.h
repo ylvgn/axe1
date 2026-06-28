@@ -8,8 +8,7 @@ struct NativeUIApp_CreateDesc {
 namespace axe {
 
 class NativeUIApp_Base : public AppBase {
-	using This = NativeUIApp_Base;
-	using Base = AppBase;
+	AXE_RTTI_INFO(NativeUIApp_Base, AppBase)
 public:
 	AXE_DOWNCAST_GET_INSTANCE()
 

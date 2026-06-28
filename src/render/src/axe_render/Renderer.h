@@ -12,21 +12,21 @@ public:
 	bool multithread : 1;
 }; // Renderer_CreateDesc
 
-class Renderer : public NonCopyable {
-	using This = Renderer;
+class Renderer : public RenderObject {
+	AXE_RTTI_INFO(Renderer, RenderObject)
 public:
 	using CreateDesc = Renderer_CreateDesc;
+	
+	virtual ~Renderer() noexcept override;
 
 	static Renderer*	 s_create(const CreateDesc& desc);
 
 	static Renderer*	 s_instance();
 	static RenderDevice* s_rootDevice() { auto* t = s_instance(); return t ? t->findDevice(0) : nullptr; }
 
-	virtual ~Renderer() noexcept;
-
 	bool	multithread() const { return _multithread; }
 
-	const Span<const RenderAdapterInfo> adapterInfos() const { return _adapterInfos; };
+	const Span<const RenderAdapterInfo> adapterInfos() const { return _adapterInfos; }
 
 	const RenderAdapterInfo* findAdapterInfo(int i = 0) const { return _adapterInfos.inBound(i) ? &_adapterInfos[i] : nullptr; }
 
@@ -36,8 +36,8 @@ public:
 	RenderDevice*	createRenderDevice(RenderDevice_CreateDesc& desc);
 	void			onRenderDeviceDestroy(RenderDevice* device);
 
-	UPtr<RenderContext> newRenderContext(const RenderContext_CreateDesc& desc, int deviceIndex = 0);
-
+	AXE_RenderObject_LIST(AXE_RenderSystem_NewObject, AXE_EMPTY, =0)
+	
 protected:
 	Renderer(const CreateDesc& desc) noexcept; // please create from Renderer::s_create
 

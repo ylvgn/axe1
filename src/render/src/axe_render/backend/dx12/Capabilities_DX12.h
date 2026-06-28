@@ -12,8 +12,8 @@ namespace axe {
 */
 
 class Capabilities_DX12 : public RenderCapabilities {
-	using This = Capabilities_DX12;
-	using Base = RenderCapabilities;
+	AXE_RTTI_INFO(Capabilities_DX12, RenderCapabilities)
+	
 	using Util = DX12Util;
 public:
 	Capabilities_DX12(Device_DX12* device);

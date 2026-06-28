@@ -218,6 +218,44 @@ function(axe_set_warning_level target_name)
 		target_compile_options(${target_name} PRIVATE /wd4702) #warning C4702: unreachable code (seems vc has bug when handle if constexpr() )
 		target_compile_options(${target_name} PRIVATE /wd4714) #Warning C4714 : function marked as __forceinline not inlined
 		target_compile_options(${target_name} PRIVATE /wd5072) #warning C5072: Address Sanitizer(ASAN) enabled without debug information emission.
+		
+	elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+		# message("axe_set_warning_level Clang")
+		target_compile_options(${target_name} PRIVATE	-Wall 
+														-Werror
+														#-Wextra 
+														-Wpedantic 
+														-Wno-covered-switch-default
+														-Wno-c++98-compat-pedantic
+														-Wno-exit-time-destructors # maybe ?
+														-Wno-extra-semi-stmt
+														-Wno-invalid-offsetof # IArrayStorage - offsetof(SmallStorage_Dummy, _data)
+														-Wno-gnu-anonymous-struct
+														-Wno-gnu-zero-variadic-macro-arguments
+														-Wno-language-extension-token  # DX12: IID_PPV_ARGS
+														-Wno-missing-prototypes
+														-Wno-newline-eof
+														-Wno-nested-anon-types
+														#-Wno-missing-noreturn
+														-Wno-pre-c++17-compat
+														-Wno-reserved-identifier
+														-Wno-switch-enum
+														-Wno-switch
+														-Wno-undef
+														-Wno-undefined-func-template
+														-Wno-unreachable-code-break
+														-Wno-unreachable-code
+														-Wno-unused-parameter
+														-Wno-unused-local-typedef
+														-Wno-unused-member-function
+														-Wno-unused-const-variable
+														-Wno-uninitialized
+														-Wno-microsoft-enum-value # INVALID_VALUE  = 0xFFFFFFFF
+														-Wno-nullability-completeness
+														#
+														-mavx #enable AVX
+														-mfma #enable '_mm_fmadd_ps' requires target feature 'fma'
+														)
 	else()
 	  	target_compile_options(${target_name} PRIVATE -Wall -Wextra -Wpedantic -Werror)
 	endif()
@@ -276,7 +314,7 @@ function(axe_target_set_common_properties target_name)
 	axe_set_unity_build_mode(${target_name})
 
 	target_compile_definitions(${target_name} PUBLIC -DAXE_BUILD_${target_name})
-	target_compile_definitions(${target_name} PUBLIC 
+	target_compile_definitions(${target_name} PUBLIC
 		$<$<CONFIG:Debug>:AXE_BUILD_CONFIG_Debug>
 		$<$<CONFIG:MinSizeRel>:AXE_BUILD_CONFIG_MinSizeRel>
 		$<$<CONFIG:Release>:AXE_BUILD_CONFIG_Release>
@@ -284,7 +322,6 @@ function(axe_target_set_common_properties target_name)
 	)
 
 	target_precompile_headers(${target_name} PRIVATE src/${target_name}-pch.h)
-
 	target_compile_definitions(${target_name} PUBLIC -DUNICODE -D_UNICODE)
 endfunction()
 

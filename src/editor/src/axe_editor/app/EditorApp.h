@@ -6,8 +6,7 @@ namespace axe {
 class EditorMainWindow;
 
 class EditorApp : public ImUIApp {
-	using This = EditorApp;
-	using Base = ImUIApp;
+	AXE_RTTI_INFO(EditorApp, ImUIApp)
 public:
 	AXE_DOWNCAST_GET_INSTANCE()
 

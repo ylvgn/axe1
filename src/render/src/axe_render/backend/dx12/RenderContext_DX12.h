@@ -7,12 +7,11 @@
 
 namespace axe {
 
-class Context_DX12 : public RenderContext {
-	using This = Context_DX12;
-	using Base = RenderContext;
+class RenderContext_DX12 : public RenderContext {
+	AXE_RTTI_INFO(RenderContext_DX12, RenderContext)
 	using Util = DX12Util;
 public:
-	Context_DX12(RenderDevice* device, const CreateDesc& desc);
+	RenderContext_DX12(RenderDevice* device, const CreateDesc& desc);
 
 	ComPtr<ID3D12RootSignature>		  m_rootSignature;
 	ComPtr<ID3D12PipelineState>		  m_pipelineState;
@@ -53,7 +52,7 @@ private:
 	ComPtr<DX12_ID3D12CommandQueue> _computeCmdQueue;
 //	ComPtr<DX12_ID3D12CommandQueue> _copyCmdQueue; // no use atm
 
-}; // Context_DX12
+}; // RenderContext_DX12
 
 } // namespace axe
 

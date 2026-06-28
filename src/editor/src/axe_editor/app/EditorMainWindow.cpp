@@ -3,9 +3,6 @@
 
 namespace axe {
 
-#if 0
-#pragma mark ========= MyTestCase ============
-#endif
 void EditorMainWindow::EventHandler::test_mesh() {
 	AXE_TODO("");
 	{
@@ -65,11 +62,12 @@ EditorMainWindow::EditorMainWindow() {
 	{
 		auto title = TempString::s_format("AXE Editor - [{}({}, MT: {}, VSync: {})]",
 										  renderDevice->name()
-										, renderDevice->api(),
-										  renderDevice->multithread()
+										, renderDevice->api()
+										, renderDevice->multithread()
 										, renderDevice->vsync()
 		);
 		setWindowTitle(title);
+		setWindowVisible(true);
 	}
 
 	renderContext()->setEventHandler(&_eventHandler);

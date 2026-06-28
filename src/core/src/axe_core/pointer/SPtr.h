@@ -108,8 +108,8 @@ SPtr<T> SPtr_make(T* p) {
 }
 
 template <class T, class... ARGS> AXE_NODISCARD AXE_INLINE
-SPtr<T> SPtr_make(ARGS&&... args) {
-	return SPtr<T>::s_ref(new T(AXE_FORWARD(args)...));
+SPtr<T> SPtr_make(/*const MemAllocRequest& req,*/ ARGS&&... args) {
+	return SPtr<T>::s_ref(new /*(req)*/ T(AXE_FORWARD(args)...));
 }
 
 template<class T>

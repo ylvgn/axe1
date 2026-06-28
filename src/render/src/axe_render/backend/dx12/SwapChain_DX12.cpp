@@ -2,7 +2,7 @@
 
 #include "SwapChain_DX12.h"
 #include "Renderer_DX12.h"
-#include "Context_DX12.h"
+#include "RenderContext_DX12.h"
 #include "Capabilities_DX12.h"
 
 namespace axe {
@@ -36,9 +36,9 @@ DescriptorHandle_DX12 SwapChain_DX12::d3dRTVHandle() {
 	return h;
 }
 
-Context_DX12* SwapChain_DX12::renderContext()
+RenderContext_DX12* SwapChain_DX12::renderContext()
 {
-	return static_cast<Context_DX12*>(_renderContext);
+	return static_cast<RenderContext_DX12*>(_renderContext);
 }
 
 DX12_ID3D12Device* SwapChain_DX12::d3dDevice(){
@@ -92,7 +92,7 @@ bool SwapChain_DX12::_isDisplaySupportsHDR() const {
 	return false;
 }
 
-void SwapChain_DX12::create(Context_DX12* context) {
+void SwapChain_DX12::create(RenderContext_DX12* context) {
 	AXE_ASSERT(context);
 
 	destroy();

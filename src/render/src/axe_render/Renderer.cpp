@@ -47,10 +47,7 @@ RenderDevice* Renderer::createRenderDevice(RenderDevice_CreateDesc& desc) {
 }
 
 void Renderer::onRenderDeviceDestroy(RenderDevice* device) {
-	auto it = ::eastl::find(_devices.begin(), _devices.end(), device);
-	if (it != _devices.end()) {
-		_devices.erase_unsorted(it);
-	}
+	_devices.eraseUnsorted(device);
 }
 
 Renderer::Renderer(const CreateDesc& desc) noexcept
@@ -60,18 +57,11 @@ Renderer::Renderer(const CreateDesc& desc) noexcept
 	Renderer_instance = this;
 }
 
-Renderer::~Renderer() noexcept
-{
+Renderer::~Renderer() noexcept {
 	AXE_ASSERT(Renderer_instance == this);
 	AXE_ASSERT(_devices.size() == 0);
 
 	Renderer_instance = nullptr;
-}
-
-UPtr<RenderContext> Renderer::newRenderContext(const RenderContext_CreateDesc& desc, int deviceIndex) {
-	auto* device = findDevice(deviceIndex);
-	AXE_ASSERT(device != nullptr);
-	return device->createContext(desc);
 }
 
 } // namespace axe

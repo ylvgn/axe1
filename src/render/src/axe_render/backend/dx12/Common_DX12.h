@@ -16,7 +16,7 @@
 	#endif
 	#include <directx/d3dx12.h>
 
-	#if defined(_DEBUG)
+	#if AXE_RENDER_DEBUG_LAYER
 		#include <dxgidebug.h>
 	#endif
 
@@ -36,7 +36,7 @@
 
 namespace axe {
 
-#if defined(_DEBUG)
+#if AXE_RENDER_DEBUG_LAYER
 	using DX12_IDXGIDebug							= IDXGIDebug1;
 	using DX12_ID3D12Debug							= ID3D12Debug1; // ID3D12Debug6
 	using DX12_ID3D12InfoQueue						= ID3D12InfoQueue;
@@ -57,7 +57,7 @@ using DX12_ID3D12Resource							= ID3D12Resource2;
 using DX12_ID3D12DescriptorHeap						= ID3D12DescriptorHeap;
 
 class CommandQueue_DX12;
-class Context_DX12;
+class RenderContext_DX12;
 class Capabilities_DX12;
 class Device_DX12;
 class DescriptorHandle_DX12;
@@ -70,7 +70,7 @@ class SwapChain_DX12;
 #if 0
 #pragma mark ========= DX12Util ============
 #endif
-class DX12Util : public RenderCommonBase {
+class DX12Util {
 public:
 	static bool isValid		  (::HRESULT hr);
 	static void warningIfError(::HRESULT hr);
@@ -97,13 +97,13 @@ public:
 		o.bottom = T(i.yMax());
 	}
 
-	static void convert(i64& o, const ::LUID& i) {
+	static void convert(Int& o, const ::LUID& i) {
 		AXE_STATIC_ASSERT(sizeof(o) >= sizeof(i));
 
-		o = static_cast<i64>(i.HighPart) << 32 | i.LowPart;
+		o = static_cast<Int>(i.HighPart) << 32 | i.LowPart;
 	}
 
-	static void convert(::LUID& o, const i64& i) {
+	static void convert(::LUID& o, const Int& i) {
 		AXE_STATIC_ASSERT(sizeof(o) >= sizeof(i));
 
 		using L = decltype(o.LowPart);
@@ -121,9 +121,9 @@ public:
 	static void setResourceCallstack(::ID3D12Object* pObject);
 	static bool getResourceCallstack(Callstack<6>& outCallstack, ::ID3D12Object* pObject);
 
-	static ::D3D12_PRIMITIVE_TOPOLOGY getDxPrimitiveTopology(RenderPrimitiveType t);
-	static ::DXGI_FORMAT getDxColorType(ColorType type);
-	static ::DXGI_FORMAT getDxDataType(RenderDataType type);
+	static ::D3D12_PRIMITIVE_TOPOLOGY	getDxPrimitiveTopology(RenderPrimitiveType t);
+	static ::DXGI_FORMAT 				getDxColorType(ColorType type);
+	static ::DXGI_FORMAT 				getDxDataType(RenderDataType type);
 
 private:
 	static bool _checkError(::HRESULT hr) {

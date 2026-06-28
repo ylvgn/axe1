@@ -9,12 +9,12 @@ namespace axe {
 #if 0
 #pragma mark ========= RenderSubMesh ============
 #endif
-class RenderSubMesh /*: public NonCopyable*/ {
+class RenderSubMesh : public NonCopyable {
 	using This = RenderSubMesh;
 friend class RenderMesh;
 public:
-//	RenderSubMesh() = default;
-//	RenderSubMesh(This && ) = default;
+	RenderSubMesh() = default;
+	RenderSubMesh(RenderSubMesh&& r) noexcept;
 
 	void create(const EditMesh& src);
 	void clear();

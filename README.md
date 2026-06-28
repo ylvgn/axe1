@@ -1,21 +1,19 @@
-# axe1 - Toy Engine for Experiments
+# axe1
+This is a personal toy renderer meant as a playground for experiments.
 
-## Objective
-do the same thing as [SimpleGameEngine](https://github.com/SimpleTalkCpp/SimpleGameEngine) with DX12, Vulkan
+### Objective
+do the same thing as [SimpleGameEngine](https://github.com/SimpleTalkCpp/SimpleGameEngine) with DirectX 12, Vulkan
 
-## How to Build
+### Requirements
+- CMake
+- Visual Studio 2026/2022 (C++17)
+- Windows SDK 10.0.19041.0
+- MSVC Toolchain version 14.44+
 
 ### Build on Windows
-
-#### Requirements
-- CMake
-- Visual Studio 2022/2026
-- Windows SDK 10.0.19041.0
-- MSVC Version 14.44+
 ```
-# Run
+# Visual Studio 2026
 install_vcpkg_packages.bat
-gen_vs2022.bat # or gen_vs2026.bat
+gen_vs2026.bat
 ```
-- Open Visual Studio project in `_build/vs2022-x64-windows` or `_build/vs2026-x64-windows`
-
+- Open Visual Studio project in `_build/vs2026-x64-windows`

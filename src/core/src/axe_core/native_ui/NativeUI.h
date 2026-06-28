@@ -18,11 +18,11 @@
 namespace axe {
 
 class NativeUIWindow : public NativeUIWindow_Impl {
+	AXE_RTTI_INFO(NativeUIWindow, NativeUIWindow_Impl)
 }; // NativeUIWindow
 
 class NativeUIApp : public NativeUIApp_Impl {
-	using This = NativeUIApp;
-	using Base = NativeUIApp_Impl;
+	AXE_RTTI_INFO(NativeUIApp, NativeUIApp_Impl)
 public:
 	AXE_DOWNCAST_GET_INSTANCE()
 

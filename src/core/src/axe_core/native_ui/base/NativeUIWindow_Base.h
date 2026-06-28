@@ -38,11 +38,10 @@ public:
 	bool		maxButton		: 1;
 	bool		centerToScreen	: 1;
 	bool		alwaysOnTop		: 1;
-
 }; // NativeUIWindow_Base_CreateDesc
 
-class NativeUIWindow_Base : public NonCopyable {
-	using This = NativeUIWindow_Base;
+class NativeUIWindow_Base : public RttiObject {
+	AXE_RTTI_INFO(NativeUIWindow_Base, RttiObject)
 public:
 	using Vec2			= Vec2f;
 	using Rect2			= Rect2f;

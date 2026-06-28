@@ -3,7 +3,7 @@
 
 namespace axe {
 
-StrLiteral SystemInfo::getOSName() {
+StrLit SystemInfo::getOSName() {
 	return enumStr(getOS());
 }
 

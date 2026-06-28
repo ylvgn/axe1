@@ -2,8 +2,11 @@
 
 #include "Renderer_DX12.h"
 #include "Device_DX12.h"
+#include "RenderContext_DX12.h"
 
 namespace axe {
+
+AXE_RenderObject_LIST(AXE_RenderSystem_NewObjectImp, DX12, override)
 
 Renderer_DX12::Renderer_DX12(const CreateDesc& desc)
 	: Base(desc)
@@ -11,12 +14,12 @@ Renderer_DX12::Renderer_DX12(const CreateDesc& desc)
 	::HRESULT hr;
 	UINT dxgiFactoryFlags = 0;
 
-#if defined(_DEBUG)
+#if AXE_RENDER_DEBUG_LAYER
 	dxgiFactoryFlags |= DXGI_CREATE_FACTORY_DEBUG;
 #endif
 
 	{
-#if defined(_DEBUG)
+#if AXE_RENDER_DEBUG_LAYER
 		ComPtr<ID3D12Debug> d3dDebug;
 		hr = ::D3D12GetDebugInterface(IID_PPV_ARGS(d3dDebug.ptrForInit()));
 		AXE_DX12_THROWIF_HRESULT_ERROR(hr);
@@ -39,7 +42,7 @@ Renderer_DX12::Renderer_DX12(const CreateDesc& desc)
 }
 
 void Renderer_DX12::setDebugLayer(bool isEnable) {
-#if defined(_DEBUG)
+#if AXE_RENDER_DEBUG_LAYER
 	// Enable the debug layer (requires the Graphics Tools "optional feature" from Windows Settings > System > Optional features).
 	// NOTE: Enabling the debug layer after device creation will invalidate the active device.
 	if (isEnable) {
@@ -54,7 +57,7 @@ void Renderer_DX12::setDebugLayer(bool isEnable) {
 }
 
 void Renderer_DX12::setGpuBasedValidation(bool isEnable, ::D3D12_GPU_BASED_VALIDATION_FLAGS flags) {
-#if defined(_DEBUG)
+#if AXE_RENDER_DEBUG_LAYER
 	AXE_ASSERT(_d3dDebug != nullptr);
 
 	_d3dDebug->SetEnableGPUBasedValidation(isEnable); // require ID3D12Debug1
@@ -70,7 +73,7 @@ void Renderer_DX12::setGpuBasedValidation(bool isEnable, ::D3D12_GPU_BASED_VALID
 }
 
 void Renderer_DX12::setSyncCommandQueueValidation(bool isEnable) {
-#if defined(_DEBUG)
+#if AXE_RENDER_DEBUG_LAYER
 	_d3dDebug->SetEnableSynchronizedCommandQueueValidation(isEnable);
 #endif
 }
@@ -135,31 +138,30 @@ void Renderer_DX12::_getHardwareAdapterBasicInfo() {
 			return false;
 
 		auto& adapterInfo = _adapterInfos.emplace_back();
-		Util::convert(adapterInfo.LUID, desc.AdapterLuid);
-		UtfUtil::convert(adapterInfo.adapterName, desc.Description);
+
+		UtfUtil::convert(adapterInfo.name, desc.Description);
 		adapterInfo.memorySize = desc.DedicatedVideoMemory;
 
-		using MemoryT = decltype(desc.DedicatedVideoMemory);
 		AXE_LOG("DX12 Adapter = {}\n"
 				"    SubSysId = {}\n"
 				"    Revision = {}\n"
 				"    VendorId = 0x{:0X}\n"
 				"    DeviceId = 0x{:0X}\n"
-				"    AdapterLuid = {}\n"
+				"    Adapter LUID = {}\n"
 				"    Video  Memory = {}MB\n"
 				"    System Memory = {}MB\n"
 				"    Shared Memory = {}MB\n"
 				"    Flags = 0x{:08X}\n"
 				"    ===== Monitor Info =====",
-				adapterInfo.adapterName
+				adapterInfo.name
 			  , desc.SubSysId
 			  , desc.Revision
 			  , desc.VendorId
 			  , desc.DeviceId
 			  , desc.AdapterLuid
-			  , desc.DedicatedVideoMemory  / Math::MSizeInBytes<MemoryT>()
-			  , desc.DedicatedSystemMemory / Math::MSizeInBytes<MemoryT>()
-			  , desc.SharedSystemMemory    / Math::MSizeInBytes<MemoryT>()
+			  , Math::byteToM(desc.DedicatedVideoMemory)
+			  , Math::byteToM(desc.DedicatedSystemMemory)
+			  , Math::byteToM(desc.SharedSystemMemory)
 			  , enumInt(desc.Flags)
 		);
 

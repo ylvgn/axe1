@@ -20,13 +20,13 @@ struct EditMeshUtil {
 #if 0
 #pragma mark ========= EditMeshUtil ============
 #endif
-class EditMesh : public NonCopyable, RenderCommonBase {
+class EditMesh : public NonCopyable {
 	using Util = EditMeshUtil;
 public:
 	static const u8 kUvCountMax = 4;
 
-	PrimitiveType	primitive = PrimitiveType::Triangles;
-	Vector<u32>		indices;
+	RenderPrimitiveType	primitive = RenderPrimitiveType::Triangles;
+	Vector<u32>			indices;
 
 	Vector<Tuple3f>	pos;
 	Vector<Tuple2f>	uv[kUvCountMax];

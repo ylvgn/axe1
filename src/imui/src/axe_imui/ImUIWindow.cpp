@@ -7,8 +7,7 @@ namespace axe {
 #pragma mark ========= ImUIWindow::NativeWin ============
 #endif
 class ImUIWindow::NativeWin : public NativeUIWindow {
-	using This = NativeWin;
-	using Base = NativeUIWindow;
+	AXE_RTTI_INFO(NativeWin, NativeUIWindow)
 public:
 	NativeWin(ImUIWindow* owner) noexcept
 		: _owner(owner)
@@ -18,11 +17,13 @@ public:
 		_owner->onWindowCloseButton();
 	}
 
-	virtual void onSetWorldPos(const Vec2f& pos) override { // aka onWorldPosChanged
+	virtual void onSetWorldPos(const Vec2f& pos) override { 
+		AXE_TODO("rename 'onSetWorldPos' -> 'onWorldPosChanged'");
 		Base::onSetWorldPos(pos);
 		_owner->onNativeWorldPosChanged(pos);
 	}
-	virtual void onSetSize(const Vec2f& size) override { // aka onSizeChanged
+	virtual void onSetSize(const Vec2f& size) override {
+		AXE_TODO("rename 'onSetSize' -> 'onSizeChanged'");
 		Base::onSetSize(size);
 		_owner->onNativeSizeChanged(size);
 	}
@@ -48,8 +49,8 @@ class ImUIWindow_CreateDesc : public NativeUIWindow::CreateDesc {
 public:
 	ImUIWindow_CreateDesc() noexcept {
 		isMainWindow = true;
-		visible		 = false; // just keep it false default, and call setVisible(true) when setup
-		//rect		 = Rect2f(100, 100, 1920, 1080); // * 0.5f;
+		visible		 = false; // !!<-- just keep it false, and call setVisible(true) when render contex setup, or let it do by EditorMainWindow
+		//rect		 = Rect2f(10, 10, 1920, 1080);
 	}
 }; // ImUIWindow_CreateDesc
 
@@ -65,6 +66,7 @@ ImUIWindow::ImUIWindow() {
 	}
 
 	{ // create render context
+		AXE_ASSERT(_nativeWin != nullptr);
 		_contentView = SPtr_make<ImUIRenderView>();
 		addChild(_contentView.ptr());
 
@@ -72,19 +74,26 @@ ImUIWindow::ImUIWindow() {
 		desc.window = _nativeWin.get();
 		_contentView->createRenderContext(desc);
 	}
-
-	_nativeWin->setVisible(true); // !<-- set active after render context created  
 }
 
 ImUIWindow::~ImUIWindow() {
 }
 
 void ImUIWindow::setWindowTitle(StrView title) {
-	_nativeWin->setWindowTitle(title);
+	if (_nativeWin) {
+		_nativeWin->setWindowTitle(title);
+	}
+}
+void ImUIWindow::setWindowVisible(bool bVisible) {
+	if (_nativeWin) {
+		_nativeWin->setVisible(bVisible);
+	}
 }
 
 void ImUIWindow::render() {
-	if (_contentView) { _contentView->render(); }
+	if (_contentView) {
+		_contentView->render();
+	}
 }
 
 void ImUIWindow::onNativeWorldPosChanged(const Vec2f& pos) {
@@ -95,7 +104,8 @@ void ImUIWindow::onNativeSizeChanged(const Vec2f& s) {
 	Base::onSizeChanged(s);
 
 	if (_nativeWin) {
-		auto rc = _nativeWin->clientRect(); // aka _nativeWin->contentWorldRect();
+		AXE_TODO("rename 'clientRect' -> 'contentWorldRect'");
+		auto rc = _nativeWin->clientRect();
 		if (_contentView) {
 			_contentView->setWorldRect(rc);
 		}

@@ -4,8 +4,7 @@
 namespace axe {
 
 class EditorMainWindow : public EditorWindow {
-	using This = EditorMainWindow;
-	using Base = EditorWindow;
+	AXE_RTTI_INFO(EditorMainWindow, EditorWindow)
 public:
 	EditorMainWindow();
 

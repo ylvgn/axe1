@@ -9,8 +9,7 @@ namespace axe {
 class Win32Util;
 
 class NativeUIWindow_Win32 : public NativeUIWindow_Base {
-	using This = NativeUIWindow_Win32;
-	using Base = NativeUIWindow_Base;
+	AXE_RTTI_INFO(NativeUIWindow_Win32, NativeUIWindow_Base)
 public:
 	using Util = Win32Util;
 

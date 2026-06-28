@@ -13,6 +13,7 @@ public:
 	~ImUIWindow();
 
 	void setWindowTitle(StrView title);
+	void setWindowVisible(bool bVisible);
 
 	RenderContext*	renderContext() { return _contentView ? _contentView->renderContext() : nullptr; }
 	ImUIRenderView* contentView()	{ return _contentView; }

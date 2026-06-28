@@ -1,15 +1,13 @@
 #if AXE_RENDER_HAS_DX12
 
 #include "Device_DX12.h"
-#include "Context_DX12.h"
+#include "RenderContext_DX12.h"
 #include "Renderer_DX12.h"
 #include "Capabilities_DX12.h"
 #include "GpuBuffer_DX12.h"
 #include "Fence_DX12.h"
 
 namespace axe {
-
-axeRenderDevice_InterfaceFunctions_Impl(DX12)
 
 Device_DX12::Device_DX12(CreateDesc& desc)
 	: Base(desc)
@@ -20,20 +18,23 @@ Device_DX12::Device_DX12(CreateDesc& desc)
 	auto* dxgiFactory = renderer->dxgiFactory();
 
 	if (desc.adapterInfo) {
-		::LUID targetAdapterLuid;
-		Util::convert(targetAdapterLuid, desc.adapterInfo->LUID);
+		Renderer_DX12::Helper::forEachDXGIAdapter([&](IDXGIAdapter* dxgiAdapter) {
+			::HRESULT hr2;
 
-		hr = dxgiFactory->EnumAdapterByLuid(targetAdapterLuid, IID_PPV_ARGS(_dxgiAdapter.ptrForInit()));
-		switch (hr) {
-			case S_OK:
-				AXE_LOG("Choosed prefer Adapter LUID {}", targetAdapterLuid);
-				break;
-			case DXGI_ERROR_NOT_FOUND:
-				AXE_LOG_WARN("DX12 prefer Adapter LUID {} not found", targetAdapterLuid);
-				break;
-			default:
-				AXE_DX12_THROWIF_HRESULT_ERROR(hr);
-		}
+			ComPtr<DX12_IDXGIAdapter> tmpAdapter;
+			hr2 = dxgiAdapter->QueryInterface(IID_PPV_ARGS(tmpAdapter.ptrForInit()));
+			if (!Util::isValid(hr2)) return false;
+
+			DXGI_ADAPTER_DESC adapterDesc;
+			dxgiAdapter->GetDesc(&adapterDesc);
+			
+			auto adapterName = UtfUtil::toString(adapterDesc.Description);
+			if (desc.adapterInfo->name == adapterName) {
+				_dxgiAdapter = AXE_MOVE(tmpAdapter);
+				return true;
+			}
+			return false;
+		});
 	}
 	if (!_dxgiAdapter) {
 		hr = dxgiFactory->EnumAdapterByGpuPreference(0, DXGI_GPU_PREFERENCE_HIGH_PERFORMANCE, IID_PPV_ARGS(_dxgiAdapter.ptrForInit()));
@@ -57,7 +58,7 @@ Device_DX12::Device_DX12(CreateDesc& desc)
 		AXE_DX12_THROWIF_HRESULT_ERROR(hr);
 	}
 
-#if defined(_DEBUG)
+#if AXE_RENDER_DEBUG_LAYER
 	{
 		::DXGI_ADAPTER_DESC3 adapterDesc;
 		_dxgiAdapter->GetDesc3(&adapterDesc);
@@ -67,7 +68,7 @@ Device_DX12::Device_DX12(CreateDesc& desc)
 	}
 #endif
 
-#if defined(_DEBUG)
+#if AXE_RENDER_DEBUG_LAYER
 	{ // DRED settings persist beyond the interface lifetime
 		ComPtr<DX12_ID3D12DeviceRemovedExtendedDataSettings> dredSettings;
 		if (SUCCEEDED(DXGIGetDebugInterface1(0, IID_PPV_ARGS(dredSettings.ptrForInit()))))
@@ -82,7 +83,7 @@ Device_DX12::Device_DX12(CreateDesc& desc)
 
 	_capabilities = new Capabilities_DX12(this);
 
-#if defined(_DEBUG)
+#if AXE_RENDER_DEBUG_LAYER
 	ComPtr<ID3D12InfoQueue> pInfoQueue;
 	if (SUCCEEDED(_d3dDevice->QueryInterface(IID_PPV_ARGS(pInfoQueue.ptrForInit()))))
 	{

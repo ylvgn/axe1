@@ -8,8 +8,7 @@
 namespace axe {
 
 class Renderer_DX12 : public Renderer {
-	using This = Renderer_DX12;
-	using Base = Renderer;
+	AXE_RTTI_INFO(Renderer_DX12, Renderer)
 	using Util = DX12Util;
 public:
 	AXE_DOWNCAST_GET_INSTANCE()
@@ -38,10 +37,11 @@ public:
 	void setGpuBasedValidation(bool isEnable, ::D3D12_GPU_BASED_VALIDATION_FLAGS flags = D3D12_GPU_BASED_VALIDATION_FLAGS_NONE);
 	void setSyncCommandQueueValidation(bool isEnable);
 
-#if defined(_DEBUG)
+#if AXE_RENDER_DEBUG_LAYER
 	DX12_ID3D12Debug*  d3dDebug() { return _d3dDebug; }
 #endif
-
+protected:
+	AXE_RenderObject_LIST(AXE_RenderSystem_NewObject, DX12, override)
 private:
 	struct LiveObjectReporter
 	{
@@ -52,7 +52,7 @@ private:
 	void _getHardwareAdapterBasicInfo();
 
 	ComPtr<DX12_IDXGIFactory> _dxgiFactory;
-#if defined(_DEBUG)
+#if AXE_RENDER_DEBUG_LAYER
 	ComPtr<DX12_ID3D12Debug>  _d3dDebug;
 #endif
 }; // Renderer_DX12

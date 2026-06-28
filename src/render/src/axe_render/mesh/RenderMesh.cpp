@@ -310,6 +310,24 @@ void RenderMesh::setSubMeshCount(size_t newSize) {
 #if 0
 #pragma mark ========= RenderSubMesh ============
 #endif
+RenderSubMesh::RenderSubMesh(RenderSubMesh&& r) noexcept
+	: _mesh(r._mesh)
+	, _indexType(r._indexType)
+	, _vertexData(AXE_MOVE(r._vertexData))
+	, _indexData(AXE_MOVE(r._indexData))
+	, _vertexBuffer(AXE_MOVE(r._vertexBuffer))
+	, _indexBuffer(AXE_MOVE(r._indexBuffer))
+	, _vertexCount(r._vertexCount)
+	, _indexCount(r._indexCount)
+	, _boundingBox(r._boundingBox)
+{
+	r._mesh = nullptr;
+	r._indexType = RenderDataType::None;
+	r._vertexCount = 0;
+	r._indexCount  = 0;
+	r._boundingBox.reset();
+}
+
 void RenderSubMesh::create(const EditMesh& src) {
 	_createVB(src, src.pos.size());
 	_createIB(src, src.indices.size());
@@ -479,8 +497,8 @@ void RenderSubMesh::_setVertexBuffer(ByteSpan vertexData) {
 	desc.type		= RenderGpuBufferType::Vertex;
 	desc.bufferSize = vertexData.size();
 
-	_vertexBuffer = SPtr_fromUPtr(Renderer::s_rootDevice()->createGpuBuffer(desc));
-	_vertexBuffer->uploadToGpu(vertexData);
+	//_vertexBuffer = SPtr_fromUPtr(Renderer::s_rootDevice()->createGpuBuffer(desc)); TODO
+	//_vertexBuffer->uploadToGpu(vertexData); TODO
 }
 
 void RenderSubMesh::_setIndexBuffer(ByteSpan indexData) {
@@ -492,8 +510,8 @@ void RenderSubMesh::_setIndexBuffer(ByteSpan indexData) {
 	desc.type		= RenderGpuBufferType::Index;
 	desc.bufferSize = indexData.size();
 
-	_indexBuffer = SPtr_fromUPtr(Renderer::s_rootDevice()->createGpuBuffer(desc));
-	_indexBuffer->uploadToGpu(indexData);
+	//_indexBuffer = SPtr_fromUPtr(Renderer::s_rootDevice()->createGpuBuffer(desc)); TODO
+	//_indexBuffer->uploadToGpu(indexData); TODO
 }
 
 } // namespace axe

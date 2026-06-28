@@ -4,6 +4,29 @@
 
 namespace axe {
 
+class RenderObject : public RttiObject {
+	AXE_RTTI_INFO(RenderObject, RttiObject)
+public:
+	StrView  name() const		{ return _name; }
+
+	void setName(StrView name_) { _name.assign(name_); onSetName(name_); }
+
+	using GpuData = ::std::nullptr_t;
+	static constexpr Int s_gpuBufferMaxSize () { return 64 * Math::MegaBytes; }
+	static constexpr Int s_gpuBufferPageSize() { return  4 * Math::MegaBytes; }
+protected:
+	virtual void onSetName(StrView name) {}
+	
+	TempString	_name;
+};
+
+#define RendererApi_ENUM_LIST(E) \
+	E(None, )	\
+	E(Dx12, )	\
+	E(Vk, )		\
+//----
+AXE_ENUM_CLASS(RendererApi, u8)
+
 #define RenderGpuVendor_ENUM_LIST(E) \
 	E(Unknown, )                     \
 	E(NVIDIA, )                      \

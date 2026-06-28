@@ -167,7 +167,7 @@ public:
 	using Setter = void (*)(void* obj, const void* value);
 #if 1 // simple for now
 	FieldInfo() = default;
-#else	 // TODO will remove later
+#else // TODO will remove later
 	template<class OBJ, class FIELD>
 	FieldInfo(	const char* name_,
 				FIELD OBJ::* ptr_,
@@ -180,13 +180,14 @@ public:
 		, setter(reinterpret_cast<Setter>(setter_))
 	{}
 #endif
-		  void* getValuePtr(      void* obj) const { return reinterpret_cast<      u8*>(obj) + offset; } // TODO may use new handle
-	const void* getValuePtr(const void* obj) const { return reinterpret_cast<const u8*>(obj) + offset; } // TODO may use new handle
+		  void* getValuePtr(      void* obj) const { return reinterpret_cast<      u8*>(obj) + offset;}
+	const void* getValuePtr(const void* obj) const { return reinterpret_cast<const u8*>(obj) + offset;}
 
 	template<class T>
-	const T& getValue(const void* obj) const { // TODO may use new handle
+	const T& getValue(const void* obj) const {
 		AXE_ASSERT(rttiOf<T>() == fieldType);
 		if (getter) {
+			AXE_TODO("Let get/set allow assign instead of ctor init");
 			return *reinterpret_cast<const T*>(getter(obj));
 		} else {
 			return *reinterpret_cast<const T*>(getValuePtr(obj));
@@ -194,9 +195,10 @@ public:
 	}
 
 	template<class T>
-	void setValue(void* obj, const T& value) const { // TODO may use new handle
+	void setValue(void* obj, const T& value) const {
 		AXE_ASSERT(rttiOf<T>() == fieldType);
 		if (setter) {
+			AXE_TODO("Let get/set allow assign instead of ctor init");
 			setter(obj, &value);
 		} else {
 			*reinterpret_cast<T*>(getValuePtr(obj)) = value;
@@ -263,7 +265,7 @@ public:
 
 	void addField(InNameId name_, Rtti* fieldType_, Int offset_) {
 		AXE_ASSERT(ownFieldsDict.count(name_) == 0);
-		auto& field = ownFieldsDict[name_];
+		auto& field		 = ownFieldsDict[name_];
 		field.name		 = name_;
 		field.fieldOwner = this;
 		field.fieldType  = fieldType_;
@@ -282,6 +284,9 @@ public:
 }; // TypeInfo
 AXE_FORMATTER(TypeInfo)
 
+#if 0
+#pragma mark ========= RttiObject ============
+#endif
 class RttiObject : public RefCountBase {
 public:
 	RttiObject() = default;
@@ -292,6 +297,7 @@ public:
 	static  Rtti* s_rtti ()		{ return rttiOf<This>(); }
 	virtual Rtti* rtti() const 	{ return rttiOf<This>(); }
 };
+
 
 #if 0
 #pragma mark ========= MutRttiInit_FromMetaType_ ============
@@ -304,7 +310,7 @@ struct MutRttiInit_FromMetaType_ : public TypeInfo {
 	using MetaType     = MetaTypeOf<T>;
 	using BaseMetaType = MetaTypeOf<ObjBase>;
 
-	static constexpr bool noBase = std::is_same_v<ObjBase, NoBaseClass>;
+	static constexpr bool noBase = is_same_v<ObjBase, NoBaseClass>;
 	
 	struct OwnField_Handler {
 		template<Int Index, class Field>
@@ -316,8 +322,8 @@ struct MutRttiInit_FromMetaType_ : public TypeInfo {
 	MutRttiInit_FromMetaType_() {
 //		static_assert(Type_IsBaseOf<IMetaType, MetaType>, "MetaType must based on IMetaType");
 		this->base = rttiOf<ObjBase>();
-		auto view = axe_metatype_get_class_name<T>(); // TODO NameId::s_make
-		this->name.assign(view); // TODO template require is_convertible then use this->name = view; 
+		auto view = axe_metatype_get_class_name<T>();	AXE_TODO("return value should NameId::s_make");
+		this->name.assign(view);						AXE_TODO("template require ::axe::is_convertible then can easy use \"this->name = view;\"");
 		using OwnFields = typename MetaType::OwnFields;
 		this->ownFields.reserve(OwnFields::kSize);
 		OwnFields::template ForEachType<OwnField_Handler>(this);
@@ -341,16 +347,19 @@ DST* axe_cast(Object* obj) {
 
 AXE_META_TYPE_INIT_SIMPLE(void)
 AXE_META_TYPE_INIT_SIMPLE(bool)
-AXE_META_TYPE_INIT_SIMPLE(i8 )
+
+AXE_META_TYPE_INIT_SIMPLE( i8)
 AXE_META_TYPE_INIT_SIMPLE(i16)
 AXE_META_TYPE_INIT_SIMPLE(i32)
 AXE_META_TYPE_INIT_SIMPLE(i64)
-AXE_META_TYPE_INIT_SIMPLE(u8 )
+
+AXE_META_TYPE_INIT_SIMPLE( u8)
 AXE_META_TYPE_INIT_SIMPLE(u16)
 AXE_META_TYPE_INIT_SIMPLE(u32)
 AXE_META_TYPE_INIT_SIMPLE(u64)
-AXE_META_TYPE_INIT_SIMPLE(f32 )
-AXE_META_TYPE_INIT_SIMPLE(f64 )
+
+AXE_META_TYPE_INIT_SIMPLE( f32)
+AXE_META_TYPE_INIT_SIMPLE( f64)
 AXE_META_TYPE_INIT_SIMPLE(f128)
 
 } // namespace axe
