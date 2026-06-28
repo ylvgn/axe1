@@ -4,7 +4,12 @@ project(${PROJECT_NAME})
 
 axe_add_library(${PROJECT_NAME} ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(${PROJECT_NAME} PUBLIC axe_core)
-target_link_libraries(${PROJECT_NAME} PRIVATE DirectX-Headers D3D12MemoryAllocator VulkanMemoryAllocator)
+target_link_libraries(${PROJECT_NAME} PRIVATE
+	DirectX-Headers
+	D3D12MemoryAllocator
+	Volk
+	VulkanMemoryAllocator
+)
 
 set_target_properties(${PROJECT_NAME} PROPERTIES FOLDER "axe")
 
@@ -17,3 +22,9 @@ target_link_libraries(${PROJECT_NAME} PUBLIC JPEG::JPEG)
 
 find_package(imgui CONFIG REQUIRED)
 target_link_libraries(${PROJECT_NAME} PUBLIC imgui::imgui)
+
+# for simple SDL3, Volk, VMA, glm and Slang are taken from the VK SDK
+#find_package(volk CONFIG REQUIRED)
+#target_link_libraries(${PROJECT_NAME} PRIVATE volk::volk volk::volk_headers)
+
+#target_include_directories(${PROJECT_NAME} SYSTEM PRIVATE $ENV{VULKAN_SDK}/include)
