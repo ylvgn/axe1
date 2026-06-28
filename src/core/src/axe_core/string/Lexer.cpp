@@ -137,7 +137,7 @@ StrView Lexer::getLastFewLines(size_t lineCount) {
 	auto* start = _source.data();
 
 	auto* p = _cur;
-	for (; p >= start && n > 0; ++p) {
+	for (; p >= start && n > 0; p--) {
 		if (*p == '\n') {
 			--n;
 		}
