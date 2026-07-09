@@ -7,7 +7,7 @@ target_link_libraries(${PROJECT_NAME} PUBLIC axe_core)
 target_link_libraries(${PROJECT_NAME} PRIVATE
 	DirectX-Headers
 	D3D12MemoryAllocator
-	Volk
+	Volk-Headers
 	VulkanMemoryAllocator
 )
 

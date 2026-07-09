@@ -35,4 +35,4 @@ axe_copy_files_post_build(${PROJECT_NAME}
 add_subdirectory(DirectX-Headers)
 add_subdirectory(D3D12MemoryAllocator)
 add_subdirectory(VulkanMemoryAllocator)
-add_subdirectory(Volk)
+add_subdirectory(Volk-Headers)
