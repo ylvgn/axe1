@@ -9,7 +9,7 @@ void Camera3<T>::pan(T x, T y) {
 
 	auto q = Quat4::s_eulerY(x) * Quat4::s_angleAxis(y, right);
 	v      = q * v;
-	_up    = q * _up;
+	_up    = q * _up; // may non-orthogonal value
 	_aim   = _pos + v;
 }
 
@@ -20,19 +20,20 @@ void Camera3<T>::orbit(T x, T y) {
 
 	auto q = Quat4::s_angleAxis(y, right) * Quat4::s_eulerY(x);
 	v      = q * v;
-	_up    = q * _up;
+	_up    = q * _up; // may non-orthogonal value
 	_pos   = _aim + v;
 }
 
 template<class T>
 void Camera3<T>::move(T x, T y, T z) {
-	auto v		= _aim - _pos;
-	auto dir	= v.normal();
-	auto right	= _up.cross(dir);
+	auto v	 	= _aim - _pos;
+	auto dir 	= v.normal();
+	auto right = _up.cross(dir).normal();
+	auto up    = dir.cross(right); // up must perpendicular to both dir and right
 
-	auto t = right * x + _up * y + dir * z;
-	_pos += t;
-	_aim += t;
+	auto t 	= right * x + up * y + dir * z;
+	_pos 	+= t;
+	_aim 	+= t;
 }
 
 template<class T>

@@ -4,11 +4,7 @@
 
 namespace axe {
 
-using IError = ::std::exception;
-
-class Error : public IError {
-	using Base = IError;
-	using This = Error;
+class Error : public ::std::exception {
 public:
 	static void s_setEnableAssertion(bool b);
 	static bool s_getEnableAssertion() { return _s_enableAssertion; }
