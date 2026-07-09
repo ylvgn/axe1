@@ -276,6 +276,14 @@ struct ColorRGBA {
 		T data[kElementCount];
 	};
 
+	AXE_META_TYPE(ColorRGBA, NoBaseClass) {
+		AXE_META_FIELD(r) {};
+		AXE_META_FIELD(g) {};
+		AXE_META_FIELD(b) {};
+		AXE_META_FIELD(a) {};
+		using OwnFields = Tuple<r,g,b,a>;
+	};
+	
 	ColorRGBA() = default;
 	constexpr ColorRGBA(const T& r_, const T& g_, const T& b_, const T& a_)
 		: r(r_), g(g_), b(b_), a(a_) {}

@@ -83,6 +83,12 @@ public:
 	T* detach() noexcept { T* o = _p; _p = nullptr; return o; }
 
 	AXE_NODISCARD AXE_INLINE static SPtr<T> s_ref(T* p) noexcept { return SPtr(p); }
+	
+	template<class... ARGS>
+	T*	newObject(/*const MemAllocRequest& req,*/ ARGS&&...args) {
+		reset(new /*(req)*/ T(AXE_FORWARD(args)...));
+		return _p;
+	}
 
 private:
 	T* _p = nullptr;

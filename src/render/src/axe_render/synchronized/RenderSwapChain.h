@@ -15,10 +15,12 @@ public:
 
 	const auto& frameBufferSize() const { return _frameBufferSize; }
 
+	static const constexpr Vec2i  kMinFrameSize{8, 8};
+	
 protected:
-	virtual void OnResizeOrMove(const Vec2f& newSize) = 0;
+	virtual void OnResizeOrMove(const Vec2i& newSize) = 0;
 
-	Vec2f			_frameBufferSize { 0,0 }; // TODO, may no need atm
+	Vec2i			_frameBufferSize { 0,0 }; // TODO, may no need atm
 	u32				_curImageIdx = 0;
 	RenderContext*	_renderContext = nullptr;
 }; // RenderSwapChain

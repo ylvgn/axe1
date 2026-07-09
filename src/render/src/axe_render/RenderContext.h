@@ -17,6 +17,8 @@ AXE_VC_WARNING_POP()
 class RenderContext_CreateDesc {
 public:
 	NativeUIWindow*	window = nullptr;
+	NativeUIWindow::CreateDesc windowDesc;
+//	SwapChainDesc              swapChainDesc;
 }; // RenderContext_CreateDesc
 
 
@@ -26,7 +28,7 @@ public:
 	using CreateDesc	= RenderContext_CreateDesc;
 	using EventHandler	= RenderContext_EventHandler;
 
-	static UPtr<This> s_new(CreateDesc& desc, int deviceIndex = 0);
+	static UPtr<This> s_new(/*const MemAllocRequest& req,*/ CreateDesc& desc, int deviceIndex = 0);
 
 			void   beginRender();
 	virtual void onBeginRender() {}
@@ -34,8 +36,8 @@ public:
 			void   endRender();
 	virtual void onEndRender() {}
 
-			void   setSwapChainFrameBufferSize(const Vec2f& newSize);
-	virtual void onSetSwapChainFrameBufferSize(const Vec2f& newSize) { _swapChainFrameBufferSize = newSize; }
+			void   setSwapChainFrameBufferSize(const Vec2i& newSize);
+	virtual void onSetSwapChainFrameBufferSize(const Vec2i& newSize) { _swapChainFrameBufferSize = newSize; }
 	const auto& swapChainFrameBufferSize() const { return _swapChainFrameBufferSize; }
 
 			void   commit(RenderCommandBuffer& cmdBuf) { onCommit(cmdBuf); }
@@ -46,12 +48,14 @@ public:
 	void						setEventHandler(EventHandler* eventHandler) { _eventHandler = eventHandler; }
 	RenderContext_EventHandler* eventHandler() const { return _eventHandler; }
 
+	void render();
+	
 #if AXE_OS_WINDOWS
-	::HWND						hwnd()	const { return _window->_hwnd; }
+	::HWND						hwnd()	const { return _window->hwnd(); }
 #endif
 
 protected:
-	RenderContext(RenderDevice* device, const CreateDesc& desc) noexcept; // please create from 'RenderDevice::createRenderContext'
+	RenderContext(RenderDevice& device, const CreateDesc& desc) noexcept; // please create from 'Renderer::newRenderContext'
 
 	template<class IMPL>
 	void _dispatch(IMPL* impl, RenderCommandBuffer& cmdBuf) {
@@ -77,7 +81,7 @@ protected:
 		#undef AXE_MACRO_OP
 	}
 
-	Vec2f			_swapChainFrameBufferSize {0,0};
+	Vec2i			_swapChainFrameBufferSize {0,0};
 	NativeUIWindow* _window			= nullptr;
 	EventHandler*	_eventHandler	= nullptr;
 }; // RenderContext

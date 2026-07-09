@@ -4,16 +4,17 @@
 namespace axe {
 
 RenderDevice_CreateDesc::RenderDevice_CreateDesc() noexcept
-	: adapterInfo(nullptr) 
+	: Base()
+	, adapterInfo(nullptr) 
 	, vsync(true)
 	, useWarpDeviceFallback(false)
 {
 }
 
-RenderDevice_CreateDesc::RenderDevice_CreateDesc(const RenderAdapterInfo* info) noexcept
+RenderDevice_CreateDesc::RenderDevice_CreateDesc(const RenderAdapterInfo& info) noexcept
 	: RenderDevice_CreateDesc()
 {
-	adapterInfo = info;
+	adapterInfo = &info;
 }
 
 RenderDevice::RenderDevice(CreateDesc& desc) noexcept

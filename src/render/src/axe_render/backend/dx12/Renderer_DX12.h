@@ -43,11 +43,13 @@ public:
 protected:
 	AXE_RenderObject_LIST(AXE_RenderSystem_NewObject, DX12, override)
 private:
+#if AXE_RENDER_DEBUG_LAYER
 	struct LiveObjectReporter
 	{
 		// At application shutdown will auto called this destructor, for tracking DXGI/D3D resource leaks
 		~LiveObjectReporter();
 	} _internalReporter;
+#endif
 
 	void _getHardwareAdapterBasicInfo();
 

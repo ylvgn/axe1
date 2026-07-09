@@ -5,8 +5,7 @@
 namespace axe {
 
 class ImUIRenderView : public ImUIView {
-	using This = ImUIRenderView;
-	using Base = ImUIView;
+	AXE_RTTI_INFO(ImUIRenderView, ImUIView)
 public:
 	void createRenderContext(RenderContext::CreateDesc& desc);
 

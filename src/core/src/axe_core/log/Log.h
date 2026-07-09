@@ -8,6 +8,7 @@ namespace axe {
 
 #define Log_Level_ENUM_LIST(E) \
 	E(Unknown,)	\
+	E(Verbose,) \
 	E(Info,)	\
 	E(Warning,)	\
 	E(Error,)	\

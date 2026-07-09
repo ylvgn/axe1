@@ -51,7 +51,7 @@ public:
 		void gpuSignal(::ID3D12CommandQueue* d3dCmdQueue);
 		void gpuWait(::ID3D12CommandQueue* d3dCmdQueue);
 	protected:
-		Fence::Fence(Device_DX12* device) noexcept;
+		Fence::Fence(Device_DX12& device) noexcept;
 	private:
 		Fence() = delete;
 		void resetFenceValue();

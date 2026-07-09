@@ -6,7 +6,7 @@ namespace axe {
 
 class RenderGpuBuffer_CreateDesc {
 public:
-	using Type = RenderGpuBufferType;
+	using Type = GpuBufferType;
 
 	Type	type		= Type::None;
 	size_t	stride		= 16;

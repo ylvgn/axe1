@@ -1,6 +1,6 @@
 #pragma once
 
-#include <axe_core.h>
+#include <axe_core.h> // TODO: may move to kind of Render-Common.h
 
 namespace axe {
 
@@ -18,100 +18,122 @@ protected:
 	virtual void onSetName(StrView name) {}
 	
 	TempString	_name;
-};
+}; // RenderObject
+
 
 #define RendererApi_ENUM_LIST(E) \
-	E(None, )	\
-	E(Dx12, )	\
-	E(Vk, )		\
+	E(None	,) \
+	E(Dx12	,) \
+	E(Vk	,) \
 //----
 AXE_ENUM_CLASS(RendererApi, u8)
 
 #define RenderGpuVendor_ENUM_LIST(E) \
-	E(Unknown, )                     \
-	E(NVIDIA, )                      \
-	E(AMD, )                         \
+	E(Unknown	,) \
+	E(NVIDIA	,) \
+	E(AMD		,) \
 //----
 AXE_ENUM_CLASS(RenderGpuVendor, u8)
 
 #define RenderPrimitiveType_ENUM_LIST(E) \
-	E(None,) \
-	E(Points,) \
-	E(Lines,) \
-	E(Triangles,) \
+	E(None		,) \
+	E(Points	,) \
+	E(Lines		,) \
+	E(Triangles	,) \
 //----
 AXE_ENUM_CLASS(RenderPrimitiveType, u8)
 
-#define RenderGpuBufferType_ENUM_LIST(E) \
-	E(None,) \
-	E(Vertex,) \
-	E(Index,) \
-	E(Const,) \
-	E(Storage,) \
+#define RenderDepthType_ENUM_LIST(E) \
+	E(None							,) \
+	E(Depth_UNorm16					,) \
+	E(Depth_Float32					,) \
+	/* E(Depth_UNorm16_Stencil_UInt8,) - no in DX12 */  \
+	E(Depth_UNorm24_Stencil_UInt8	,) \
+	E(Depth_Float32_Stencil_UInt8	,) \
+	/* E(Stencil_UInt8				,) - no in DX12 */ \
 //----
-AXE_ENUM_CLASS(RenderGpuBufferType, u8)
+AXE_ENUM_CLASS(RenderDepthType, u8)
+
+#define GpuBufferType_ENUM_LIST(E) \
+	E(None		,) \
+	E(Vertex	,) \
+	E(Index		,) \
+	E(Const		,) \
+	E(Structured,) /*Storage Buffer*/ \
+	E(StagingToGpu, ) \
+	E(StagingToCpu, ) \
+//----
+AXE_ENUM_CLASS(GpuBufferType, u8)
+
+#define RenderBufferLoadOp_ENUM_LIST(E) \
+	E(None		,) \
+	E(DontCare	,) \
+	E(Load		,) \
+	E(Clear		,) \
+//----
+AXE_ENUM_CLASS(RenderBufferLoadOp, u8)
 
 #define MonitorDisplayMode_ENUM_LIST(E) \
-	E(Unknown, ) \
-	E(SDR,) \
-	E(HDR_PQ, ) \
-	E(HDR_scRGB, ) \
+	E(Unknown	,) \
+	E(SDR		,) \
+	E(HDR_PQ	,) \
+	E(HDR_scRGB	,) \
 //----
 AXE_ENUM_CLASS(MonitorDisplayMode, u8)
 
 #define RenderDataType_ENUM_LIST(E) \
 	E(None,) \
 	\
-	E(Int8, )	E(Int8x2, )		E(Int8x3, )		E(Int8x4, )		\
-	E(Int16, )	E(Int16x2, )	E(Int16x3, )	E(Int16x4, )	\
-	E(Int32, )	E(Int32x2, )	E(Int32x3, )	E(Int32x4, )	\
-	E(Int64, )	E(Int64x2, )	E(Int64x3, )	E(Int64x4, )	\
+	E(Int8	,)	E(Int8x2	,)	E(Int8x3 	,)	E(Int8x4	,)	\
+	E(Int16	,)	E(Int16x2	,)	E(Int16x3	,)	E(Int16x4	,)	\
+	E(Int32	,)	E(Int32x2	,)	E(Int32x3	,)	E(Int32x4	,)	\
+	E(Int64	,)	E(Int64x2	,)	E(Int64x3	,)	E(Int64x4	,)	\
 	\
-	E(Int8Array, )	E(Int8x2Array, )	E(Int8x3Array, )	E(Int8x4Array, )	\
-	E(Int16Array, )	E(Int16x2Array, )	E(Int16x3Array, )	E(Int16x4Array, )	\
-	E(Int32Array, )	E(Int32x2Array, )	E(Int32x3Array, )	E(Int32x4Array, )	\
-	E(Int64Array, )	E(Int64x2Array, )	E(Int64x3Array, )	E(Int64x4Array, )	\
+	E(Int8Array		,)	E(Int8x2Array 	,)	E(Int8x3Array 	,)	E(Int8x4Array 	,)	\
+	E(Int16Array	,)	E(Int16x2Array	,)	E(Int16x3Array	,)	E(Int16x4Array	,)	\
+	E(Int32Array	,)	E(Int32x2Array	,)	E(Int32x3Array	,)	E(Int32x4Array	,)	\
+	E(Int64Array	,)	E(Int64x2Array	,)	E(Int64x3Array	,)	E(Int64x4Array	,)	\
 	\
-	E(UInt8,)	E(UInt8x2,)	 E(UInt8x3,)	E(UInt8x4,)		\
-	E(UInt16,)	E(UInt16x2,) E(UInt16x3,)	E(UInt16x4,)	\
-	E(UInt32,)	E(UInt32x2,) E(UInt32x3,)	E(UInt32x4,)	\
-	E(UInt64,)	E(UInt64x2,) E(UInt64x3,)	E(UInt64x4,)	\
+	E(UInt8 	,)	E(UInt8x2 	,) E(UInt8x3 	,)	E(UInt8x4 	,)	\
+	E(UInt16	,)	E(UInt16x2	,) E(UInt16x3	,)	E(UInt16x4	,)	\
+	E(UInt32	,)	E(UInt32x2	,) E(UInt32x3	,)	E(UInt32x4	,)	\
+	E(UInt64	,)	E(UInt64x2	,) E(UInt64x3	,)	E(UInt64x4	,)	\
 	\
-	E(UInt8Array,)	E(UInt8x2Array,)	E(UInt8x3Array,)	E(UInt8x4Array,)	\
-	E(UInt16Array,)	E(UInt16x2Array,)	E(UInt16x3Array,)	E(UInt16x4Array,)	\
-	E(UInt32Array,)	E(UInt32x2Array,)	E(UInt32x3Array,)	E(UInt32x4Array,)	\
-	E(UInt64Array,)	E(UInt64x2Array,)	E(UInt64x3Array,)	E(UInt64x4Array,)	\
+	E(UInt8Array	,)	E(UInt8x2Array	,)	E(UInt8x3Array	,)	E(UInt8x4Array	,) \
+	E(UInt16Array	,)	E(UInt16x2Array	,)	E(UInt16x3Array	,)	E(UInt16x4Array	,) \
+	E(UInt32Array	,)	E(UInt32x2Array	,)	E(UInt32x3Array	,)	E(UInt32x4Array	,) \
+	E(UInt64Array	,)	E(UInt64x2Array	,)	E(UInt64x3Array	,)	E(UInt64x4Array	,) \
 	\
-	E(Float16,)	E(Float16x2,) E(Float16x3,)	E(Float16x4,)	\
-	E(Float32,)	E(Float32x2,) E(Float32x3,)	E(Float32x4,)	\
-	E(Float64,)	E(Float64x2,) E(Float64x3,)	E(Float64x4,)	\
+	E(Float16	,)	E(Float16x2	,) E(Float16x3	,)	E(Float16x4	,) \
+	E(Float32	,)	E(Float32x2	,) E(Float32x3	,)	E(Float32x4	,) \
+	E(Float64	,)	E(Float64x2	,) E(Float64x3	,)	E(Float64x4	,) \
 	\
-	E(Float16Array,) E(Float16x2Array,)	E(Float16x3Array,) E(Float16x4Array,)	\
-	E(Float32Array,) E(Float32x2Array,)	E(Float32x3Array,) E(Float32x4Array,)	\
-	E(Float64Array,) E(Float64x2Array,)	E(Float64x3Array,) E(Float64x4Array,)	\
+	E(Float16Array	,) E(Float16x2Array	,)	E(Float16x3Array	,) E(Float16x4Array	,) \
+	E(Float32Array	,) E(Float32x2Array	,)	E(Float32x3Array	,) E(Float32x4Array	,) \
+	E(Float64Array	,) E(Float64x2Array	,)	E(Float64x3Array	,) E(Float64x4Array	,) \
 	\
-	E(SNorm8,)	E(SNorm8x2,)	E(SNorm8x3,)	E(SNorm8x4,)	\
-	E(SNorm16,)	E(SNorm16x2,)	E(SNorm16x3,)	E(SNorm16x4,)	\
-	E(SNorm32,)	E(SNorm32x2,)	E(SNorm32x3,)	E(SNorm32x4,)	\
+	E(SNorm8	,)	E(SNorm8x2	,)	E(SNorm8x3	,)	E(SNorm8x4	,) \
+	E(SNorm16	,)	E(SNorm16x2	,)	E(SNorm16x3	,)	E(SNorm16x4	,) \
+	E(SNorm32	,)	E(SNorm32x2	,)	E(SNorm32x3	,)	E(SNorm32x4	,) \
 	\
 	E(SNorm8Array,)	 E(SNorm8x2Array,)	E(SNorm8x3Array,)	E(SNorm8x4Array,)	\
 	E(SNorm16Array,) E(SNorm16x2Array,)	E(SNorm16x3Array,)	E(SNorm16x4Array,)	\
 	E(SNorm32Array,) E(SNorm32x2Array,)	E(SNorm32x3Array,)	E(SNorm32x4Array,)	\
 	\
-	E(UNorm8,)	E(UNorm8x2,)	E(UNorm8x3,)	E(UNorm8x4,)	\
-	E(UNorm16,)	E(UNorm16x2,)	E(UNorm16x3,)	E(UNorm16x4,)	\
-	E(UNorm32,)	E(UNorm32x2,)	E(UNorm32x3,)	E(UNorm32x4,)	\
+	E(UNorm8	,)	E(UNorm8x2	,)	E(UNorm8x3	,)	E(UNorm8x4	,) \
+	E(UNorm16	,)	E(UNorm16x2	,)	E(UNorm16x3	,)	E(UNorm16x4	,) \
+	E(UNorm32	,)	E(UNorm32x2	,)	E(UNorm32x3	,)	E(UNorm32x4	,) \
 	\
-	E(UNorm8Array,)	 E(UNorm8x2Array,)	E(UNorm8x3Array,)	E(UNorm8x4Array,)	\
-	E(UNorm16Array,) E(UNorm16x2Array,)	E(UNorm16x3Array,)	E(UNorm16x4Array,)	\
-	E(UNorm32Array,) E(UNorm32x2Array,)	E(UNorm32x3Array,)	E(UNorm32x4Array,)	\
+	E(UNorm8Array	,) E(UNorm8x2Array	,)	E(UNorm8x3Array	,)	E(UNorm8x4Array	,) \
+	E(UNorm16Array	,) E(UNorm16x2Array	,)	E(UNorm16x3Array,)	E(UNorm16x4Array,) \
+	E(UNorm32Array	,) E(UNorm32x2Array	,)	E(UNorm32x3Array,)	E(UNorm32x4Array,) \
 	\
-	E(Float16_2x2, ) E(Float16_3x3,) E(Float16_4x4,) E(Float16_4x3,) \
-	E(Float32_2x2, ) E(Float32_3x3,) E(Float32_4x4,) E(Float32_4x3,) \
-	E(Float64_2x2, ) E(Float64_3x3,) E(Float64_4x4,) E(Float64_4x3,) \
+	E(Float16_2x2	,) E(Float16_3x3	,) E(Float16_4x4	,) E(Float16_4x3,) \
+	E(Float32_2x2	,) E(Float32_3x3	,) E(Float32_4x4	,) E(Float32_4x3,) \
+	E(Float64_2x2	,) E(Float64_3x3	,) E(Float64_4x4	,) E(Float64_4x3,) \
 	\
-	E(Bool,)		E(Boolx2,)		 E(Boolx3,)		  E(Boolx4,) \
-	E(BoolArray,)	E(Boolx2Array,)  E(Boolx3Array,)  E(Boolx4Array,) \
+	E(Bool,)		\
+	E(BoolArray,)	\
 	\
 	E(Texture1D,)		E(Texture2D,)		E(Texture3D,)		E(TextureCube,) \
 	E(Texture1DArray,)	E(Texture2DArray,)	E(Texture3DArray,)	E(TextureCubeArray,) \
@@ -290,9 +312,6 @@ u16 RenderDataTypeUtil::sizeInBytes(DataType t) {
 		case DataType::Float64x4Array:	return 0;
 	//---
 		case DataType::BoolArray:	return 0;
-		case DataType::Boolx2Array:	return 0;
-		case DataType::Boolx3Array:	return 0;
-		case DataType::Boolx4Array:	return 0;
 	//---
 		default:
 			AXE_THROW_ERROR("unsupported render data type = {}", t);
@@ -415,8 +434,8 @@ public:
 	static constexpr u16	  s_ElementSizeInBytes() { return RenderDataTypeUtil::sizeInBytes(s_ElementDataType()); }
 	static constexpr u16      s_PackingSizeInBytes() { return RenderDataTypeUtil::sizeInBytes(DataType::Float32x4); } // https://learn.microsoft.com/en-us/windows/win32/direct3dhlsl/dx-graphics-hlsl-packing-rules
 
-	This(T* data, size_t dataSize) noexcept : _data(data, dataSize) {}
-	This(Span<T>& s)			   noexcept : _data(s) {}
+	constexpr This(T* data, size_t dataSize) noexcept : _data(data, dataSize) {}
+	constexpr This(Span<T>& s)				 noexcept : _data(s) {}
 
 			T& operator[]	(int i)			{ return _data[i]; }
 	const	T& operator[]	(int i)	const	{ return _data[i]; }
@@ -428,8 +447,9 @@ public:
 	ByteSpan toSpan()	 const { return ByteSpan_make(_data); }
 
 protected:
-	This() = delete;
 	Span<T> _data;
+private:
+	This() = delete;
 };
 
 using RenderInt32x2Array	= RenderDataType_Array<Tuple2i>;

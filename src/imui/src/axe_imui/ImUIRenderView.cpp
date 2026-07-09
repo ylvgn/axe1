@@ -1,4 +1,5 @@
 #include "ImUIRenderView.h"
+#include <axe_render/RenderContext.h>
 
 namespace axe {
 
@@ -7,12 +8,15 @@ void ImUIRenderView::createRenderContext(RenderContext::CreateDesc& desc) {
 }
 
 void ImUIRenderView::onSizeChanged(const Vec2f& size) {
-	_renderContext->setSwapChainFrameBufferSize(size);
+	Base::onSizeChanged(size);
+	if (_renderContext) {
+		_renderContext->setSwapChainFrameBufferSize(Vec2i::s_cast(size));
+	}
 }
 
 void ImUIRenderView::render() {
-	if (_renderContext && _renderContext->eventHandler()) {
-		_renderContext->eventHandler()->render(_renderContext.get());
+	if (_renderContext) {
+		_renderContext->render();
 	}
 }
 

@@ -200,6 +200,7 @@ void Renderer_DX12::_getHardwareAdapterBasicInfo() {
 	});
 }
 
+#if AXE_RENDER_DEBUG_LAYER
 Renderer_DX12::LiveObjectReporter::~LiveObjectReporter() {
 	ComPtr<DX12_IDXGIDebug> dxgiDebug;
 	if (SUCCEEDED(DXGIGetDebugInterface1(0, IID_PPV_ARGS(dxgiDebug.ptrForInit()))))
@@ -212,6 +213,7 @@ Renderer_DX12::LiveObjectReporter::~LiveObjectReporter() {
 		}
 	}
 }
+#endif
 
 Device_DX12* Renderer_DX12::findDevice(int i) const {
 	return static_cast<Device_DX12*>(Base::findDevice(i));

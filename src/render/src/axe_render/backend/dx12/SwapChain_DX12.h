@@ -32,13 +32,14 @@ class SwapChain_DX12 : public RenderSwapChain {
 	using Util = DX12Util;
 public:
 	using Base::Base;
+	using Base::kMinFrameSize;
 
 	~SwapChain_DX12() { destroy(); }
 
 	void create(RenderContext_DX12* context);
 	void destroy();
 
-	virtual void OnResizeOrMove(const Vec2f& newSize) final;
+	virtual void OnResizeOrMove(const Vec2i& newSize) final;
 
 	DX12_IDXGISwapChain*		d3dSwapChain()	{ return _d3dSwapChain; }
 	DX12_ID3D12Resource*		d3dRTV()		{ return _renderTargets[_curImageIdx]; }
@@ -46,7 +47,7 @@ public:
 	DescriptorHandle_DX12		d3dRTVHandle();
 	DX12_ID3D12Device*			d3dDevice();
 
-	RenderContext_DX12*		  renderContext();
+	RenderContext_DX12*			renderContext();
 
 	void present();
 
@@ -58,7 +59,7 @@ private:
 
 	bool _isDisplaySupportsHDR() const;
 
-	Format						 _format; // TODO
+	Format _format; // TODO
 
 	::HANDLE _waitableEvent = nullptr;
 

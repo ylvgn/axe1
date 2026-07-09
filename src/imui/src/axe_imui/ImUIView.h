@@ -2,7 +2,8 @@
 
 namespace axe {
 
-class ImUIView : public Object {
+class ImUIView : public RttiObject {
+	AXE_RTTI_INFO(ImUIView, RttiObject)
 public:
 	ImUIView()
 		: _worldPosDirty(true)
@@ -19,19 +20,17 @@ public:
 			Rect2f	worldRect() const { return Rect2f(worldPos(), _rect.size); }
 
 protected:
-	virtual void onSetWorldPos(const Vec2f& pos);
-	virtual void onSetSize(const Vec2f& s);
+	virtual void onSetSize			(const Vec2f& s);
+	virtual void onSizeChanged		(const Vec2f& s);
+	
+	virtual void onSetWorldPos		(const Vec2f& pos);
+	virtual void onWorldPosChanged	(const Vec2f& pos);
 
-	virtual void onSizeChanged(const Vec2f& s);
-	virtual void onWorldPosChanged(const Vec2f& pos);
-
-protected:
-	Vector<SPtr<ImUIView>, 4> _children;
-
-	ImUIView*	_parent = nullptr;
-	Vec2f		_worldPos	{};
-	Rect2f		_rect		{};
-	bool		_worldPosDirty : 1;
+	Vector<SPtr<ImUIView>, 4>	_children;
+	ImUIView*					_parent = nullptr;
+	Rect2f						_rect			{};
+	Vec2f						_worldPos		{};
+	bool						_worldPosDirty : 1;
 
 private:
 	void _computeWorldPos();

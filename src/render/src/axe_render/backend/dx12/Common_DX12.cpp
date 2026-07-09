@@ -75,7 +75,11 @@ Device_DX12* DX12Util::rootDevice() {
 
 void DX12Util::setDebugName(::ID3D12Object* pObject, StrView name) {
 	if (pObject) {
-		AXE_DX12_THROWIF_HRESULT_ERROR(pObject->SetPrivateData(WKPDID_D3DDebugObjectName, static_cast<::UINT>(name.size()), name.data())); // The data(name) stored in the device internal.
+		AXE_DX12_THROWIF_HRESULT_ERROR(
+			pObject->SetPrivateData(WKPDID_D3DDebugObjectName
+									, static_cast<::UINT>(name.size())
+									, name.data()) // The data(name) stored in the device internal.
+		);
 	}
 }
 

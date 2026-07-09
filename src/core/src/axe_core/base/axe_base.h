@@ -1256,7 +1256,7 @@ constexpr DST axe_bit_cast(const SRC& src) {
 
 } // namespace axe
 
-//---- others
+//---- scoped
 namespace axe {
 
 template<class T>
@@ -1292,23 +1292,87 @@ private:
 	T _oldValue;
 }; // ScopedValue
 
-template<class T> AXE_NODISCARD AXE_INLINE auto ScopedValue_make(T& p)					  { return ScopedValue<T>(p); }
+template<class T> AXE_NODISCARD AXE_INLINE auto ScopedValue_make(T& p)					 { return ScopedValue<T>(p); }
 template<class T> AXE_NODISCARD AXE_INLINE auto ScopedValue_make(T& p, const T& newValue) { return ScopedValue<T>(p, newValue); }
 
-template<class START_FUNC, class END_FUNC>
+template<class ST_FUNC, class ED_FUNC>
 class ScopedAction : public NonCopyable {
 public:
-	using StartFuncPtrType = typename decay_t<START_FUNC>;
-	using EndFuncPtrType   = typename decay_t<END_FUNC>;
+	using StartFuncPtrType = typename decay_t<ST_FUNC>;
+	using EndFuncPtrType   = typename decay_t<ED_FUNC>;
 
-	explicit ScopedAction(START_FUNC && st, END_FUNC && ed) noexcept : _ed(AXE_FORWARD(ed)) { st(); }
-	~ScopedAction() { _ed(); }
+	AXE_NODISCARD explicit ScopedAction(ST_FUNC && stFunc, ED_FUNC && edFunc) noexcept
+		: _edFunc(AXE_FORWARD(edFunc))
+		, _valid(true)
+	{
+		stFunc();
+	}
+	
+	AXE_NODISCARD ScopedAction(ScopedAction && r) noexcept 
+		: _edFunc(AXE_MOVE(r._edFunc))
+		, _valid(AXE_MOVE(r._valid))
+	{
+		r._valid = false;
+	}
+
+	~ScopedAction() { if (_valid) _edFunc(); }
+	
+	void detach() {
+		_valid  = false;
+		_edFunc = nullptr;
+	}
+
 private:
-	EndFuncPtrType _ed;
+	EndFuncPtrType _edFunc = nullptr;
+	bool _valid : 1;
 }; // ScopedAction
 
-template <class START_FUNC, class END_FUNC> AXE_NODISCARD AXE_INLINE auto ScopedAction_make(START_FUNC&& st, END_FUNC&& ed) {
+template <class ST_FUNC, class ED_FUNC> AXE_NODISCARD AXE_INLINE auto ScopedAction_make(ST_FUNC&& st, ED_FUNC&& ed) {
 	return ScopedAction(AXE_FORWARD(st), AXE_FORWARD(ed));
 }
+
+template<class DATA, class OWNER, void (OWNER::*FUNC)()>
+class ScopedMemFuncProxy0 : public NonCopyable {
+public:
+	AXE_NODISCARD ScopedMemFuncProxy0(DATA && data, OWNER* owner)
+		: _data(AXE_FORWARD(data)), _owner(owner) {}
+
+	AXE_NODISCARD ScopedMemFuncProxy0(ScopedMemFuncProxy0 && r) noexcept {
+		std::swap(_data,  r._data);
+		std::swap(_owner, r._owner);
+	}
+	~ScopedMemFuncProxy0() { if (_owner) (_owner->*FUNC)(); }
+	
+	DATA& data()		{ return _data; }
+	operator DATA&()	{ return _data; }
+	DATA* operator->()	{ return &_data; }
+	
+private:
+	DATA	_data;
+	OWNER*	_owner = nullptr;
+}; // ScopedMemFuncProxy0
+
+template<class DATA, class OWNER, class PARAM0, void (OWNER::*FUNC)(PARAM0)>
+class ScopedMemFuncProxy1 : public NonCopyable {
+public:
+	AXE_NODISCARD ScopedMemFuncProxy1(DATA && data, OWNER* owner, PARAM0 && param0)
+		: _data(AXE_FORWARD(data)), _owner(owner), _param0(AXE_FORWARD(param0)) {}
+
+	AXE_NODISCARD ScopedMemFuncProxy1(ScopedMemFuncProxy1 && r) noexcept {
+		std::swap(_data,   r._data);
+		std::swap(_owner,  r._owner);
+		std::swap(_param0, r._param0);
+	}
+	~ScopedMemFuncProxy1() { if (_owner) (_owner->*FUNC)(std::move(_param0)); }
+	
+	DATA& data()		{ return _data; }
+	operator DATA&()	{ return _data; }
+	DATA* operator->()	{ return &_data; }
+	
+private:
+	DATA	_data;
+	OWNER*	_owner = nullptr;
+	PARAM0	_param0;
+}; // ScopedMemFuncProxy1
 
 } // namespace axe

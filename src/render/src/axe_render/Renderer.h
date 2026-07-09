@@ -9,8 +9,9 @@ public:
 	Renderer_CreateDesc() noexcept;
 
 	RendererApi api;
-	bool multithread : 1;
+	bool		multithread : 1;
 }; // Renderer_CreateDesc
+
 
 class Renderer : public RenderObject {
 	AXE_RTTI_INFO(Renderer, RenderObject)

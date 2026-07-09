@@ -11,7 +11,7 @@ class RenderContext_DX12 : public RenderContext {
 	AXE_RTTI_INFO(RenderContext_DX12, RenderContext)
 	using Util = DX12Util;
 public:
-	RenderContext_DX12(RenderDevice* device, const CreateDesc& desc);
+	RenderContext_DX12(RenderDevice& device, const CreateDesc& desc);
 
 	ComPtr<ID3D12RootSignature>		  m_rootSignature;
 	ComPtr<ID3D12PipelineState>		  m_pipelineState;
@@ -34,7 +34,7 @@ public:
 	DX12_ID3D12Device*			d3dDevice();
 	DX12_ID3D12CommandQueue*	d3dGraphicsCmdQueue() { return _graphicsCmdQueue; }
 
-	virtual void onSetSwapChainFrameBufferSize(const Vec2f& newSize) final;
+	virtual void onSetSwapChainFrameBufferSize(const Vec2i& newSize) final;
 	virtual void onCommit(RenderCommandBuffer& cmdBuf) final;
 
 	void onCmd_SetViewport			(RenderCommand_SetViewport& cmd);

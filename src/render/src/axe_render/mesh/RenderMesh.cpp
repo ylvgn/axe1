@@ -494,7 +494,7 @@ void RenderSubMesh::_setVertexBuffer(ByteSpan vertexData) {
 	AXE_ASSERT(!vertexData.empty());
 
 	RenderGpuBuffer::CreateDesc desc;
-	desc.type		= RenderGpuBufferType::Vertex;
+	desc.type		= GpuBufferType::Vertex;
 	desc.bufferSize = vertexData.size();
 
 	//_vertexBuffer = SPtr_fromUPtr(Renderer::s_rootDevice()->createGpuBuffer(desc)); TODO
@@ -507,7 +507,7 @@ void RenderSubMesh::_setIndexBuffer(ByteSpan indexData) {
 	AXE_ASSERT(!indexData.empty());
 
 	RenderGpuBuffer::CreateDesc desc;
-	desc.type		= RenderGpuBufferType::Index;
+	desc.type		= GpuBufferType::Index;
 	desc.bufferSize = indexData.size();
 
 	//_indexBuffer = SPtr_fromUPtr(Renderer::s_rootDevice()->createGpuBuffer(desc)); TODO

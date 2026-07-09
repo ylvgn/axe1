@@ -3,9 +3,8 @@
 namespace axe {
 
 struct ImuiApp_CreateDesc : public NativeUIApp_CreateDesc {
-	Renderer::CreateDesc	 rendererCreateDesc;
-	RenderDevice::CreateDesc renderDeviceCreateDesc;
-};
+	RenderDevice::CreateDesc renderSystemDesc;
+}; // ImuiApp_CreateDesc
 
 class ImUIApp : public NativeUIApp {
 	AXE_RTTI_INFO(ImUIApp, NativeUIApp)
@@ -17,8 +16,7 @@ public:
 	ImUIApp(const CreateDesc& desc = CreateDesc()) noexcept
 		: Base(desc)
 	{
-		_rendererCreateDesc     = desc.rendererCreateDesc;
-		_renderDeviceCreateDesc = desc.renderDeviceCreateDesc;
+		_renderSystemDesc = desc.renderSystemDesc;
 	}
 
 	Renderer*		renderer()		{ return _renderer.get(); }
@@ -27,12 +25,11 @@ public:
 protected:
 	virtual void onCreate() override;
 
-	Renderer::CreateDesc	 _rendererCreateDesc;
-	RenderDevice::CreateDesc _renderDeviceCreateDesc;
+	RenderDevice::CreateDesc _renderSystemDesc;
 
 private:
 	UPtr<Renderer>	   _renderer;
 	UPtr<RenderDevice> _renderDevice;
-};
+}; // ImUIApp
 
 } // namespace axe

@@ -67,18 +67,19 @@ void SwapChain_DX12::destroy() {
 	AXE_TODO("");
 }
 
-void SwapChain_DX12::OnResizeOrMove(const Vec2f& newSize) {
+void SwapChain_DX12::OnResizeOrMove(const Vec2i& newSize) {
 	if (/* desiredFormat != _format ||*/ _frameBufferSize != newSize) {
 		_frameBufferSize = newSize;
 
 		::HRESULT hr;
 		auto* d3d12Device = d3dDevice();
 
-		_releaseRenderTargetView();
-
+		_releaseRenderTargetView(); // before call ResizeBuffers, must release old render target view.
+		Vec2i frameSize = Math::max(kMinFrameSize, newSize);
+		
 		hr = _d3dSwapChain->ResizeBuffers(0
-										, static_cast<::UINT>(Math::max(8.0f, newSize.x))
-										, static_cast<::UINT>(Math::max(8.0f, newSize.y))
+										, frameSize.x
+										, frameSize.y
 										, DXGI_FORMAT_UNKNOWN
 										, 0);
 		AXE_DX12_THROWIF_HRESULT_ERROR(hr, d3d12Device);
@@ -112,8 +113,8 @@ void SwapChain_DX12::create(RenderContext_DX12* context) {
 	{ // create swap chain
 		::DXGI_SWAP_CHAIN_DESC1 swapChainDesc = {};
 		swapChainDesc.BufferCount			  = kFrameBufferCount;
-		swapChainDesc.Width					  = 8;
-		swapChainDesc.Height				  = 8;
+		swapChainDesc.Width					  = kMinFrameSize.x;
+		swapChainDesc.Height				  = kMinFrameSize.y;
 		swapChainDesc.Format				  = DXGI_FORMAT_R8G8B8A8_UNORM;
 		swapChainDesc.BufferUsage			  = DXGI_USAGE_RENDER_TARGET_OUTPUT;
 		swapChainDesc.SwapEffect			  = DXGI_SWAP_EFFECT_FLIP_DISCARD;

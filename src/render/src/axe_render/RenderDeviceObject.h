@@ -7,7 +7,7 @@ namespace axe {
 class RenderDeviceObject : public RenderObject {
 	AXE_RTTI_INFO(RenderDeviceObject, Object)
 public:
-	RenderDeviceObject(RenderDevice* device = Renderer::s_rootDevice()) noexcept;
+	RenderDeviceObject(RenderDevice& device = *Renderer::s_rootDevice()) noexcept;
 
 	RenderDevice* device() const;
 

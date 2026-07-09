@@ -76,10 +76,13 @@
 #if 0
 #pragma mark ========= Log begin ============
 #endif
+#define AXE_LOG_VERB(...)	do{ ::axe::Log::s_get()->write(axe::Log::Level::Verbose, __VA_ARGS__); } while(false)
 #define AXE_LOG(...)		do{ ::axe::Log::s_get()->write(axe::Log::Level::Info,    __VA_ARGS__); } while(false)
 #define AXE_LOG_WARN(...)	do{ ::axe::Log::s_get()->write(axe::Log::Level::Warning, __VA_ARGS__); } while(false)
 #define AXE_LOG_ERROR(...)	do{ ::axe::Log::s_get()->write(axe::Log::Level::Error,   __VA_ARGS__); } while(false)
 #define AXE_LOG_FLUSH()		do{ ::axe::Log::s_get()->flush(); } while(false)
+
+#define AXE_LOG_INFO		AXE_LOG
 
 #define AXE_LOG_FUNC_NAME() AXE_LOG("FUNC {}", AXE_FUNC_SIG)
 
@@ -388,7 +391,6 @@ public: \
 #if 0
 #pragma mark ========= Render begin ============
 #endif
-
 #define AXE_RenderObject_ForwardDeclare(OBJ, ...)	\
 	class OBJ; \
 	class OBJ ## _CreateDesc; \
@@ -425,7 +427,7 @@ public: \
 		using OBJ_API_T = typename OBJ##_##API; \
 		auto* device = findDevice(deviceIndex); \
 		AXE_ASSERT(device != nullptr); \
-		return UPtr<OBJ_API_T>(new OBJ_API_T(device, desc)); \
+		return UPtr<OBJ_API_T>(new OBJ_API_T(*device, desc)); \
 	} \
 //----
 

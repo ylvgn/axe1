@@ -10,7 +10,7 @@ void ImUIView::setWorldPos	(const Vec2f& pos)	{ onSetWorldPos(pos); }
 void ImUIView::onSetWorldPos(const Vec2f& pos)	{ onWorldPosChanged(pos); }
 void ImUIView::onWorldPosChanged(const Vec2f& pos) {
 	auto parentPos = _parent ? _parent->worldPos() : Vec2f::s_zero();
-	_rect.pos	   = pos - parentPos;
+	_rect.pos = pos - parentPos;
 	_setWorldPosDirty();
 }
 

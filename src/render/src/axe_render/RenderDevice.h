@@ -5,14 +5,15 @@
 namespace axe {
 
 class RenderDevice_CreateDesc : public Renderer_CreateDesc {
+	AXE_TYPE_INFO(RenderDevice_CreateDesc, Renderer_CreateDesc)
 public:
 	RenderDevice_CreateDesc() noexcept;
-	RenderDevice_CreateDesc(const RenderAdapterInfo* info) noexcept;
+	RenderDevice_CreateDesc(const RenderAdapterInfo& info) noexcept;
 
 	const RenderAdapterInfo* adapterInfo = nullptr;
+	bool 					 vsync					: 1;
+	bool 					 useWarpDeviceFallback	: 1;
 
-	bool vsync					: 1;
-	bool useWarpDeviceFallback	: 1;
 }; // RenderDevice_CreateDesc
 
 

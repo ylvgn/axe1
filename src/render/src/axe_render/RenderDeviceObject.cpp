@@ -1,10 +1,9 @@
 #include "RenderDeviceObject.h"
-#include "RenderDevice.h"
 
 namespace axe {
 
-RenderDeviceObject::RenderDeviceObject(RenderDevice* device) noexcept
-	: _device(device)
+RenderDeviceObject::RenderDeviceObject(RenderDevice& device) noexcept
+	: _device(&device)
 {
 }
 

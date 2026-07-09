@@ -6,8 +6,7 @@
 namespace axe {
 
 class NativeUIApp_Win32 : public NativeUIApp_Base {
-	using This = NativeUIApp_Win32;
-	using Base = NativeUIApp_Base;
+	AXE_RTTI_INFO(NativeUIApp_Win32, NativeUIApp_Base)
 public:
 	AXE_DOWNCAST_GET_INSTANCE()
 

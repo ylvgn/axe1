@@ -51,7 +51,7 @@ bool Fence_DX12::onCheckCompleted() {
 #if 0
 #pragma mark ========= FencePool_DX12::Fence ============
 #endif
-FencePool_DX12::Fence::Fence(Device_DX12* device) noexcept
+FencePool_DX12::Fence::Fence(Device_DX12& device) noexcept
 	: Base(device)
 {
 /*
@@ -196,7 +196,7 @@ void FencePool_DX12::_popBackToRunning() {
 }
 
 UPtr<FencePool_DX12::Fence> FencePool_DX12::_ctorNewFence(const SrcLoc& srcLoc){
-	auto f = UPtr<Fence>(new Fence(_device));
+	auto f = UPtr<Fence>(new Fence(*_device));
 	f->create(srcLoc);
 	return f;
 }

@@ -18,7 +18,7 @@ Device_DX12* RenderContext_DX12::renderDevice() {
 	return static_cast<Device_DX12*>(_device);
 }
 
-RenderContext_DX12::RenderContext_DX12(RenderDevice* device, const CreateDesc& desc)
+RenderContext_DX12::RenderContext_DX12(RenderDevice& device, const CreateDesc& desc)
 	: Base(device, desc)
 {
 	::HRESULT hr;
@@ -52,8 +52,7 @@ RenderContext_DX12::RenderContext_DX12(RenderDevice* device, const CreateDesc& d
 	{ // disable alt+enter
 		auto* renderer	   = Util::renderer();
 		auto* dxgiFactory  = renderer->dxgiFactory();
-		auto& _hwnd = desc.window->_hwnd;
-		hr = dxgiFactory->MakeWindowAssociation(_hwnd, DXGI_MWA_NO_ALT_ENTER);
+		hr = dxgiFactory->MakeWindowAssociation(desc.window->hwnd(), DXGI_MWA_NO_ALT_ENTER);
 		AXE_DX12_THROWIF_HRESULT_ERROR(hr, d3d12Device);
 	}
 
@@ -151,7 +150,8 @@ void RenderContext_DX12::_test_LoadAssets() {
     }
 
 	{ // Create the vertex buffer.
-		float m_aspectRatio = swapChainFrameBufferSize().x / swapChainFrameBufferSize().y;
+		Vec2f frameSize = Vec2f::s_cast(swapChainFrameBufferSize());
+		float m_aspectRatio = frameSize.x / frameSize.y;
 
 		VertexT triangleVertices[3];
 		triangleVertices[0].pos.set( 0.00f,  0.25f * m_aspectRatio, 0.0f);	triangleVertices[0].color[0].set( 1.0f, 0.0f, 0.0f, 1.0f);
@@ -264,7 +264,7 @@ void RenderContext_DX12::_test_WaitForPreviousFrame() {
 	}
 }
 
-void RenderContext_DX12::onSetSwapChainFrameBufferSize(const Vec2f& newSize) {
+void RenderContext_DX12::onSetSwapChainFrameBufferSize(const Vec2i& newSize) {
 	Base::onSetSwapChainFrameBufferSize(newSize);
 	_swapChain->OnResizeOrMove(newSize);
 }

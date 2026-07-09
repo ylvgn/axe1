@@ -10,7 +10,7 @@ void RenderCommandBuffer::reset(RenderContext* ctx) {
 	_allocator.clear();
 	_commands.clear();
 
-	_scissorRect = Rect2f(Vec2f::s_zero(), ctx->swapChainFrameBufferSize());
+	_scissorRect = Rect2f(Vec2f::s_zero(), Vec2f::s_cast(ctx->swapChainFrameBufferSize()));
 }
 
 } // namespace axe
