@@ -8,7 +8,7 @@ public:
 	EditorApp_CreateDesc() {
 		peekMessage = true;
 
-#if true // just for test
+#if false // just for test
 		rendererCreateDesc.api = RendererApi::Dx12;
 #else
 		rendererCreateDesc.api = RendererApi::Vk;

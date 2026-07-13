@@ -1,5 +1,7 @@
 #pragma once
 
+#define AXE_RENDER_DEBUG_NAME	1
+
 #if AXE_TRY_USE_DX12
 	#if AXE_OS_WINDOWS
 		#define AXE_RENDER_HAS_DX12 1
@@ -7,7 +9,7 @@
 #endif
 
 #if AXE_TRY_USE_VK
-	#define AXE_RENDER_HAS_VK 0
+	#define AXE_RENDER_HAS_VK 1
 #endif
 
 #if AXE_RENDER_HAS_DX12

@@ -2,6 +2,7 @@
 #include "RenderDevice.h"
 
 #include "backend/dx12/Renderer_DX12.h"
+#include "backend/vk/Renderer_Vk.h"
 
 namespace axe {
 
