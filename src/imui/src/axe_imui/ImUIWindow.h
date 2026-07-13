@@ -27,8 +27,8 @@ protected:
 	virtual void onNativeWorldPosChanged(const Vec2f&  pos);
 	virtual void onNativeSizeChanged	(const Vec2f& size);
 
-	virtual void onUIMouseEvent	(UIMouseEvent& ev)		{}
-	virtual void onUIKeyEvent	(UIKeyEvent&   ev)		{}
+	virtual void onUIMouseEvent	(UIMouseEvent& ev) {}
+	virtual void onUIKeyEvent	(UIKeyEvent&   ev) {}
 
 private:
 	class NativeWin;

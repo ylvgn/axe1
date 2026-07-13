@@ -36,7 +36,9 @@ void EditorApp::onCreate() {
 }
 
 void EditorApp::onPeekMessage() {
-	if (_mainWin) _mainWin->render();
+	if (_mainWin) {
+		_mainWin->render();
+	}
 }
 
 } // namespace axe

@@ -65,6 +65,7 @@ namespace axe {
 		case WM_SIZE: {
 			if (auto* thisObj = s_getThis(hwnd)) {
 				auto rc = _s_win32_getWorldRect(hwnd);
+				thisObj->onSetNativeSize(rc.size);
 				thisObj->onSetSize(rc.size);
 				return 0;
 			}

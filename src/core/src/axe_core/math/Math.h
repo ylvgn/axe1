@@ -32,7 +32,7 @@ namespace axe { namespace Math {
 	template<class T> constexpr T TSizeInBytes() { return static_cast<T>(TeraBytes); }
 	template<class T> constexpr T PSizeInBytes() { return static_cast<T>(PetaBytes); }
 
-	struct _Helper : public StaticClass {
+	struct _HelperAlignTo : public StaticClass {
 		template<class T>
 		static constexpr T alignTo_uint(T n, T a) {
 			AXE_STATIC_ASSERT(is_unsigned_v<T>);
@@ -59,18 +59,39 @@ namespace axe { namespace Math {
 				return n - (a - r);
 			}
 		}
-	}; // _Helper
-	AXE_STATIC_ASSERT_NO_MEMBER_CLASS(_Helper);
+		
+		template<class T>
+		static constexpr T alignTo_float(T n, T a) {
+			T i = floor(n / a) * a;
+			if (equals0(i, n)) return i;
+			return (n > 0) ? i + a : i - a;
+		}
+	}; // _HelperAlignTo
 
-	constexpr i8  alignTo(i8  n, i8  a) { return _Helper::alignTo_int(n, a); }
-	constexpr i16 alignTo(i16 n, i16 a) { return _Helper::alignTo_int(n, a); }
-	constexpr i32 alignTo(i32 n, i32 a) { return _Helper::alignTo_int(n, a); }
-	constexpr i64 alignTo(i64 n, i64 a) { return _Helper::alignTo_int(n, a); }
+	constexpr i8  alignTo(i8  n, i8  a) { return _HelperAlignTo::alignTo_int(n, a); }
+	constexpr i16 alignTo(i16 n, i16 a) { return _HelperAlignTo::alignTo_int(n, a); }
+	constexpr i32 alignTo(i32 n, i32 a) { return _HelperAlignTo::alignTo_int(n, a); }
+	constexpr i64 alignTo(i64 n, i64 a) { return _HelperAlignTo::alignTo_int(n, a); }
 
-	constexpr u8  alignTo(u8  n, u8  a) { return _Helper::alignTo_uint(n, a); }
-	constexpr u16 alignTo(u16 n, u16 a) { return _Helper::alignTo_uint(n, a); }
-	constexpr u32 alignTo(u32 n, u32 a) { return _Helper::alignTo_uint(n, a); }
-	constexpr u64 alignTo(u64 n, u64 a) { return _Helper::alignTo_uint(n, a); }
+	constexpr u8  alignTo(u8  n, u8  a) { return _HelperAlignTo::alignTo_uint(n, a); }
+	constexpr u16 alignTo(u16 n, u16 a) { return _HelperAlignTo::alignTo_uint(n, a); }
+	constexpr u32 alignTo(u32 n, u32 a) { return _HelperAlignTo::alignTo_uint(n, a); }
+	constexpr u64 alignTo(u64 n, u64 a) { return _HelperAlignTo::alignTo_uint(n, a); }
+
+	constexpr f32  alignTo(f32  n, f32  a) { return _HelperAlignTo::alignTo_float(n, a); }
+	constexpr f64  alignTo(f64  n, f64  a) { return _HelperAlignTo::alignTo_float(n, a); }
+
+
+	template<class T>
+	AXE_NODISCARD AXE_INLINE constexpr T alignDown(const T& value, const T& alignment) {
+		auto tmp = alignTo(value, alignment);
+		if (tmp == value) return value;
+		if (value >= 0) {
+			return tmp - alignment;
+		} else {
+			return tmp + alignment;
+		}
+	}
 
 //--------
 	template<class T>

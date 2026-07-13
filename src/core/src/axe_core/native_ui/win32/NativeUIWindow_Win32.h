@@ -21,8 +21,7 @@ public:
 
 	bool isKeyDown(KeyCode keyCode);
 
-	::HWND _hwnd = nullptr;
-
+	::HWND	hwnd() { return _hwnd; }
 protected:
 	virtual void onCreate(CreateDesc& desc) override;
 	virtual void onClientRectChanged(const Rect2f& rc) override;
@@ -47,6 +46,8 @@ private:
 	bool _isKeyDown(int vkKeyCode) { return ::GetKeyState(vkKeyCode) & 0x8000; }
 
 	UIEventModifier _getWin32Modifier();
+	
+	::HWND _hwnd = nullptr;
 }; // NativeUIWindow_Win32
 
 } // namespace axe

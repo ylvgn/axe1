@@ -341,6 +341,42 @@ UPtr<T> UPtr_make(Args&&... args) {
 	return ::eastl::make_unique<T>(AXE_FORWARD(args)...);
 }
 
+//! Reverse Enumerator
+template<class T>
+class Span_RevForEach_ {
+	using This = Span_RevForEach_;
+public:
+	constexpr operator Span_RevForEach_<const T>() const { return Span_RevForEach_<const T>(_begin, _end); }
+	
+	class	Iter {
+	public:
+		constexpr Iter( T* p=nullptr ) : _p(p) {}
+		constexpr operator const T*	()  { return  _p; }
+		constexpr T &		operator*	()	{ return *_p; }
+		constexpr void	operator++	()	{ --_p; }
+		constexpr bool	operator==	( const Iter & rhs )	{ return _p == rhs._p; }
+		constexpr bool	operator!=	( const Iter & rhs )	{ return _p != rhs._p; }
+	private:
+		T*	_p;
+	};
+
+	constexpr Iter	begin	()	const	{ return Iter(_begin); }
+	constexpr Iter	end		()	const	{ return Iter(_end);   }
+
+	constexpr static This s_make(T* begin, T* end) {
+		if (begin && end) {
+			return This(end - 1, begin - 1);
+		} else {
+			return This(nullptr, nullptr);
+		}
+	}
+private:
+	constexpr Span_RevForEach_(T* begin, T* end) : _begin(begin), _end(end) {}
+	
+	T*		_begin;
+	T*		_end;
+};
+
 template <class T> using Span = typename ::eastl::span<T>; // mutable
 using ByteSpan = Span<const u8>;
 
@@ -417,6 +453,10 @@ public:
 			end()
 		);
 	}
+	
+	template<class TT> using RevForEach_ = Span_RevForEach_<TT>;
+	constexpr auto revForEach	()			{ return RevForEach_<      T>::s_make( data(), data() + size() ); }
+	constexpr auto revForEach	() const{ return RevForEach_<const T>::s_make( data(), data() + size() ); }
 }; // Vector
 
 

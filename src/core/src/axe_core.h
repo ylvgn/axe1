@@ -32,6 +32,7 @@
 #include <axe_core/math/Ray3.h>
 #include <axe_core/math/Frustum3.h>
 #include <axe_core/math/MathCamera3.h>
+#include <axe_core/math/Range.h>
 
 #include <axe_core/file/MemMapFile.h>
 #include <axe_core/file/Directory.h>

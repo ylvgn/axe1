@@ -8,6 +8,7 @@ struct PixelIn {
 	float4 color : COLOR;
 };
 
+
 PixelIn vs_main(VertexIn i)
 {
     PixelIn o;
