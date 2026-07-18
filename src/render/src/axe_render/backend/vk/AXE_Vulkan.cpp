@@ -201,7 +201,7 @@ void AXE_VkInstance::create(AXE_VkInstanceCreateInfo& createInfo) {
 }
 
 void AXE_VkInstance::destroy() {
-	if (_debugMessenger != VK_NULL_HANDLE) {
+	if (_debugMessenger) {
 		vkDestroyDebugUtilsMessengerEXT(_instance, _debugMessenger, nullptr);
 		_debugMessenger = VK_NULL_HANDLE;
 	}
@@ -344,9 +344,9 @@ void AXE_VkDevice::destroy() {
 	}
 	
 	if (_handle) {
-		vkDeviceWaitIdle(_handle);
+		::vkDeviceWaitIdle(_handle);
 		const VkAllocationCallbacks* pAllocator = VkUtil::allocCallbacks();
-		vkDestroyDevice(_handle, pAllocator);
+		::vkDestroyDevice(_handle, pAllocator);
 		_handle = VK_NULL_HANDLE;
 	}
 }
@@ -488,7 +488,19 @@ void AXE_VkDevice::getQueue(class AXE_VkDeviceQueue& outQueue, AXE_VkQueueFamily
 
 void AXE_VkDeviceQueue::submit(Span<::VkSubmitInfo> infos, VkFence fenceToSignal) {
 	if (infos.empty()) return;
-	auto err = ::vkQueueSubmit(_handle, static_cast<uint32_t>(infos.size()), infos.data(), fenceToSignal);
+	/*
+	 * vkQueueSubmit is telling the GPU where to find the command buffer in CPU memory. 
+	 * no uploading commands to GPU, The GPU reads your command buffer directly from RAM while it's executing.
+	 */
+	auto err = ::vkQueueSubmit(_handle
+									  , static_cast<uint32_t>(infos.size())
+									  , infos.data()
+									  , fenceToSignal);
+	/*
+	* This returns IMMEDIATELY, often before the GPU even starts working!
+	* The GPU will process this command buffer later, so command buffer is on "Pending" state
+	* until 'vkGetFenceStatus(device, fence) == VK_SUCCESS' then GPU finished command buffer. after that, command buffer could safe call vkResetCommandBuffer
+	*/
 	
 	if (!VkUtil::checkResult(err)) {
 		uint32_t count = 0;
@@ -730,6 +742,7 @@ void AXE_VkCommandPool::destroy() {
 void AXE_VkCommandPool::create(AXE_VkDevice& dev, AXE_VkQueueFamilyIndex queueFamilyIndex) {
 	destroy();
 	_dev = &dev;
+
 	::VkCommandPoolCreateInfo ci = {};
 	ci.sType 				= VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
 	ci.pNext 				= nullptr;
@@ -781,7 +794,7 @@ void AXE_VkCommandBuffer::beginCommand() {
 	::VkCommandBufferBeginInfo ci = {};
 	ci.sType 					  = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 	ci.pNext 					  = nullptr;
-	ci.flags 					  = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+	ci.flags 					  = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT; // for Individual call vkResetCommandBuffer
 	ci.pInheritanceInfo			  = nullptr;
 
 	::vkBeginCommandBuffer(_handle, &ci);

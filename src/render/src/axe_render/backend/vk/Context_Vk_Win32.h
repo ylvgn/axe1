@@ -12,7 +12,6 @@ class Context_Vk_Win32 : public Context_Vk_Base {
 public:
 	Context_Vk_Win32(RenderDevice& device, const CreateDesc& desc);
 
-	Device_Vk*			renderDevice();
 	AXE_VkSurfaceKHR&	surface() { return _surface_vk; }
 	
 	virtual void onBeginRender() final;
@@ -21,15 +20,15 @@ public:
 	virtual void onSetSwapChainFrameBufferSize(const Vec2i& newSize) final;
 	virtual void onCommit(RenderCommandBuffer& cmdBuf) final;
 	
-	void onCmd_SetViewport			(RenderCommand_SetViewport& cmd) { AXE_TODO("onCmd_SetViewport"); }
-	void onCmd_SetScissorRect		(RenderCommand_SetScissorRect& cmd) { AXE_TODO("onCmd_SetScissorRect"); }
-	void onCmd_ClearFrameBuffers	(RenderCommand_ClearFrameBuffers& cmd) { AXE_TODO("onCmd_ClearFrameBuffers"); }
-	void onCmd_SwapBuffers			(RenderCommand_SwapBuffers& cmd) { AXE_TODO("onCmd_SwapBuffers"); }
-	void onCmd_DrawCall				(RenderCommand_DrawCall& cmd) { AXE_TODO("onCmd_DrawCall"); }
+	void onCmd_SetViewport			(RenderCommand_SetViewport& cmd);
+	void onCmd_SetScissorRect		(RenderCommand_SetScissorRect& cmd);
+	void onCmd_ClearFrameBuffers	(RenderCommand_ClearFrameBuffers& cmd);
+	void onCmd_SwapBuffers			(RenderCommand_SwapBuffers& cmd) { AXE_TODO("may Remove later"); }
+	void onCmd_DrawCall				(RenderCommand_DrawCall& cmd);
 	
 	constexpr static const size_t maxFramesInFlight = 2 /*RenderSwapChain::kFrameBufferWidth*/;
 	
-	uint32_t 									imageIndex{ 0 };
+	uint32_t 									swapChainImageIndex{ UINT32_MAX };
 	uint32_t 									frameIndex{ 0 };
 
 	//VkInstance								instance{ VK_NULL_HANDLE };
@@ -48,18 +47,18 @@ public:
 	AXE_VmaImage								depthImage;
 	AXE_VkImageView								depthImageView;
 	
-	Vector<VkImage>								swapchainImages;
-	Vector<UPtr<AXE_VkImageView>, 4>			swapchainImageViews; // TODO -> BackBuffer_Vk
+	Vector<VkImage>									swapchainImages;
+	Vector<UPtr<AXE_VkImageView>, 4>				swapchainImageViews; // TODO -> BackBuffer_Vk
 	Vector<AXE_VkCommandBuffer, maxFramesInFlight>	commandBuffers;
 	Vector<AXE_VkFence,			maxFramesInFlight>	fences;
 	Vector<AXE_VkSemaphore,		maxFramesInFlight>	imageAcquiredSemaphores;
-	Vector<AXE_VkSemaphore>						renderCompleteSemaphores;
+	Vector<AXE_VkSemaphore>							renderCompleteSemaphores;
 	
 	//VmaAllocation								vBufferAllocation{ VK_NULL_HANDLE };
 	//VkBuffer									vBuffer{ VK_NULL_HANDLE };
-	AXE_VmaBuffer								vBuffer;
+	AXE_VmaBuffer								vBuffer; // TODO -> save to draw call request (AxVertexShaderDraw), will got error when close app window by X
 
-#if 0
+#if 0 // TODO Shader/Material
 	struct ShaderData {
 		Mat4f projection;
 		Mat4f view;
@@ -88,10 +87,14 @@ public:
 #endif
 	
 private:
+	void _onBeginFrame();
+	void _onRender_RenderGraph();
+		void _onUpdate_RenderGraph();
+	void _onEndFrame();
+	
 	void _test_LoadAssets();
 	void _test_WaitForPreviousFrame();
 	
-	void _createSwapChain();
 	void _recreateSwapChain();
 	void _createBackBuffers(const Vec2i& frameSize);
 	

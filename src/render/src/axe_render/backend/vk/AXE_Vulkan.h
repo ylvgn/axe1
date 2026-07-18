@@ -141,6 +141,8 @@ public:
 	
 	void create(Device_Vk& device);
 	
+	VkResult waitIdle() { return vkDeviceWaitIdle(_handle); }
+	
 	AXE_VkQueueFamilyIndex graphQueueFamilyIndex() const { return _graphQueueFamilyIndex; }
 	
 	void getQueue	  (class AXE_VkDeviceQueue& outQueue, AXE_VkQueueFamilyIndex queueFamilyIndex, u32 queueIndex);
@@ -288,6 +290,10 @@ private:
 
 
 class AXE_VkCommandPool : public NonCopyable {
+/*
+ * Command Pools are tied to per Queue Families
+ * if multi-thread in CPU, per pool per thread for thread-safe for simple. 
+ */
 public:
 				const ::VkCommandPool& handle()	{ return _handle; }
 	operator	const ::VkCommandPool&()		{ return _handle; }
@@ -312,6 +318,9 @@ private:
 
 
 class AXE_VkCommandBuffer : public NonCopyable {
+/*
+ * Allocating a new VkCommandBuffer every frame is cheap. Destroying them every frame is expensive.
+ */
 public:
 				const ::VkCommandBuffer& handle()	{ return _handle; }
 	operator	const ::VkCommandBuffer&()			{ return _handle; }

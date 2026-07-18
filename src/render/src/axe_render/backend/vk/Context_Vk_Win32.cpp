@@ -8,10 +8,6 @@
 
 namespace axe {
 
-Device_Vk* Context_Vk_Win32::renderDevice() {
-	return static_cast<Device_Vk*>(_device);
-}
-
 Context_Vk_Win32::Context_Vk_Win32(RenderDevice& device, const CreateDesc& desc)
 	: Base(device, desc)
 {
@@ -26,10 +22,6 @@ Context_Vk_Win32::Context_Vk_Win32(RenderDevice& device, const CreateDesc& desc)
 		AXE_ASSERT(desc.window != nullptr);
 		_hwnd = desc.window->hwnd();
 		_surface_vk.create_Win32(*_dev, hInstance, _hwnd);
-	}
-	
-	{ // create swapchain
-		_createSwapChain();	
 	}
 	
 	{ // Command pool
@@ -506,6 +498,15 @@ void Context_Vk_Win32::_test_LoadAssets() {
 	}
 }
 
+void Context_Vk_Win32::_test_WaitForPreviousFrame() {
+	auto& fence = fences[frameIndex];
+	auto err = vkWaitForFences(*_dev, 1, &fence.handle(), true, UINT64_MAX);
+	VkUtil::throwIfError(err);
+	
+	err = vkResetFences(*_dev, 1, &fence.handle());
+	VkUtil::throwIfError(err);
+}
+
 void Context_Vk_Win32::onBeginRender() {
 	AXE_RUN_ONCE(_test_LoadAssets());
 	
@@ -521,15 +522,85 @@ void Context_Vk_Win32::onBeginRender() {
 	
 	_test_WaitForPreviousFrame();
 	
-	VkResult err = _swapChain_vk.acquireNextImage(imageIndex
+	VkResult err = _swapChain_vk.acquireNextImage(swapChainImageIndex
 								 , imageAcquiredSemaphores[frameIndex]
 								 , VK_NULL_HANDLE
 								 , UINT64_MAX);
 
-	//if (err != VK_SUCCESS && err != VK_SUBOPTIMAL_KHR) {
+	if (err != VK_SUCCESS && err != VK_SUBOPTIMAL_KHR) {
 		VkUtil::throwIfError(err);
-	//}
+	}
 
+	_onBeginFrame();
+	_onRender_RenderGraph();
+}
+
+void Context_Vk_Win32::_onBeginFrame() {
+	// Build command buffer
+	auto& cb = commandBuffers[frameIndex];
+	cb.resetAndReleaseResource();
+	cb.beginCommand();
+	
+	VkRenderingAttachmentInfo colorAttachmentInfo{};
+	colorAttachmentInfo.sType					= VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO;
+	colorAttachmentInfo.imageView				= swapchainImageViews[swapChainImageIndex]->handle();
+	colorAttachmentInfo.imageLayout 			= VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL;
+	colorAttachmentInfo.loadOp					= VK_ATTACHMENT_LOAD_OP_CLEAR;
+	colorAttachmentInfo.storeOp 				= VK_ATTACHMENT_STORE_OP_STORE;
+	colorAttachmentInfo.clearValue.color	 = {{0.0f, 0.2f, 0.4f, 1.0f} /*{0.0f, 0.0f, 0.0f, 1.0f}*/}; // clear color
+
+#if 0
+	VkRenderingAttachmentInfo depthAttachmentInfo{};
+	depthAttachmentInfo.sType					= VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO;
+	depthAttachmentInfo.imageView				= depthImageView;
+	depthAttachmentInfo.imageLayout 			= VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL;
+	depthAttachmentInfo.loadOp					= VK_ATTACHMENT_LOAD_OP_CLEAR;
+	depthAttachmentInfo.storeOp					= VK_ATTACHMENT_STORE_OP_DONT_CARE;
+	depthAttachmentInfo.clearValue				= {};
+	depthAttachmentInfo.clearValue.depthStencil = {1.0f,  0};
+#endif
+	
+	{ // Transition swapchain image from UNDEFINED/PRESENT_SRC_KHR to ATTACHMENT_OPTIMAL for dynamic rendering
+		VkImageMemoryBarrier2 renderBeginBarrier{};
+		renderBeginBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2;
+		renderBeginBarrier.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+		renderBeginBarrier.newLayout = VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL;
+		renderBeginBarrier.srcStageMask = VK_PIPELINE_STAGE_2_TOP_OF_PIPE_BIT;
+		renderBeginBarrier.srcAccessMask = 0;
+		renderBeginBarrier.dstStageMask = VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT;
+		renderBeginBarrier.dstAccessMask = VK_ACCESS_2_COLOR_ATTACHMENT_WRITE_BIT;
+		renderBeginBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+		renderBeginBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+		renderBeginBarrier.image = swapchainImages[swapChainImageIndex];
+		renderBeginBarrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+		renderBeginBarrier.subresourceRange.levelCount = 1;
+		renderBeginBarrier.subresourceRange.layerCount = 1;
+
+		VkDependencyInfo renderBeginDependencyInfo{};
+		renderBeginDependencyInfo.sType = VK_STRUCTURE_TYPE_DEPENDENCY_INFO;
+		renderBeginDependencyInfo.imageMemoryBarrierCount = 1;
+		renderBeginDependencyInfo.pImageMemoryBarriers = &renderBeginBarrier;
+
+		vkCmdPipelineBarrier2(cb, &renderBeginDependencyInfo);
+	}
+
+	VkRenderingInfo renderingInfo{};
+	renderingInfo.sType = VK_STRUCTURE_TYPE_RENDERING_INFO;
+	Rect2i tmpRenderArea(0, 0, _swapChainFrameBufferSize.x, _swapChainFrameBufferSize.y);
+	renderingInfo.renderArea = VkUtil::castVkRect2D(tmpRenderArea);
+	renderingInfo.layerCount = 1;
+	renderingInfo.colorAttachmentCount = 1;
+	renderingInfo.pColorAttachments = &colorAttachmentInfo;
+	renderingInfo.pDepthAttachment = nullptr; // &depthAttachmentInfo;
+	
+	vkCmdBeginRendering(cb, &renderingInfo);
+}
+
+void Context_Vk_Win32::_onRender_RenderGraph() {
+	_onUpdate_RenderGraph();
+}
+
+void Context_Vk_Win32::_onUpdate_RenderGraph() { // like update uniform buffer
 #if 0 // Update shader data
 	shaderData.projection = glm::perspective(glm::radians(45.0f), (float)windowSize.x / (float)windowSize.y, 0.1f, 32.0f);
 	shaderData.view = glm::translate(glm::mat4(1.0f), camPos);
@@ -540,10 +611,6 @@ void Context_Vk_Win32::onBeginRender() {
 	memcpy(shaderDataBuffers[frameIndex].allocationInfo.pMappedData, &shaderData, sizeof(ShaderData));
 #endif
 	
-	// Build command buffer
-	auto& cb = commandBuffers[frameIndex];
-	cb.resetAndReleaseResource();
-	cb.beginCommand();
 #if 0
 	std::array<VkImageMemoryBarrier2, 2> outputBarriers{
 		VkImageMemoryBarrier2{
@@ -573,90 +640,21 @@ void Context_Vk_Win32::onBeginRender() {
 	VkDependencyInfo barrierDependencyInfo{ .sType = VK_STRUCTURE_TYPE_DEPENDENCY_INFO, .imageMemoryBarrierCount = 2, .pImageMemoryBarriers = outputBarriers.data() };
 	vkCmdPipelineBarrier2(cb, &barrierDependencyInfo);
 #endif
-	
-	VkRenderingAttachmentInfo colorAttachmentInfo{};
-	colorAttachmentInfo.sType					= VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO;
-	colorAttachmentInfo.imageView				= swapchainImageViews[imageIndex]->handle();
-	colorAttachmentInfo.imageLayout 			= VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL;
-	colorAttachmentInfo.loadOp					= VK_ATTACHMENT_LOAD_OP_CLEAR;
-	colorAttachmentInfo.storeOp 				= VK_ATTACHMENT_STORE_OP_STORE;
-	colorAttachmentInfo.clearValue.color	 = {{0.0f, 0.2f, 0.4f, 1.0f} /*{0.0f, 0.0f, 0.0f, 1.0f}*/};
+}
 
-#if 0
-	VkRenderingAttachmentInfo depthAttachmentInfo{};
-	depthAttachmentInfo.sType					= VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO;
-	depthAttachmentInfo.imageView				= depthImageView;
-	depthAttachmentInfo.imageLayout 			= VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL;
-	depthAttachmentInfo.loadOp					= VK_ATTACHMENT_LOAD_OP_CLEAR;
-	depthAttachmentInfo.storeOp					= VK_ATTACHMENT_STORE_OP_DONT_CARE;
-	depthAttachmentInfo.clearValue				= {};
-	depthAttachmentInfo.clearValue.depthStencil = {1.0f,  0};
-#endif
-	
-	{ // Transition swapchain image from UNDEFINED/PRESENT_SRC_KHR to ATTACHMENT_OPTIMAL for dynamic rendering
-		VkImageMemoryBarrier2 renderBeginBarrier{};
-		renderBeginBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2;
-		renderBeginBarrier.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-		renderBeginBarrier.newLayout = VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL;
-		renderBeginBarrier.srcStageMask = VK_PIPELINE_STAGE_2_TOP_OF_PIPE_BIT;
-		renderBeginBarrier.srcAccessMask = 0;
-		renderBeginBarrier.dstStageMask = VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT;
-		renderBeginBarrier.dstAccessMask = VK_ACCESS_2_COLOR_ATTACHMENT_WRITE_BIT;
-		renderBeginBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-		renderBeginBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-		renderBeginBarrier.image = swapchainImages[imageIndex];
-		renderBeginBarrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-		renderBeginBarrier.subresourceRange.levelCount = 1;
-		renderBeginBarrier.subresourceRange.layerCount = 1;
-
-		VkDependencyInfo renderBeginDependencyInfo{};
-		renderBeginDependencyInfo.sType = VK_STRUCTURE_TYPE_DEPENDENCY_INFO;
-		renderBeginDependencyInfo.imageMemoryBarrierCount = 1;
-		renderBeginDependencyInfo.pImageMemoryBarriers = &renderBeginBarrier;
-
-		vkCmdPipelineBarrier2(cb, &renderBeginDependencyInfo);
+void Context_Vk_Win32::onCommit(RenderCommandBuffer& cmdBuf) {
+	// Skip rendering when window is minimized (extent 0x0)  simple for now
+	if (_swapChainFrameBufferSize.x <= 0 || _swapChainFrameBufferSize.y <= 0) {
+		return;
 	}
-
-	VkRenderingInfo renderingInfo{};
-	renderingInfo.sType = VK_STRUCTURE_TYPE_RENDERING_INFO;
-	Rect2i tmpRenderArea(0, 0, _swapChainFrameBufferSize.x, _swapChainFrameBufferSize.y);
-	renderingInfo.renderArea = VkUtil::castVkRect2D(tmpRenderArea);
-	renderingInfo.layerCount = 1;
-	renderingInfo.colorAttachmentCount = 1;
-	renderingInfo.pColorAttachments = &colorAttachmentInfo;
-	vkCmdBeginRendering(cb, &renderingInfo);
 	
-	vkCmdBindPipeline(cb, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
-	
-	// In Vulkan, VkViewport::height can be negative
-	// flip Y - in vulkan Y is downward, while DX and OpenGL is up
-	VkViewport vp {};
-	vp.x       	= 0.0f;
-	vp.y       	=  static_cast<float>(_swapChainFrameBufferSize.y) - 0.0f; // origin at bottom-left
-	vp.width  	=  static_cast<float>(_swapChainFrameBufferSize.x);
-	vp.height 	= -static_cast<float>(_swapChainFrameBufferSize.y); // flip y-axis
-	vp.minDepth = 0.0f;
-	vp.maxDepth = 1.0f;
-	vkCmdSetViewport(cb, 0, 1, &vp);
+	_dispatch(this, cmdBuf);
+	_onEndFrame();
+}
 
-	VkRect2D scissor {};
-	scissor.extent = {};
-	scissor.extent.width = static_cast<uint32_t>(_swapChainFrameBufferSize.x);
-	scissor.extent.height = static_cast<uint32_t>(_swapChainFrameBufferSize.y);
-	vkCmdSetScissor(cb, 0, 1, &scissor);
+void Context_Vk_Win32::_onEndFrame() {
+	auto& cb = commandBuffers[frameIndex];
 
-//	vkCmdBindDescriptorSets(cb, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSetTex, 0, nullptr);
-	VkDeviceSize vOffset{ 0 };
-	vkCmdBindVertexBuffers(cb, 0, 1, &vBuffer.handle(), &vOffset);
-
-#if 0
-	vkCmdBindIndexBuffer(cb, vBuffer, vBufSize, VK_INDEX_TYPE_UINT16);
-	vkCmdPushConstants(cb, pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(VkDeviceAddress), &shaderDataBuffers[frameIndex].deviceAddress);
-	vkCmdDrawIndexed(cb, indexCount, 3, 0, 0, 0);
-#else
-	vkCmdDraw(cb, 3, 1, 0, 0);
-#endif
-	
 	vkCmdEndRendering(cb);
 #if 0 // pipelineBarrier
 	VkImageMemoryBarrier2 barrierPresent{
@@ -683,7 +681,7 @@ void Context_Vk_Win32::onBeginRender() {
 	barrier.dstAccessMask = 0;
 	barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 	barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-	barrier.image = swapchainImages[imageIndex];  // Your current swapchain image
+	barrier.image = swapchainImages[swapChainImageIndex];  // Your current swapchain image
 	barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 	barrier.subresourceRange.baseMipLevel = 0;
 	barrier.subresourceRange.levelCount = 1;
@@ -704,91 +702,69 @@ void Context_Vk_Win32::onBeginRender() {
 #endif
 	vkCmdPipelineBarrier2(cb, &barrierPresentDependencyInfo);
 	cb.endCommand();
-	
-	// Submit to graphics queue
-	VkPipelineStageFlags waitStages = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-	VkSubmitInfo submitInfo{};
-	submitInfo.sType				= VK_STRUCTURE_TYPE_SUBMIT_INFO;
-	submitInfo.waitSemaphoreCount	= 1;
-	submitInfo.pWaitSemaphores		= &imageAcquiredSemaphores[frameIndex].handle();
-	submitInfo.pWaitDstStageMask	= &waitStages;
-	submitInfo.commandBufferCount	= 1;
-	submitInfo.pCommandBuffers		= &cb.handle();
-	submitInfo.signalSemaphoreCount = 1;
-	submitInfo.pSignalSemaphores	= &renderCompleteSemaphores[imageIndex].handle();
-	
-	Span<VkSubmitInfo> sInfos(&submitInfo, 1);
-	_graphQueue_vk.submit(sInfos, fences[frameIndex]);
-	
-	VkPresentInfoKHR presentInfo {};
-	presentInfo.sType				= VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
-	presentInfo.waitSemaphoreCount	= 1;
-	presentInfo.pWaitSemaphores 	= &renderCompleteSemaphores[imageIndex].handle();
-	presentInfo.swapchainCount		= 1;
-	presentInfo.pSwapchains			= &_swapChain_vk.handle();
-	presentInfo.pImageIndices		= &imageIndex;
-	err = vkQueuePresentKHR(_graphQueue_vk, &presentInfo);
-	if (err == VK_ERROR_OUT_OF_DATE_KHR || err == VK_SUBOPTIMAL_KHR) {
-		updateSwapchain = true;
-	} else {
-		VkUtil::throwIfError(err);
-	}
-	
-	frameIndex = (frameIndex + 1) % maxFramesInFlight;
 }
 
-void Context_Vk_Win32::_test_WaitForPreviousFrame() {
-	auto& fence = fences[frameIndex];
-	auto err = vkWaitForFences(*_dev, 1, &fence.handle(), true, UINT64_MAX);
-	VkUtil::throwIfError(err);
-	
-	err = vkResetFences(*_dev, 1, &fence.handle());
-	VkUtil::throwIfError(err);
-}
 
-void Context_Vk_Win32::onSetSwapChainFrameBufferSize(const Vec2i& newSize) {
-	Base::onSetSwapChainFrameBufferSize(newSize);
-	
-	updateSwapchain = true;
-}
-
-void Context_Vk_Win32::onCommit(RenderCommandBuffer& cmdBuf) {
-	_dispatch(this, cmdBuf);
-	// my render loop
-	
-}
-#if 0
+#if 1
 void Context_Vk_Win32::onCmd_SetViewport(RenderCommand_SetViewport& cmd) {
-	auto& rect = cmd.rect;
+	auto& cb = commandBuffers[frameIndex];
 
-	::D3D12_VIEWPORT viewport = {};
-	viewport.TopLeftX = rect.x;
-	viewport.TopLeftY = rect.y;
-	viewport.Width	  = rect.w;
-	viewport.Height	  = rect.h;
-	viewport.MinDepth = 0.f;
-	viewport.MaxDepth = 1.f;
-	m_commandList->RSSetViewports(1, &viewport);
+	::VkViewport vp {};
+
+	const auto& rect = cmd.rect;
+#if 1
+	// flip Y - in vulkan Y is downward, while DX and OpenGL is up
+	// VkViewport::height (VK_KHR_Maintenance1) can be negative
+	vp.x        = rect.x;
+	vp.y        = rect.h - rect.y;
+	vp.width    = rect.w;
+	vp.height   = -rect.h; // flip Y
+#else
+	vp.x        = rect.x;
+	vp.y        = rect.y;
+	vp.width    = rect.w;
+	vp.height   = rect.h;
+#endif
+	vp.minDepth = cmd.minDepth;
+	vp.maxDepth = cmd.maxDepth;
+	
+	::vkCmdSetViewport(cb, 0, 1, &vp);
 }
 
 void Context_Vk_Win32::onCmd_SetScissorRect(RenderCommand_SetScissorRect& cmd) {
+	auto& cb = commandBuffers[frameIndex];
 	auto& rect = cmd.rect;
 
-	::D3D12_RECT scissorRect = {};
-	using DST = decltype(scissorRect.left);
-
-	scissorRect.left    = static_cast<DST>(rect.x);
-	scissorRect.top		= static_cast<DST>(rect.y);
-	scissorRect.right	= static_cast<DST>(rect.xMax());
-	scissorRect.bottom	= static_cast<DST>(rect.yMax());
-	m_commandList->RSSetScissorRects(1, &scissorRect);
+	VkRect2D scissor {};
+	scissor.extent= {};
+	scissor.extent.width  = static_cast<uint32_t>(rect.size.x);
+	scissor.extent.height = static_cast<uint32_t>(rect.size.y);
+	::vkCmdSetScissor(cb, 0, 1, &scissor);
 }
+#endif
 
 void Context_Vk_Win32::onCmd_ClearFrameBuffers(RenderCommand_ClearFrameBuffers& cmd) {
+	AXE_TODO("may Remove later");
+	
+	auto& cb = commandBuffers[frameIndex];
+	
+	Rect2i tmpClearRect(0, 0, _swapChainFrameBufferSize.x, _swapChainFrameBufferSize.y);
+	
 	// clear back buffer(color buffer)
 	if (cmd.color.has_value()) {
-		auto rtvHandle = _swapChain->d3dRTVHandle();
-		m_commandList->ClearRenderTargetView(rtvHandle, cmd.color.value().data, 0, nullptr);
+		auto& clearColor = cmd.color.value();
+		
+		VkClearAttachment clearAtt = {};
+		clearAtt.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+		clearAtt.colorAttachment = 0;
+		clearAtt.clearValue.color = {{clearColor.r, clearColor.g, clearColor.b, clearColor.a}};
+		
+		VkClearRect clearRect = {};
+		clearRect.rect = VkUtil::castVkRect2D(tmpClearRect);
+		clearRect.baseArrayLayer = 0;
+		clearRect.layerCount = 1;
+
+		vkCmdClearAttachments(cb, 1, &clearAtt, 1, &clearRect);
 	}
 
 #if 0 // TODO
@@ -799,49 +775,77 @@ void Context_Vk_Win32::onCmd_ClearFrameBuffers(RenderCommand_ClearFrameBuffers& 
 #endif
 }
 
-void Context_Vk_Win32::onCmd_SwapBuffers(RenderCommand_SwapBuffers& cmd) {
-	::HRESULT hr;
-	auto*	  d3d12Device = d3dDevice();
-
-	// Indicate that the back buffer will now be used to present. (Transition back buffer to present)
-	auto barrier = ::CD3Vk_RESOURCE_BARRIER::Transition(_swapChain->d3dRTV()
-		, D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
-	m_commandList->ResourceBarrier(1, &barrier);
-
-	hr = m_commandList->Close();
-	AXE_Vk_THROWIF_HRESULT_ERROR(hr, d3d12Device);
-	
-	// Execute the command list.
-	ID3D12CommandList* ppCommandLists[] = { m_commandList.ptr() };
-	_graphicsCmdQueue->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
-
-#if 0 // TODO
-	{
-		auto* fence = ax_type_cast_debug<axVkFence>(dispatcher.renderRequest->completedFence());
-		fence->addToGpu(dispatcher.cmdQueue);
-	}
-#endif
-
-	// Present the frame.
-	_swapChain->present();
-}
-
 void Context_Vk_Win32::onCmd_DrawCall(RenderCommand_DrawCall& cmd) {
-	m_commandList->IASetPrimitiveTopology(VkUtil::getDxPrimitiveTopology(cmd.primitive));
+	auto& cb = commandBuffers[frameIndex];
 
-	AXE_TODO("draw vertex buffer");
-	m_commandList->IASetVertexBuffers(0, 1, &m_vertexBufferView);
-	m_commandList->DrawInstanced(3, 1, 0, 0);
-}
+	vkCmdBindPipeline(cb, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
+	
+	//	vkCmdBindDescriptorSets(cb, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSetTex, 0, nullptr);
+	VkDeviceSize vOffset{ 0 };
+	vkCmdBindVertexBuffers(cb, 0, 1, &vBuffer.handle(), &vOffset);
+	
+#if 0
+	AXE_TODO("draw by index");
+	vkCmdBindIndexBuffer(cb, vBuffer, vBufSize, VK_INDEX_TYPE_UINT16);
+	vkCmdPushConstants(cb, pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(VkDeviceAddress), &shaderDataBuffers[frameIndex].deviceAddress);
+	vkCmdDrawIndexed(cb, indexCount, 3, 0, 0, 0);
+#else
+	::vkCmdDraw(cb, 3, 1, 0, 0);
 #endif
+}
+
 
 void Context_Vk_Win32::onEndRender() {
+	// Skip rendering when window is minimized (extent 0x0)  simple for now 
+	if (_swapChainFrameBufferSize.x <= 0 || _swapChainFrameBufferSize.y <= 0) {
+		return;
+	}
+	
+	auto& cb = commandBuffers[frameIndex];
 
+	// Submit to graphics queue
+	VkPipelineStageFlags waitStages = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+	VkSubmitInfo submitInfo{};
+	submitInfo.sType				= VK_STRUCTURE_TYPE_SUBMIT_INFO;
+	submitInfo.waitSemaphoreCount	= 1;
+	submitInfo.pWaitSemaphores		= &imageAcquiredSemaphores[frameIndex].handle();
+	submitInfo.pWaitDstStageMask	= &waitStages;
+	submitInfo.commandBufferCount	= 1;
+	submitInfo.pCommandBuffers		= &cb.handle();
+	submitInfo.signalSemaphoreCount = 1;
+	submitInfo.pSignalSemaphores	= &renderCompleteSemaphores[swapChainImageIndex].handle();
+	
+	Span<VkSubmitInfo> sInfos(&submitInfo, 1);
+	_graphQueue_vk.submit(sInfos, fences[frameIndex]);
+	
+	VkPresentInfoKHR presentInfo {};
+	presentInfo.sType				= VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+	presentInfo.waitSemaphoreCount	= 1;
+	presentInfo.pWaitSemaphores 	= &renderCompleteSemaphores[swapChainImageIndex].handle();
+	presentInfo.swapchainCount		= 1;
+	presentInfo.pSwapchains			= &_swapChain_vk.handle();
+	presentInfo.pImageIndices		= &swapChainImageIndex;
+	
+	auto err = vkQueuePresentKHR(_graphQueue_vk, &presentInfo);
+	if (err == VK_ERROR_OUT_OF_DATE_KHR || err == VK_SUBOPTIMAL_KHR) {
+		updateSwapchain = true;
+	} else {
+		VkUtil::throwIfError(err);
+	}
+	
+	frameIndex = (frameIndex + 1) % maxFramesInFlight;
 }
 
-void Context_Vk_Win32::_createSwapChain() {
-	AXE_ASSERT(_surface_vk.handle() != VK_NULL_HANDLE);
+void Context_Vk_Win32::onSetSwapChainFrameBufferSize(const Vec2i& newSize) {
+	Base::onSetSwapChainFrameBufferSize(newSize);
+	
+	updateSwapchain = true;
+}
 
+void Context_Vk_Win32::_recreateSwapChain() {
+	AXE_ASSERT(_surface_vk.handle() != VK_NULL_HANDLE);
+	_dev->waitIdle();
+	
 	VkSurfaceFormatKHR surfaceFormat;
 	surfaceFormat.format		= VK_FORMAT_B8G8R8A8_SRGB; // VkUtil::getVkColorType(_swapChainDesc.colorDesc.colorType);
 	surfaceFormat.colorSpace	= VK_COLORSPACE_SRGB_NONLINEAR_KHR; // VK_COLOR_SPACE_SRGB_NONLINEAR_KHR;
@@ -860,45 +864,21 @@ void Context_Vk_Win32::_createSwapChain() {
 	_createBackBuffers(VkUtil::castVec2i(cap.currentExtent));
 }
 
-void Context_Vk_Win32::_recreateSwapChain() {
-	vkDeviceWaitIdle(*_dev);
-	
-	VkSurfaceFormatKHR surfaceFormat;
-	surfaceFormat.format		= VK_FORMAT_B8G8R8A8_SRGB;
-	surfaceFormat.colorSpace	= VK_COLORSPACE_SRGB_NONLINEAR_KHR;
-
-	VkPresentModeKHR presentMode = _device->vsync() 
-		? VK_PRESENT_MODE_FIFO_KHR
-		: VK_PRESENT_MODE_IMMEDIATE_KHR;
-
-	_swapChain_vk.create(*_dev
-						, _surface_vk
-						, surfaceFormat
-						, maxFramesInFlight
-						, presentMode);
-
-	auto cap = _surface_vk.getCapabilities();
-	_createBackBuffers(VkUtil::castVec2i(cap.currentExtent));
-}
-
 void Context_Vk_Win32::_createBackBuffers(const Vec2i& frameSize) {
 	AXE_ASSERT(_swapChain_vk.handle() != VK_NULL_HANDLE);
 	_swapChainFrameBufferSize = Math::max(/*RenderSwapChain::kMinFrameSize*/ Vec2i(8,8), frameSize);
 	
-	Vector<VkImage> tmpSwapchainImages;
-	_swapChain_vk.getImages(tmpSwapchainImages);
+	_swapChain_vk.getImages(swapchainImages);
 
 	const VkFormat imageFormat{ VK_FORMAT_B8G8R8A8_SRGB }; // same as surfaceFormat.format
 	
-	Int imageCount = tmpSwapchainImages.size();
-	swapchainImages.resize(imageCount);
+	Int imageCount = swapchainImages.size();
 	swapchainImageViews.resize(imageCount); // _backBuffers_vk.resize(imageCount);
 	for (Int i = 0; i < imageCount; ++i) {
 		auto& dst = swapchainImageViews[i];
 		if (!dst)
 			dst.reset(new AXE_VkImageView());
-		dst->create(*_dev, tmpSwapchainImages[i], imageFormat);
-		swapchainImages[i] = AXE_MOVE(tmpSwapchainImages[i]);
+		dst->create(*_dev, swapchainImages[i], imageFormat);
 	}
 	
 	// One render-complete semaphore per swapchain image so a semaphore is never reused

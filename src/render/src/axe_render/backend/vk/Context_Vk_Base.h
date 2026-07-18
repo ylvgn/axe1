@@ -11,7 +11,10 @@ class Context_Vk_Base : public RenderContext {
 	AXE_RTTI_INFO(Context_Vk_Base, RenderContext)
 public:
 	Context_Vk_Base(RenderDevice& device, const CreateDesc& desc);
-
+	
+	Device_Vk*	renderDevice();
+	
+	~Context_Vk_Base();
 }; // Context_Vk_Base
 
 } // namespace axe

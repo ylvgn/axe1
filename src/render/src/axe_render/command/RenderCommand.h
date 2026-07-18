@@ -79,6 +79,8 @@ public:
 	{}
 
 	Rect2f rect {0};
+	float minDepth = 0.f;
+	float maxDepth = 1.f;
 }; // RenderCommand_SetViewport
 
 

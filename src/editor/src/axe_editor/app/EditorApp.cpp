@@ -9,9 +9,9 @@ public:
 		peekMessage = true;
 
 #if false // just for test
-		rendererCreateDesc.api = RendererApi::Dx12;
+		renderSystemDesc.api = RendererApi::Dx12;
 #else
-		rendererCreateDesc.api = RendererApi::Vk;
+		renderSystemDesc.api = RendererApi::Vk;
 #endif
 	}
 };
